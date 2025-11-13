@@ -5,9 +5,9 @@
  * @module certificate
  */
 
-import { existsSync } from "fs";
-import { homedir, platform } from "os";
-import { join, sep } from "path";
+import { existsSync } from "node:fs";
+import { homedir, platform } from "node:os";
+import { join, sep } from "node:path";
 
 /**
  * Certificate utility class for resolving SSL certificates
@@ -27,7 +27,7 @@ export class Certificate {
 	 * ```
 	 */
 	public static exists(url: string): boolean {
-		return this.resolve(url) !== null;
+		return Certificate.resolve(url) !== null;
 	}
 
 	/**
@@ -63,7 +63,7 @@ export class Certificate {
 		const key = `${host}.key`;
 
 		// Search all configured certificate paths
-		for (const path of this.paths()) {
+		for (const path of Certificate.paths()) {
 			const certPath = join(path, certificate);
 			const keyPath = join(path, key);
 
@@ -87,7 +87,7 @@ export class Certificate {
 	 * ```
 	 */
 	public static paths(): string[] {
-		return [this.herdPath(), this.valetPath()];
+		return [Certificate.herdPath(), Certificate.valetPath()];
 	}
 
 	/**

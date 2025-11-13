@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 interface Message {
 	text: string;
@@ -24,13 +24,13 @@ export function Chat() {
 		currentChannelRef.current = channel;
 	}, [channel]);
 
-	const scrollToBottom = () => {
+	const scrollToBottom = useCallback(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	};
+	}, []);
 
 	useEffect(() => {
 		scrollToBottom();
-	}, [messages]);
+	}, [messages, scrollToBottom]);
 
 	const connect = () => {
 		if (wsRef.current?.readyState === WebSocket.OPEN) {

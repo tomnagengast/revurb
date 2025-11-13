@@ -14,7 +14,7 @@ interface ApplicationConfig {
 	allowed_origins: string[];
 	max_message_size: number;
 	max_connections?: number | null;
-	options?: Record<string, any>;
+	options?: Record<string, unknown>;
 }
 
 /**
@@ -73,7 +73,7 @@ export class ConfigApplicationProvider implements IApplicationProvider {
 	 * @returns The Application instance matching the criteria
 	 * @throws {InvalidApplication} If no application matches the given criteria
 	 */
-	find(key: string, value: any): Application {
+	find(key: string, value: unknown): Application {
 		const app = this.applications.find(
 			(app) => app[key as keyof ApplicationConfig] === value,
 		);

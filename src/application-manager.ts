@@ -101,7 +101,17 @@ export class ApplicationManager {
 
 		// Map ReverbAppConfig to the format expected by ConfigApplicationProvider
 		const apps = reverbApps.map((app) => {
-			const config: any = {
+			const config: {
+				app_id: string;
+				key: string;
+				secret: string;
+				ping_interval: number;
+				allowed_origins: string[];
+				max_message_size: number;
+				activity_timeout?: number;
+				max_connections?: number | null;
+				options?: Record<string, unknown>;
+			} = {
 				app_id: app.app_id,
 				key: app.key,
 				secret: app.secret,

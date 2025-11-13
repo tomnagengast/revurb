@@ -27,7 +27,7 @@ export class Application {
 		private readonly _allowedOrigins: string[],
 		private readonly _maxMessageSize: number,
 		private readonly _maxConnections: number | null = null,
-		private readonly _options: Record<string, any> = {},
+		private readonly _options: Record<string, unknown> = {},
 	) {}
 
 	/**
@@ -116,7 +116,7 @@ export class Application {
 	 *
 	 * @returns The application-specific options
 	 */
-	options(): Record<string, any> {
+	options(): Record<string, unknown> {
 		return this._options;
 	}
 
@@ -125,7 +125,7 @@ export class Application {
 	 *
 	 * @returns Object representation of the application
 	 */
-	toArray(): Record<string, any> {
+	toArray(): Record<string, unknown> {
 		return {
 			app_id: this._id,
 			key: this._key,

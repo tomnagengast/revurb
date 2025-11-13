@@ -64,7 +64,7 @@ describe("ArrayChannelManager", () => {
 		mockConnectionManager = {
 			for: mock((channelName: string) => ({
 				all: () => channelConnections,
-				add: (conn: Connection, data: any) => {
+				add: (conn: Connection, data: Map<string, unknown>) => {
 					channelConnections.set(conn.id(), {
 						connection: () => conn,
 						data: () => data,
