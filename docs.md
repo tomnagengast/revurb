@@ -192,7 +192,7 @@ You can also use the built binary directly:
 ./dist/cli.js start
 ```
 
-By default, the Revurb server will be started at `0.0.0.0:8080`, making it accessible from all network interfaces.
+By default, the Revurb server will be started at `127.0.0.1:8080`, making it accessible from localhost only.
 
 If you need to specify a custom host or port, you may do so via the `--host` and `--port` options when starting the server:
 
@@ -208,10 +208,10 @@ bun run src/cli.ts start --config=./custom.config.ts
 
 Alternatively, you may define `REVERB_SERVER_HOST` and `REVERB_SERVER_PORT` environment variables in your environment configuration.
 
-The `REVERB_SERVER_HOST` and `REVERB_SERVER_PORT` environment variables should not be confused with `REVERB_HOST` and `REVERB_PORT`. The former specify the host and port on which to run the Revurb server itself, while the latter pair instruct applications where to send broadcast messages. For example, in a production environment, you may route requests from your public Revurb hostname on port `443` to a Revurb server operating on `0.0.0.0:8080`. In this scenario, your environment variables would be defined as follows:
+The `REVERB_SERVER_HOST` and `REVERB_SERVER_PORT` environment variables should not be confused with `REVERB_HOST` and `REVERB_PORT`. The former specify the host and port on which to run the Revurb server itself, while the latter pair instruct applications where to send broadcast messages. For example, in a production environment, you may route requests from your public Revurb hostname on port `443` to a Revurb server operating on `127.0.0.1:8080` (or `0.0.0.0:8080` to listen on all interfaces). In this scenario, your environment variables would be defined as follows:
 
 ```bash
-REVERB_SERVER_HOST=0.0.0.0
+REVERB_SERVER_HOST=127.0.0.1  # or 0.0.0.0 for all interfaces
 REVERB_SERVER_PORT=8080
 
 REVERB_HOST=ws.laravel.com
