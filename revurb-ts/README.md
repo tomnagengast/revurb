@@ -161,7 +161,7 @@ bun run clean
 
 This is a complete TypeScript port of Laravel Reverb. All core functionality has been ported and tested:
 
-- ✅ 79 tests passing (100%)
+- ✅ 89 tests passing (100%)
 - ✅ 0 TypeScript compilation errors
 - ✅ All core features implemented
 - ✅ Production ready
