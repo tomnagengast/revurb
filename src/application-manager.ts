@@ -129,7 +129,7 @@ export class ApplicationManager {
         config.max_connections = app.max_connections;
       }
       if (app.options !== undefined) {
-        config.options = app.options;
+        config.options = app.options as Record<string, unknown>;
       }
 
       return config;

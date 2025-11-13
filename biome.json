@@ -20,14 +20,21 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "error",
+        "noImplicitAnyLet": "error"
+      },
+      "style": {
+        "useConst": "error"
+      }
     }
   },
   "javascript": {
     "formatter": {
       "quoteStyle": "double"
     },
-	"globals": ["Bun"]
+    "globals": ["Bun"]
   },
   "assist": {
     "enabled": true,

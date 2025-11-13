@@ -7,7 +7,7 @@ export interface ChannelInfo {
   occupied?: boolean;
   user_count?: number;
   subscription_count?: number;
-  cache?: any;
+  cache?: unknown;
 }
 
 export interface ChannelConnection {

@@ -27,6 +27,21 @@ export class Connection implements IWebSocketConnection {
   private connectionId: string;
 
   /**
+   * Handler for complete messages.
+   */
+  private onMessageHandler?: (message: string | Buffer) => void;
+
+  /**
+   * Handler for connection close events.
+   */
+  private _onCloseHandler?: () => void;
+
+  /**
+   * Maximum allowed message size in bytes.
+   */
+  private maxMessageSize?: number;
+
+  /**
    * Create a new WebSocket connection instance.
    *
    * @param socket - The Bun WebSocket instance
@@ -226,5 +241,32 @@ export class Connection implements IWebSocketConnection {
    */
   public withMaxMessageSize(size: number): void {
     this.maxMessageSize = size;
+  }
+
+  /**
+   * Get the message handler (for internal use).
+   *
+   * @returns The message handler callback
+   */
+  protected getMessageHandler(): ((message: string | Buffer) => void) | undefined {
+    return this.onMessageHandler;
+  }
+
+  /**
+   * Get the close handler (for internal use).
+   *
+   * @returns The close handler callback
+   */
+  protected getCloseHandler(): (() => void) | undefined {
+    return this._onCloseHandler;
+  }
+
+  /**
+   * Get the maximum message size (for internal use).
+   *
+   * @returns The maximum message size in bytes
+   */
+  protected getMaxMessageSize(): number | undefined {
+    return this.maxMessageSize;
   }
 }

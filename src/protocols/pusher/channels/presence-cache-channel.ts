@@ -217,7 +217,8 @@ export class PresenceCacheChannel extends CacheChannel {
     const hash: Record<string, unknown> = {};
 
     for (const user of users) {
-      hash[user.user_id] = user.user_info;
+      const userId = String(user.user_id);
+      hash[userId] = user.user_info;
     }
 
     return {

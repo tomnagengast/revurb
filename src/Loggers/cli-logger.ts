@@ -106,7 +106,10 @@ export class CliLogger implements ILogger {
 
       // Parse nested channel_data field if it's a string
       if (
-        parsed.data?.channel_data &&
+        parsed.data &&
+        typeof parsed.data === "object" &&
+        parsed.data !== null &&
+        "channel_data" in parsed.data &&
         typeof parsed.data.channel_data === "string"
       ) {
         try {

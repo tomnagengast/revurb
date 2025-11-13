@@ -34,69 +34,76 @@ import { PrivateChannel } from "./private-channel.js";
  * The broker inspects the channel name prefix to determine the correct
  * channel type. Order matters - more specific prefixes must be checked first.
  */
-export class ChannelBroker {
-  /**
-   * Create the appropriate channel instance based on the channel name
-   *
-   * @param name - The channel name (e.g., "private-cache-my-channel")
-   * @param channelConnectionManager - The channel connection manager instance
-   * @param channelManager - The channel manager instance
-   * @param logger - The logger instance
-   * @returns The appropriate Channel instance
-   */
-  static create(
-    name: string,
-    channelConnectionManager: ChannelConnectionManager,
-    channelManager: ChannelManager,
-    logger: ILogger,
-  ): Channel {
-    // Order is critical - check most specific prefixes first
-    if (name.startsWith("private-cache-")) {
-      return new PrivateCacheChannel(
-        name,
-        channelConnectionManager,
-        channelManager,
-        logger,
-      );
-    }
 
-    if (name.startsWith("presence-cache-")) {
-      return new PresenceCacheChannel(
-        name,
-        channelConnectionManager,
-        channelManager,
-        logger,
-      );
-    }
-
-    if (name.startsWith("cache-")) {
-      return new CacheChannel(
-        name,
-        channelConnectionManager,
-        channelManager,
-        logger,
-      );
-    }
-
-    if (name.startsWith("private-")) {
-      return new PrivateChannel(
-        name,
-        channelConnectionManager,
-        channelManager,
-        logger,
-      );
-    }
-
-    if (name.startsWith("presence-")) {
-      return new PresenceChannel(
-        name,
-        channelConnectionManager,
-        channelManager,
-        logger,
-      );
-    }
-
-    // Default to public channel
-    return new Channel(name, channelConnectionManager, channelManager, logger);
+/**
+ * Create the appropriate channel instance based on the channel name
+ *
+ * @param name - The channel name (e.g., "private-cache-my-channel")
+ * @param channelConnectionManager - The channel connection manager instance
+ * @param channelManager - The channel manager instance
+ * @param logger - The logger instance
+ * @returns The appropriate Channel instance
+ */
+export function createChannel(
+  name: string,
+  channelConnectionManager: ChannelConnectionManager,
+  channelManager: ChannelManager,
+  logger: ILogger,
+): Channel {
+  // Order is critical - check most specific prefixes first
+  if (name.startsWith("private-cache-")) {
+    return new PrivateCacheChannel(
+      name,
+      channelConnectionManager,
+      channelManager,
+      logger,
+    );
   }
+
+  if (name.startsWith("presence-cache-")) {
+    return new PresenceCacheChannel(
+      name,
+      channelConnectionManager,
+      channelManager,
+      logger,
+    );
+  }
+
+  if (name.startsWith("cache-")) {
+    return new CacheChannel(
+      name,
+      channelConnectionManager,
+      channelManager,
+      logger,
+    );
+  }
+
+  if (name.startsWith("private-")) {
+    return new PrivateChannel(
+      name,
+      channelConnectionManager,
+      channelManager,
+      logger,
+    );
+  }
+
+  if (name.startsWith("presence-")) {
+    return new PresenceChannel(
+      name,
+      channelConnectionManager,
+      channelManager,
+      logger,
+    );
+  }
+
+  // Default to public channel
+  return new Channel(name, channelConnectionManager, channelManager, logger);
 }
+
+/**
+ * Channel Broker namespace for backward compatibility
+ * @deprecated Use createChannel function instead
+ */
+export const ChannelBroker = {
+  create: createChannel,
+};

@@ -226,10 +226,11 @@ export class ChannelsController {
     ].join("\n");
 
     // Calculate signature
-    const signature = this.hmacSha256(
-      signatureString,
-      this.application?.secret(),
-    );
+    const secret = this.application?.secret();
+    if (!secret) {
+      throw new Error("Application secret not available.");
+    }
+    const signature = this.hmacSha256(signatureString, secret);
     const authSignature = this.query.auth_signature ?? "";
 
     if (signature !== authSignature) {
