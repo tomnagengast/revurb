@@ -974,7 +974,7 @@ export class Factory {
    * @private
    */
   private static handleHealthCheck(_req: Request, _params: Record<string, string>): Response {
-    return new Response({ health: 'OK' }, { status: 200 });
+    return Response.json({ health: 'OK' }, { status: 200 });
   }
 
   /**
