@@ -16,7 +16,7 @@
  * ```
  */
 
-type EventListener<T = any> = (event: T) => void | Promise<void>;
+type EventListener<T = unknown> = (event: T) => void | Promise<void>;
 
 class EventDispatcherImpl {
 	private listeners: Map<string, Set<EventListener>> = new Map();
@@ -28,12 +28,12 @@ class EventDispatcherImpl {
 	 * @param listener - The callback function to execute when the event is emitted
 	 * @returns A function to unregister the listener
 	 */
-	on<T = any>(eventName: string, listener: EventListener<T>): () => void {
+	on<T = unknown>(eventName: string, listener: EventListener<T>): () => void {
 		if (!this.listeners.has(eventName)) {
 			this.listeners.set(eventName, new Set());
 		}
 
-		this.listeners.get(eventName)!.add(listener as EventListener);
+		this.listeners.get(eventName)?.add(listener as EventListener);
 
 		// Return unsubscribe function
 		return () => this.off(eventName, listener);
@@ -46,7 +46,7 @@ class EventDispatcherImpl {
 	 * @param listener - The callback function to execute once when the event is emitted
 	 * @returns A function to unregister the listener
 	 */
-	once<T = any>(eventName: string, listener: EventListener<T>): () => void {
+	once<T = unknown>(eventName: string, listener: EventListener<T>): () => void {
 		const wrappedListener = (event: T) => {
 			listener(event);
 			this.off(eventName, wrappedListener);
@@ -61,7 +61,7 @@ class EventDispatcherImpl {
 	 * @param eventName - The name of the event
 	 * @param listener - The listener function to remove
 	 */
-	off<T = any>(eventName: string, listener: EventListener<T>): void {
+	off<T = unknown>(eventName: string, listener: EventListener<T>): void {
 		const eventListeners = this.listeners.get(eventName);
 		if (eventListeners) {
 			eventListeners.delete(listener as EventListener);
@@ -77,7 +77,7 @@ class EventDispatcherImpl {
 	 * @param eventName - The name of the event to emit
 	 * @param event - The event data to pass to listeners
 	 */
-	emit<T = any>(eventName: string, event: T): void {
+	emit<T = unknown>(eventName: string, event: T): void {
 		const eventListeners = this.listeners.get(eventName);
 		if (eventListeners) {
 			for (const listener of eventListeners) {
@@ -97,7 +97,7 @@ class EventDispatcherImpl {
 	 * @param eventName - The name of the event to emit
 	 * @param event - The event data to pass to listeners
 	 */
-	async emitAsync<T = any>(eventName: string, event: T): Promise<void> {
+	async emitAsync<T = unknown>(eventName: string, event: T): Promise<void> {
 		const eventListeners = this.listeners.get(eventName);
 		if (eventListeners) {
 			const promises: Promise<void>[] = [];

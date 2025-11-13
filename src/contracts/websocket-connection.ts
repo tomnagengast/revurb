@@ -1,3 +1,5 @@
+import type { WebSocket } from "bun";
+
 /**
  * WebSocketConnection Interface
  *
@@ -175,4 +177,6 @@ export type WebSocketConnection = IWebSocketConnection;
  * Factory type for creating WebSocket connections.
  * Used by server implementations to instantiate new connections.
  */
-export type WebSocketConnectionFactory = (socket: any) => IWebSocketConnection;
+export type WebSocketConnectionFactory = (
+	socket: WebSocket,
+) => IWebSocketConnection;

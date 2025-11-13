@@ -37,7 +37,6 @@ export class Connection extends ConnectionContract {
 	 */
 	private _id: string | null = null;
 
-
 	/**
 	 * Get the raw socket connection identifier.
 	 *
