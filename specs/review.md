@@ -1,4 +1,6 @@
-last commit: 8d0fb49
-status: ok
+last commit: ba5f240
+status: not ok
 review comments:
-- Fixed: Updated import paths in test files to use lowercase subdirectories (channels, contracts, managers) instead of capitalized versions (Channels, Contracts, Managers). All imports now match the actual directory structure tracked by git.
+- example/src/Chat.tsx:46 – The WebSocket handler never responds to server `pusher:ping` heartbeats, so connections stay flagged inactive and `PingInactiveConnections`/`PruneStaleConnections` will drop them after the first cycle (see src/protocols/pusher/event-handler.ts:185, src/jobs/ping-inactive-connections.ts:47, src/jobs/prune-stale-connections.ts:49); send `{"event":"pusher:pong"}` whenever the server pings to keep the chat usable for more than a minute.
+- example/src/Chat.tsx:121 – The sample emits `client-message` events on the public `chat` channel without any authentication, but ClientEvent rules in src/protocols/pusher/client-event.ts:13 restrict client events to private/presence channels; once the TS port enforces that rule (matching Laravel Reverb) these sends will be rejected, so the example needs to authenticate to a `private-`/`presence-` channel or switch to server-triggered events.
+- example/src/Chat.tsx:94 – Joining a new channel only sends another `pusher:subscribe`; it never issues `pusher:unsubscribe` or clears channel-local state. After a couple of joins you're listening to every channel you've ever typed while the UI claims you switched, so messages from other rooms leak in. Unsubscribe (and reset `messages`) when the channel changes.

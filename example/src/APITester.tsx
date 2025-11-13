@@ -1,4 +1,4 @@
-import { useRef, type FormEvent } from "react";
+import { type FormEvent, useRef } from "react";
 
 export function APITester() {
 	const responseInputRef = useRef<HTMLTextAreaElement>(null);
@@ -77,7 +77,7 @@ export function APITester() {
 					Send
 				</button>
 			</div>
-      {/* For each message, display the message, the sender, and the time. Ex: */}
+			{/* For each message, display the message, the sender, and the time. Ex: */}
 			<div className="flex flex-col items-start gap-2 bg-[#1a1a1a] p-3 rounded-xl font-mono border-2 border-[#fbf0df] transition-colors duration-300 focus-within:border-[#f3d5a3] w-full">
 				Hello! This is a test message.
 				<div className="flex items-center gap-2">
