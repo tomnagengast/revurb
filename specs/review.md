@@ -1,4 +1,2 @@
-last commit: 6463261
+last commit: 95ef9e1
 status: ok
-review comments:
-- ✅ Fixed: `tests/e2e/websocket-connection.test.ts:96-123` - Updated to use `ConnectionEstablishedMessage` type instead of `unknown`, resolving TS2339 errors.
