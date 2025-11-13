@@ -1,5 +1,2 @@
-last commit: 5f6f9d8cfe7e323e07f80afeaa885d5f737f2700
-status: not ok
-review comments:
-- revurb-ts/src/Servers/Reverb/Publishing/redis-client-factory.ts:137 — The comment says integrators can "override createClient" to swap in a real Redis library, but the method is declared private so it cannot be overridden; there is no actual extension point. Expose the hook (e.g., protected or injectable) so applications can replace the mock client without forking the class.
-- revurb-ts/src/Servers/Reverb/Publishing/redis-client-factory.ts:167 & revurb-ts/src/Servers/Reverb/Publishing/redis-client.ts:122 plus revurb-ts/agent/SESSION_STATUS_2025-01-27.md:5-37 — The factory still returns a no-op object whose publish/subscribe/on methods never touch Redis, yet the new session report marks the port as "production ready" with Redis pub/sub working for single-server deployments. In reality Redis-backed broadcasting cannot work at all, so the status update is incorrect; either implement a real client or clearly flag the feature as incomplete/non-production-ready.
+last commit: 6f7b6d3ed44332f1a6950cdf063c44bbad03a257
+status: ok
