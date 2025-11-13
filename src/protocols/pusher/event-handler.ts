@@ -14,6 +14,7 @@
  * @see https://pusher.com/docs/channels/library_auth_reference/pusher-websockets-protocol/
  */
 
+import type { Application } from "../../application";
 import type { Connection } from "../../contracts/connection";
 
 /**
@@ -89,7 +90,7 @@ export interface ChannelManager {
    * @param application - The application to scope to
    * @returns A scoped ChannelManager instance
    */
-  for(application: any): ChannelManager;
+  for(application: Application): ChannelManager;
 
   /**
    * Find a channel by name

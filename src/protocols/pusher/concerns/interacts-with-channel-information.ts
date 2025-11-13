@@ -11,14 +11,14 @@ export interface ChannelInfo {
 }
 
 export interface ChannelConnection {
-  data(key?: string): any;
+  data(key?: string): unknown;
   send(message: string): void;
 }
 
 export interface Channel {
   name(): string;
   connections(): Record<string, ChannelConnection>;
-  cachedPayload?(): any;
+  cachedPayload?(): unknown;
 }
 
 export interface ChannelManager {
@@ -138,7 +138,10 @@ function getUnoccupiedInfo(info: string[]): ChannelInfo {
 export function isPresenceChannel(channel: Channel): boolean {
   // Check if the channel has presence-specific methods/properties
   // In TypeScript, we can check for the existence of presence-specific methods
-  return "data" in channel && typeof (channel as any).data === "function";
+  return (
+    "data" in channel &&
+    typeof (channel as { data?: () => unknown }).data === "function"
+  );
 }
 
 /**
