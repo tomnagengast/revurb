@@ -38,8 +38,8 @@ git pull origin main || {
 
 bun run .claude/hooks/discord.ts --start --message "$prompt"
 
-cursor "$prompt"
+# cursor "$prompt"
+claude "$prompt"
 codex "$out"
-# claude "$prompt"
 
 bun run .claude/hooks/discord.ts --stop --message "$(<${out})"

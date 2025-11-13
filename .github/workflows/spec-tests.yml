@@ -33,17 +33,14 @@ jobs:
       - name: Pull Autobahn Docker image
         run: docker pull crossbario/autobahn-testsuite
 
-      - name: Start WebSocket server
-        run: bun run src/cli.ts start --host=127.0.0.1 --port=8080 &
-        env:
-          REVERB_APP_ID: test-app-id
-          REVERB_APP_KEY: test-app-key
-          REVERB_APP_SECRET: test-app-secret
+      - name: Start WebSocket echo server
+        working-directory: reverb/tests/Specification
+        run: bun run spec-server.ts &
 
       - name: Wait for server to be ready
         run: |
           timeout=30
-          while ! curl -f http://127.0.0.1:8080/up > /dev/null 2>&1; do
+          while ! nc -z 127.0.0.1 8080 > /dev/null 2>&1; do
             sleep 1
             timeout=$((timeout-1))
             if [ $timeout -eq 0 ]; then
