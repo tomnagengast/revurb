@@ -21,6 +21,7 @@ import type { ReverbConfig } from '../../config/types';
 import type { Application } from '../../application';
 import { CliLogger } from '../../loggers/cli-logger';
 import { NullLogger } from '../../loggers/null-logger';
+import { Log } from '../../loggers/log';
 import { MetricsHandler } from '../../Protocols/Pusher/metrics-handler';
 import { EventsController } from '../../Protocols/Pusher/Http/Controllers/events-controller';
 import { EventsBatchController } from '../../Protocols/Pusher/Http/Controllers/events-batch-controller';
@@ -214,6 +215,8 @@ export class Factory {
    */
   public static initialize(config: ReverbConfig): void {
     this.logger = new CliLogger();
+    // Set the logger in the Log facade so it's available globally
+    Log.setLogger(this.logger);
     this.appManager = new ApplicationManager(config);
 
     // Create application provider and channel connection manager
