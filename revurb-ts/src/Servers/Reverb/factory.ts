@@ -1060,6 +1060,7 @@ export class Factory {
     return {
       method,
       path: pathWithQuery,
+      url: req.url, // Include full URL with query string for controllers to access query params
       httpVersion: '1.1',
       headers,
       body,
