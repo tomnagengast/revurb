@@ -1183,7 +1183,11 @@ export class Factory {
       headers[key.toLowerCase()] = value;
     });
 
-    return {
+    const request: IHttpRequest & {
+      url: string;
+      httpVersion: string;
+      getSize(): number;
+    } = {
       method,
       path: pathWithQuery,
       url: req.url, // Include full URL with query string for controllers to access query params
@@ -1213,6 +1217,8 @@ export class Factory {
         return Buffer.byteLength(body, "utf8");
       },
     };
+
+    return request;
   }
 
   /**
