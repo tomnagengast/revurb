@@ -1,2 +1,2 @@
-0. Fix the lint errors and warnings returned by `bun run lint` either manually or with `bun run lint:fix`
-1. Ensure GitHub Actions run successfully (should reflect @reverb/.github/workflows where relevant)
+0. Ensure GitHub Actions run successfully (should reflect @reverb/.github/workflows where relevant)
+    - Use the `gh` CLI to understand why the [statis analysis](https://github.com/tomnagengast/revurb/actions/runs/19345986250), [tests](https://github.com/tomnagengast/revurb/actions/runs/19345986196), and [spec tests](https://github.com/tomnagengast/revurb/actions/runs/19345986189) and failing and make the necessary update to resolve the errors
