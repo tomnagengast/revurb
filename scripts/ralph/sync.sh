@@ -4,8 +4,7 @@
 prompt="$(<scripts/ralph/prompt-fast.md)"
 
 FORCE_COLOR=1 A_MARKDOWN=1 \
-  a "$prompt" | \
-  tee -a "specs/logs/ralph-$(date +%Y-%m-%d-%H%M).md"
+  a "$prompt"  2> "specs/logs/ralph-$(date +%Y-%m-%d-%H%M).md"
 
 echo "
 $(cat scripts/ralph/prompt-smart.md)
