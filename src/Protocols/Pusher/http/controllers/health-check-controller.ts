@@ -1,6 +1,6 @@
-import { Response } from '../../../../Servers/Reverb/Http/response';
-import type { Connection } from '../../../../Servers/Reverb/Http/connection';
-import type { IHttpRequest } from '../../../../Servers/Reverb/Http/router';
+import { Response } from '../../../../servers/reverb/http/response';
+import type { Connection } from '../../../../servers/reverb/http/connection';
+import type { IHttpRequest } from '../../../../servers/reverb/http/router';
 import { Controller } from './controller';
 
 /**

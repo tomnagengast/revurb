@@ -1,8 +1,8 @@
 import { Connection as ReverbConnection } from '../../../../connection';
 import type { IApplicationProvider } from '../../../../contracts/application-provider';
 import type { Server as PusherServer } from '../../server';
-import type { Connection } from '../../../../Servers/Reverb/connection';
-import type { IHttpRequest } from '../../../../Servers/Reverb/Http/request';
+import type { Connection } from '../../../../servers/reverb/connection';
+import type { IHttpRequest } from '../../../../servers/reverb/http/request';
 import type { Frame } from '../../../../contracts/websocket-connection';
 
 /**

@@ -1,9 +1,9 @@
-import { Response } from '../../../../Servers/Reverb/Http/response';
-import type { Connection } from '../../../../Servers/Reverb/Http/connection';
-import type { IHttpRequest } from '../../../../Servers/Reverb/Http/router';
+import { Response } from '../../../../servers/reverb/http/response';
+import type { Connection } from '../../../../servers/reverb/http/connection';
+import type { IHttpRequest } from '../../../../servers/reverb/http/router';
 import type { Application } from '../../../../application';
-import type { ChannelManager } from '../../Contracts/channel-manager';
-import type { ChannelConnection } from '../../Channels/channel-connection';
+import type { ChannelManager } from '../../contracts/channel-manager';
+import type { ChannelConnection } from '../../channels/channel-connection';
 import { EventDispatcher } from '../../event-dispatcher';
 import { MetricsHandler } from '../../metrics-handler';
 import { Controller } from './controller';

@@ -1,8 +1,8 @@
 import type { Connection } from '../../../contracts/connection';
 import type { ILogger } from '../../../contracts/logger';
-import type { SerializedChannel } from '../Concerns/serializes-channels';
+import type { SerializedChannel } from '../concerns/serializes-channels';
 import type { ChannelConnection } from './channel-connection';
-import type { ChannelConnectionManager } from '../Contracts/channel-connection-manager';
+import type { ChannelConnectionManager } from '../contracts/channel-connection-manager';
 
 // Re-export for convenience
 export type { ChannelConnectionManager };

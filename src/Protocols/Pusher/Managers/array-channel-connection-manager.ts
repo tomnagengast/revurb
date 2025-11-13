@@ -1,6 +1,6 @@
 import type { Connection } from '../../../contracts/connection';
-import { ChannelConnection } from '../Channels/channel-connection';
-import type { ChannelConnectionManager } from '../Contracts/channel-connection-manager';
+import { ChannelConnection } from '../channels/channel-connection';
+import type { ChannelConnectionManager } from '../contracts/channel-connection-manager';
 
 /**
  * ArrayChannelConnectionManager - In-Memory Channel Connection Manager

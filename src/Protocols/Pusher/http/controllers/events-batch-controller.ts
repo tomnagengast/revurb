@@ -1,10 +1,10 @@
 import type { Application } from '../../../../application';
-import type { IHttpRequest } from '../../../../Servers/Reverb/Http/router';
+import type { IHttpRequest } from '../../../../servers/reverb/http/router';
 import type { Connection } from '../../../../contracts/connection';
-import { Response } from '../../../../Servers/Reverb/Http/response';
+import { Response } from '../../../../servers/reverb/http/response';
 import { EventDispatcher } from '../../event-dispatcher';
 import { MetricsHandler } from '../../metrics-handler';
-import type { ChannelManager } from '../../Contracts/channel-manager';
+import type { ChannelManager } from '../../contracts/channel-manager';
 
 /**
  * Batch item structure

@@ -16,8 +16,8 @@
  * @module Servers/Reverb/Publishing/RedisPubSubProvider
  */
 
-import type { IPubSubProvider } from '../Contracts/pubsub-provider';
-import type { IPubSubIncomingMessageHandler } from '../Contracts/pubsub-incoming-message-handler';
+import type { IPubSubProvider } from '../contracts/pubsub-provider';
+import type { IPubSubIncomingMessageHandler } from '../contracts/pubsub-incoming-message-handler';
 import type { ILogger } from '../../../contracts/logger';
 import { RedisClientFactory } from './redis-client-factory';
 import { RedisPublishClient } from './redis-publish-client';

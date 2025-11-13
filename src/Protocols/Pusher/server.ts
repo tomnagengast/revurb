@@ -6,7 +6,7 @@ import { PusherErrorCode } from '../../types/pusher-messages';
 import { ConnectionLimitExceeded } from './exceptions/connection-limit-exceeded';
 import { InvalidOrigin } from './exceptions/invalid-origin';
 import { PusherException } from './exceptions/pusher-exception';
-import type { ChannelManager } from './Contracts/channel-manager';
+import type { ChannelManager } from './contracts/channel-manager';
 import type { EventHandler } from './event-handler';
 import type { ClientEvent } from './client-event';
 import { MessageReceived } from '../../events/message-received';

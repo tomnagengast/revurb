@@ -18,4 +18,4 @@ status: ok
 
 This file should be overwritten with each code review.
 
-Once you're finished with your review, commit all and push.
+Once you're finished with your review, commit all (git add -A && git commit -s <message>) and push.

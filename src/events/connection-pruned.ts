@@ -1,4 +1,4 @@
-import type { ChannelConnection } from "../protocols/pusher/Channels/channel-connection";
+import type { ChannelConnection } from "../protocols/pusher/channels/channel-connection";
 import { EventDispatcher } from "./event-dispatcher";
 
 /**

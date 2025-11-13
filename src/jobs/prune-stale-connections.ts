@@ -1,7 +1,7 @@
 import type { IApplicationProvider } from "../contracts/application-provider";
 import type { ILogger } from "../contracts/logger";
-import type { ChannelManager } from "../protocols/pusher/Contracts/channel-manager";
-import type { ChannelConnection } from "../protocols/pusher/Channels/channel-connection";
+import type { ChannelManager } from "../protocols/pusher/contracts/channel-manager";
+import type { ChannelConnection } from "../protocols/pusher/channels/channel-connection";
 import { ConnectionPruned } from "../events/connection-pruned";
 
 /**

@@ -1,10 +1,10 @@
 import type { Application } from '../../../../application';
-import type { IHttpRequest } from '../../../../Servers/Reverb/Http/request';
-import { Response } from '../../../../Servers/Reverb/Http/response';
-import type { Connection } from '../../../../Servers/Reverb/Http/connection';
+import type { IHttpRequest } from '../../../../servers/reverb/http/request';
+import { Response } from '../../../../servers/reverb/http/response';
+import type { Connection } from '../../../../servers/reverb/http/connection';
 import type { MetricsHandler } from '../../metrics-handler';
 import type { IApplicationProvider } from '../../../../contracts/application-provider';
-import type { ChannelManager } from '../../Contracts/channel-manager';
+import type { ChannelManager } from '../../contracts/channel-manager';
 import { InvalidApplication } from '../../../../exceptions/invalid-application';
 
 /**

@@ -1,7 +1,7 @@
 import type { Application } from '../../../application';
 import type { Connection } from '../../../contracts/connection';
-import type { Channel } from '../Channels/channel';
-import type { ChannelConnection } from '../Channels/channel-connection';
+import type { Channel } from '../channels/channel';
+import type { ChannelConnection } from '../channels/channel-connection';
 
 /**
  * ChannelManager Interface

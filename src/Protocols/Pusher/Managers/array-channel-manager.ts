@@ -2,10 +2,10 @@ import type { Application } from '../../../application';
 import type { Connection } from '../../../contracts/connection';
 import type { IApplicationProvider } from '../../../contracts/application-provider';
 import type { ILogger } from '../../../contracts/logger';
-import type { ChannelManager } from '../Contracts/channel-manager';
-import type { Channel, ChannelConnectionManager } from '../Channels/channel';
-import type { ChannelConnection } from '../Channels/channel-connection';
-import { ChannelBroker } from '../Channels/channel-broker';
+import type { ChannelManager } from '../contracts/channel-manager';
+import type { Channel, ChannelConnectionManager } from '../channels/channel';
+import type { ChannelConnection } from '../channels/channel-connection';
+import { ChannelBroker } from '../channels/channel-broker';
 import { ChannelCreated } from '../../../events/channel-created';
 import { ChannelRemoved } from '../../../events/channel-removed';
 

@@ -1,6 +1,6 @@
 import type { IApplicationProvider } from "../contracts/application-provider";
 import type { ILogger } from "../contracts/logger";
-import type { ChannelManager } from "../protocols/pusher/Contracts/channel-manager";
+import type { ChannelManager } from "../protocols/pusher/contracts/channel-manager";
 import { EventHandler } from "../protocols/pusher/event-handler";
 
 /**

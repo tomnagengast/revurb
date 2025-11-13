@@ -1,9 +1,9 @@
 import type { Application } from '../../../../application';
 import type { IApplicationProvider } from '../../../../contracts/application-provider';
-import type { ChannelManager } from '../../Contracts/channel-manager';
-import type { Connection } from '../../../../Servers/Reverb/Http/connection';
-import type { IHttpRequest } from '../../../../Servers/Reverb/Http/request';
-import { HttpException } from '../../../../Servers/Reverb/Http/server';
+import type { ChannelManager } from '../../contracts/channel-manager';
+import type { Connection } from '../../../../servers/reverb/http/connection';
+import type { IHttpRequest } from '../../../../servers/reverb/http/request';
+import { HttpException } from '../../../../servers/reverb/http/server';
 
 /**
  * Base Controller for Pusher HTTP API

@@ -1,8 +1,8 @@
 import type { Application } from '../../../../application';
 import type { IApplicationProvider } from '../../../../contracts/application-provider';
-import type { ChannelManager } from '../../Contracts/channel-manager';
+import type { ChannelManager } from '../../contracts/channel-manager';
 import { MetricsHandler } from '../../metrics-handler';
-import { Response } from '../../../../Servers/Reverb/Http/response';
+import { Response } from '../../../../servers/reverb/http/response';
 
 /**
  * ChannelController

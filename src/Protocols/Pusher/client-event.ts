@@ -1,7 +1,7 @@
 import type { Connection } from '../../contracts/connection';
 import type { PusherMessage } from '../../types/pusher-messages';
 import { isClientEvent } from '../../types/pusher-messages';
-import type { ChannelManager } from './Contracts/channel-manager';
+import type { ChannelManager } from './contracts/channel-manager';
 
 /**
  * Client Event Handler

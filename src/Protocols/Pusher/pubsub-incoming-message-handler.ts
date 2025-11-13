@@ -1,6 +1,6 @@
 import { Application } from '../../application';
-import type { ChannelManager } from './Contracts/channel-manager';
-import type { IPubSubIncomingMessageHandler } from '../../Servers/Reverb/Contracts/pubsub-incoming-message-handler';
+import type { ChannelManager } from './contracts/channel-manager';
+import type { IPubSubIncomingMessageHandler } from '../../servers/reverb/contracts/pubsub-incoming-message-handler';
 import { EventDispatcher } from './event-dispatcher';
 import { MetricsHandler } from './metrics-handler';
 

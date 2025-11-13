@@ -8,7 +8,7 @@
  * @module cli
  */
 
-import { Factory } from "./Servers/Reverb/factory";
+import { Factory } from "./servers/reverb/factory";
 import { loadConfig } from "./config/load";
 import type { ReverbConfig } from "./config/types";
 import { PruneStaleConnections } from "./jobs/prune-stale-connections";
@@ -19,7 +19,7 @@ import { ChannelRemoved } from "./events/channel-removed";
 import { ConnectionPruned } from "./events/connection-pruned";
 import { MessageSent } from "./events/message-sent";
 import { MessageReceived } from "./events/message-received";
-import type { ChannelConnection } from "./protocols/pusher/Channels/channel-connection";
+import type { ChannelConnection } from "./protocols/pusher/channels/channel-connection";
 
 /**
  * CLI argument parsing result

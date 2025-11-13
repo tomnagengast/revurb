@@ -1,9 +1,9 @@
 import type { Application } from '../../../../application';
 import type { IApplicationProvider } from '../../../../contracts/application-provider';
-import type { ChannelManager } from '../../Contracts/channel-manager';
-import type { IPubSubProvider } from '../../../../Servers/Reverb/Contracts/pubsub-provider';
+import type { ChannelManager } from '../../contracts/channel-manager';
+import type { IPubSubProvider } from '../../../../servers/reverb/contracts/pubsub-provider';
 import type { ServerProvider } from '../../../../contracts/server-provider';
-import { Response } from '../../../../Servers/Reverb/Http/response';
+import { Response } from '../../../../servers/reverb/http/response';
 
 /**
  * UsersTerminateController

@@ -10,8 +10,8 @@
 import type { ServeOptions } from "bun";
 import { Certificate } from "../../certificate";
 import { ApplicationManager } from "../../application-manager";
-import { ArrayChannelManager } from "../../protocols/pusher/Managers/array-channel-manager";
-import { ArrayChannelConnectionManager } from "../../protocols/pusher/Managers/array-channel-connection-manager";
+import { ArrayChannelManager } from "../../protocols/pusher/managers/array-channel-manager";
+import { ArrayChannelConnectionManager } from "../../protocols/pusher/managers/array-channel-connection-manager";
 import { EventHandler } from "../../protocols/pusher/event-handler";
 import { ClientEvent } from "../../protocols/pusher/client-event";
 import { Server as PusherServer } from "../../protocols/pusher/server";
@@ -23,14 +23,14 @@ import { CliLogger } from "../../loggers/cli-logger";
 import { NullLogger } from "../../loggers/null-logger";
 import { Log } from "../../loggers/log";
 import { MetricsHandler } from "../../protocols/pusher/metrics-handler";
-import { EventsController } from "../../protocols/pusher/Http/Controllers/events-controller";
-import { EventsBatchController } from "../../protocols/pusher/Http/Controllers/events-batch-controller";
-import { ChannelsController } from "../../protocols/pusher/Http/Controllers/channels-controller";
-import { ChannelController } from "../../protocols/pusher/Http/Controllers/channel-controller";
-import { UsersTerminateController } from "../../protocols/pusher/Http/Controllers/users-terminate-controller";
-import { channelUsersController } from "../../protocols/pusher/Http/Controllers/channel-users-controller";
-import { connectionsController } from "../../protocols/pusher/Http/Controllers/connections-controller";
-import { Response as HttpResponse } from "./Http/response";
+import { EventsController } from "../../protocols/pusher/http/controllers/events-controller";
+import { EventsBatchController } from "../../protocols/pusher/http/controllers/events-batch-controller";
+import { ChannelsController } from "../../protocols/pusher/http/controllers/channels-controller";
+import { ChannelController } from "../../protocols/pusher/http/controllers/channel-controller";
+import { UsersTerminateController } from "../../protocols/pusher/http/controllers/users-terminate-controller";
+import { channelUsersController } from "../../protocols/pusher/http/controllers/channel-users-controller";
+import { connectionsController } from "../../protocols/pusher/http/controllers/connections-controller";
+import { Response as HttpResponse } from "./http/response";
 import { ServerProvider } from "../../contracts/server-provider";
 
 /**

@@ -1,5 +1,5 @@
 import type { Connection } from '../../../contracts/connection';
-import type { ChannelConnection } from '../Channels/channel-connection';
+import type { ChannelConnection } from '../channels/channel-connection';
 
 /**
  * ChannelConnectionManager - Manages Connections for a Specific Channel

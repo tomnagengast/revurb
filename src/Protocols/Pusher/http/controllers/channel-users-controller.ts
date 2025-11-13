@@ -1,9 +1,9 @@
 import type { Application } from '../../../../application';
-import type { ChannelManager } from '../../Contracts/channel-manager';
+import type { ChannelManager } from '../../contracts/channel-manager';
 import { MetricsHandler } from '../../metrics-handler';
-import { Response } from '../../../../Servers/Reverb/Http/response';
-import { isPresenceChannel } from '../../Concerns/interacts-with-channel-information';
-import { Factory } from '../../../../Servers/Reverb/factory';
+import { Response } from '../../../../servers/reverb/http/response';
+import { isPresenceChannel } from '../../concerns/interacts-with-channel-information';
+import { Factory } from '../../../../servers/reverb/factory';
 
 /**
  * Channel Users Controller
