@@ -21,7 +21,7 @@ jobs:
           script: |
             const fs = require('fs');
             const version = context.payload.release.tag_name;
-            const changelogPath = 'reverb/CHANGELOG.md';
+            const changelogPath = 'CHANGELOG.md';
             
             if (fs.existsSync(changelogPath)) {
               const changelog = fs.readFileSync(changelogPath, 'utf8');
