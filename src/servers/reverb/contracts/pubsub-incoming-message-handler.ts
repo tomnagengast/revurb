@@ -12,13 +12,13 @@
  * A PubSub provider will call the handle method with message payloads received from the pub/sub service.
  */
 export interface IPubSubIncomingMessageHandler {
-	/**
-	 * Handle an incoming message from the PubSub provider.
-	 *
-	 * Implementations should process the incoming message payload and take appropriate action
-	 * (e.g., broadcast to connected clients, update state, trigger events).
-	 *
-	 * @param payload - The message payload received from the PubSub provider as a string
-	 */
-	handle(payload: string): void;
+  /**
+   * Handle an incoming message from the PubSub provider.
+   *
+   * Implementations should process the incoming message payload and take appropriate action
+   * (e.g., broadcast to connected clients, update state, trigger events).
+   *
+   * @param payload - The message payload received from the PubSub provider as a string
+   */
+  handle(payload: string): void;
 }

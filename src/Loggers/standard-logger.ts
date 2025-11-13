@@ -10,61 +10,61 @@ import type { ILogger } from "../contracts/logger";
  * @implements {ILogger}
  */
 export class StandardLogger implements ILogger {
-	/**
-	 * Log an informational message
-	 */
-	info(title: string, message?: string | null): void {
-		let output = title;
+  /**
+   * Log an informational message
+   */
+  info(title: string, message?: string | null): void {
+    let output = title;
 
-		if (message) {
-			output += `: ${message}`;
-		}
+    if (message) {
+      output += `: ${message}`;
+    }
 
-		console.log(output);
-	}
+    console.log(output);
+  }
 
-	/**
-	 * Log an error message.
-	 */
-	error(message: string): void {
-		console.error(message);
-	}
+  /**
+   * Log an error message.
+   */
+  error(message: string): void {
+    console.error(message);
+  }
 
-	/**
-	 * Log a debug message.
-	 */
-	debug(message: string): void {
-		console.log(`DEBUG: ${message}`);
-	}
+  /**
+   * Log a debug message.
+   */
+  debug(message: string): void {
+    console.log(`DEBUG: ${message}`);
+  }
 
-	/**
-	 * Log a message sent to the server.
-	 */
-	message(message: string): void {
-		try {
-			const parsed: Record<string, unknown> = JSON.parse(message);
+  /**
+   * Log a message sent to the server.
+   */
+  message(message: string): void {
+    try {
+      const parsed: Record<string, unknown> = JSON.parse(message);
 
-			if (
-				parsed.data &&
-				typeof parsed.data === "object" &&
-				"channel_data" in parsed.data &&
-				typeof parsed.data.channel_data === "string"
-			) {
-				parsed.data.channel_data = JSON.parse(parsed.data.channel_data);
-			}
+      if (
+        parsed.data &&
+        typeof parsed.data === "object" &&
+        "channel_data" in parsed.data &&
+        typeof parsed.data.channel_data === "string"
+      ) {
+        parsed.data.channel_data = JSON.parse(parsed.data.channel_data);
+      }
 
-			const formatted = JSON.stringify(parsed, null, 2);
-			console.log(formatted);
-		} catch (_error) {
-			// If JSON parsing fails, log the original message
-			console.log(message);
-		}
-	}
+      const formatted = JSON.stringify(parsed, null, 2);
+      console.log(formatted);
+    } catch (_error) {
+      // If JSON parsing fails, log the original message
+      console.log(message);
+    }
+  }
 
-	/**
-	 * Append a new line to the log.
-	 */
-	line(_lines = 1): void {
-		// No-op for standard logger
-	}
+  /**
+   * Append a new line to the log.
+   */
+  line(_lines = 1): void {
+    // No-op for standard logger
+  }
 }

@@ -33,23 +33,23 @@ import type { MetricsHandler } from "../../metrics-handler";
  * ```
  */
 export async function connectionsController(
-	request: any,
-	_connection: any,
-	appId: string,
+  request: any,
+  _connection: any,
+  appId: string,
 ): Promise<Response> {
-	// Verify authentication and set up application/channels
-	const { application } = await verify(request, _connection, appId);
+  // Verify authentication and set up application/channels
+  const { application } = await verify(request, _connection, appId);
 
-	// Get metrics handler instance
-	const metricsHandler = getMetricsHandler();
+  // Get metrics handler instance
+  const metricsHandler = getMetricsHandler();
 
-	// Gather connections metrics
-	const connections = await metricsHandler.gather(application, "connections");
+  // Gather connections metrics
+  const connections = await metricsHandler.gather(application, "connections");
 
-	// Count the connections
-	const connectionCount = Object.keys(connections).length;
+  // Count the connections
+  const connectionCount = Object.keys(connections).length;
 
-	return new Response({ connections: connectionCount });
+  return new Response({ connections: connectionCount });
 }
 
 /**
@@ -69,33 +69,33 @@ export async function connectionsController(
  * @throws {Error} If authentication fails or application not found
  */
 async function verify(
-	request: any,
-	_connection: any,
-	appId: string,
+  request: any,
+  _connection: any,
+  appId: string,
 ): Promise<{ application: Application; channels: ChannelManager }> {
-	// Parse query parameters
-	const url = new URL(
-		request.url || request.getPath?.() || "",
-		"http://localhost",
-	);
-	const query: Record<string, string> = {};
-	url.searchParams.forEach((value, key) => {
-		query[key] = value;
-	});
+  // Parse query parameters
+  const url = new URL(
+    request.url || request.getPath?.() || "",
+    "http://localhost",
+  );
+  const query: Record<string, string> = {};
+  url.searchParams.forEach((value, key) => {
+    query[key] = value;
+  });
 
-	// Get request body
-	const body = request.body || (await request.text?.()) || "";
+  // Get request body
+  const body = request.body || (await request.text?.()) || "";
 
-	// Set application
-	const application = await setApplication(appId);
+  // Set application
+  const application = await setApplication(appId);
 
-	// Set channels
-	const channels = getChannelManager();
+  // Set channels
+  const channels = getChannelManager();
 
-	// Verify signature
-	verifySignature(request, query, body, application);
+  // Verify signature
+  verifySignature(request, query, body, application);
 
-	return { application, channels };
+  return { application, channels };
 }
 
 /**
@@ -106,17 +106,17 @@ async function verify(
  * @throws {Error} If application not found
  */
 async function setApplication(appId: string | null): Promise<Application> {
-	if (!appId) {
-		throw new Error("Application ID not provided.");
-	}
+  if (!appId) {
+    throw new Error("Application ID not provided.");
+  }
 
-	const applicationProvider = getApplicationProvider();
+  const applicationProvider = getApplicationProvider();
 
-	try {
-		return await applicationProvider.findById(appId);
-	} catch (_error) {
-		throw new Error(`No matching application for ID [${appId}].`);
-	}
+  try {
+    return await applicationProvider.findById(appId);
+  } catch (_error) {
+    throw new Error(`No matching application for ID [${appId}].`);
+  }
 }
 
 /**
@@ -129,63 +129,63 @@ async function setApplication(appId: string | null): Promise<Application> {
  * @throws {Error} If signature is invalid
  */
 function verifySignature(
-	request: any,
-	query: Record<string, string>,
-	body: string,
-	application: Application,
+  request: any,
+  query: Record<string, string>,
+  body: string,
+  application: Application,
 ): void {
-	const crypto = require("node:crypto");
+  const crypto = require("node:crypto");
 
-	// Prepare params for signature (exclude auth_signature and internal params)
-	const params: Record<string, string> = {};
-	for (const [key, value] of Object.entries(query)) {
-		if (
-			![
-				"auth_signature",
-				"body_md5",
-				"appId",
-				"appKey",
-				"channelName",
-			].includes(key)
-		) {
-			params[key] = value;
-		}
-	}
+  // Prepare params for signature (exclude auth_signature and internal params)
+  const params: Record<string, string> = {};
+  for (const [key, value] of Object.entries(query)) {
+    if (
+      ![
+        "auth_signature",
+        "body_md5",
+        "appId",
+        "appKey",
+        "channelName",
+      ].includes(key)
+    ) {
+      params[key] = value;
+    }
+  }
 
-	// Add body_md5 if body is not empty
-	if (body !== "") {
-		params.body_md5 = crypto.createHash("md5").update(body).digest("hex");
-	}
+  // Add body_md5 if body is not empty
+  if (body !== "") {
+    params.body_md5 = crypto.createHash("md5").update(body).digest("hex");
+  }
 
-	// Sort params by key
-	const sortedKeys = Object.keys(params).sort();
-	const sortedParams: Record<string, string> = {};
-	for (const key of sortedKeys) {
-		sortedParams[key] = params[key] ?? "";
-	}
+  // Sort params by key
+  const sortedKeys = Object.keys(params).sort();
+  const sortedParams: Record<string, string> = {};
+  for (const key of sortedKeys) {
+    sortedParams[key] = params[key] ?? "";
+  }
 
-	// Format params for verification
-	const queryString = formatQueryParametersForVerification(sortedParams);
+  // Format params for verification
+  const queryString = formatQueryParametersForVerification(sortedParams);
 
-	// Build signature string
-	const method = request.method || request.getMethod?.() || "GET";
-	const path = request.url
-		? new URL(request.url, "http://localhost").pathname
-		: request.getPath?.() || "/";
+  // Build signature string
+  const method = request.method || request.getMethod?.() || "GET";
+  const path = request.url
+    ? new URL(request.url, "http://localhost").pathname
+    : request.getPath?.() || "/";
 
-	const signatureString = [method, path, queryString].join("\n");
+  const signatureString = [method, path, queryString].join("\n");
 
-	// Generate signature
-	const signature = crypto
-		.createHmac("sha256", application.secret())
-		.update(signatureString)
-		.digest("hex");
+  // Generate signature
+  const signature = crypto
+    .createHmac("sha256", application.secret())
+    .update(signatureString)
+    .digest("hex");
 
-	const authSignature = query.auth_signature || "";
+  const authSignature = query.auth_signature || "";
 
-	if (signature !== authSignature) {
-		throw new Error("Authentication signature invalid.");
-	}
+  if (signature !== authSignature) {
+    throw new Error("Authentication signature invalid.");
+  }
 }
 
 /**
@@ -195,19 +195,19 @@ function verifySignature(
  * @returns Formatted query string
  */
 function formatQueryParametersForVerification(
-	params: Record<string, string | string[]>,
+  params: Record<string, string | string[]>,
 ): string {
-	const parts: string[] = [];
+  const parts: string[] = [];
 
-	for (const [key, value] of Object.entries(params)) {
-		if (Array.isArray(value)) {
-			parts.push(`${key}=${value.join(",")}`);
-		} else {
-			parts.push(`${key}=${value}`);
-		}
-	}
+  for (const [key, value] of Object.entries(params)) {
+    if (Array.isArray(value)) {
+      parts.push(`${key}=${value.join(",")}`);
+    } else {
+      parts.push(`${key}=${value}`);
+    }
+  }
 
-	return parts.join("&");
+  return parts.join("&");
 }
 
 /**
@@ -216,7 +216,7 @@ function formatQueryParametersForVerification(
  * @returns The application provider instance
  */
 function getApplicationProvider(): any {
-	return Factory.getApplicationProvider();
+  return Factory.getApplicationProvider();
 }
 
 /**
@@ -225,7 +225,7 @@ function getApplicationProvider(): any {
  * @returns The channel manager instance
  */
 function getChannelManager(): ChannelManager {
-	return Factory.getChannelManager();
+  return Factory.getChannelManager();
 }
 
 /**
@@ -234,5 +234,5 @@ function getChannelManager(): ChannelManager {
  * @returns The metrics handler instance
  */
 function getMetricsHandler(): MetricsHandler {
-	return Factory.getMetricsHandler();
+  return Factory.getMetricsHandler();
 }

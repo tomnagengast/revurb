@@ -13,10 +13,10 @@ let logger: ILogger | null = null;
  * @returns The current logger instance
  */
 function getLogger(): ILogger {
-	if (!logger) {
-		logger = new NullLogger();
-	}
-	return logger;
+  if (!logger) {
+    logger = new NullLogger();
+  }
+  return logger;
 }
 
 /**
@@ -25,7 +25,7 @@ function getLogger(): ILogger {
  * @param loggerInstance - The logger implementation to use globally
  */
 function setLogger(loggerInstance: ILogger): void {
-	logger = loggerInstance;
+  logger = loggerInstance;
 }
 
 /**
@@ -35,7 +35,7 @@ function setLogger(loggerInstance: ILogger): void {
  * @param message - Optional additional details or context
  */
 function logInfo(title: string, message?: string | null): void {
-	getLogger().info(title, message);
+  getLogger().info(title, message);
 }
 
 /**
@@ -44,7 +44,7 @@ function logInfo(title: string, message?: string | null): void {
  * @param message - The error message to log
  */
 function logError(message: string): void {
-	getLogger().error(message);
+  getLogger().error(message);
 }
 
 /**
@@ -53,7 +53,7 @@ function logError(message: string): void {
  * @param message - The debug message to log
  */
 function logDebug(message: string): void {
-	getLogger().debug(message);
+  getLogger().debug(message);
 }
 
 /**
@@ -62,7 +62,7 @@ function logDebug(message: string): void {
  * @param message - A JSON string containing the WebSocket message data
  */
 function logMessage(message: string): void {
-	getLogger().message(message);
+  getLogger().message(message);
 }
 
 /**
@@ -71,7 +71,7 @@ function logMessage(message: string): void {
  * @param lines - The number of blank lines to append (default: 1)
  */
 function logLine(lines?: number): void {
-	getLogger().line(lines);
+  getLogger().line(lines);
 }
 
 /**
@@ -95,11 +95,11 @@ function logLine(lines?: number): void {
  * ```
  */
 export const Log = {
-	setLogger,
-	getLogger,
-	info: logInfo,
-	error: logError,
-	debug: logDebug,
-	message: logMessage,
-	line: logLine,
+  setLogger,
+  getLogger,
+  info: logInfo,
+  error: logError,
+  debug: logDebug,
+  message: logMessage,
+  line: logLine,
 };

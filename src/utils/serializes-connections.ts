@@ -8,18 +8,18 @@ import type { IApplicationProvider } from "../contracts/application-provider";
  * Used for persisting connection state across process boundaries or storage.
  */
 export interface SerializedConnection {
-	/** The raw socket connection identifier */
-	id: string;
-	/** The normalized socket ID (format: "number.number") */
-	identifier: string;
-	/** The application ID this connection belongs to */
-	application: string;
-	/** The origin of the connection (nullable) */
-	origin: string | null;
-	/** The last time the connection was seen (in seconds) */
-	lastSeenAt: number;
-	/** Whether the connection has been pinged */
-	hasBeenPinged: boolean;
+  /** The raw socket connection identifier */
+  id: string;
+  /** The normalized socket ID (format: "number.number") */
+  identifier: string;
+  /** The application ID this connection belongs to */
+  application: string;
+  /** The origin of the connection (nullable) */
+  origin: string | null;
+  /** The last time the connection was seen (in seconds) */
+  lastSeenAt: number;
+  /** Whether the connection has been pinged */
+  hasBeenPinged: boolean;
 }
 
 /**
@@ -29,35 +29,35 @@ export interface SerializedConnection {
  * JSON-serializable format for storage, transmission, or persistence.
  */
 export interface ISerializableConnection {
-	/**
-	 * Get the raw socket connection identifier.
-	 * @returns The raw connection identifier
-	 */
-	identifier(): string;
+  /**
+   * Get the raw socket connection identifier.
+   * @returns The raw connection identifier
+   */
+  identifier(): string;
 
-	/**
-	 * Get the normalized socket ID.
-	 * @returns The normalized socket ID (e.g., "123456789.987654321")
-	 */
-	id(): string;
+  /**
+   * Get the normalized socket ID.
+   * @returns The normalized socket ID (e.g., "123456789.987654321")
+   */
+  id(): string;
 
-	/**
-	 * Get the application the connection belongs to.
-	 * @returns The Application instance
-	 */
-	app(): Application;
+  /**
+   * Get the application the connection belongs to.
+   * @returns The Application instance
+   */
+  app(): Application;
 
-	/**
-	 * Get the origin of the connection.
-	 * @returns The connection origin or null
-	 */
-	getOrigin(): string | null;
+  /**
+   * Get the origin of the connection.
+   * @returns The connection origin or null
+   */
+  getOrigin(): string | null;
 
-	/**
-	 * Get the last time the connection was seen.
-	 * @returns The last seen timestamp in seconds
-	 */
-	getLastSeenAt(): number;
+  /**
+   * Get the last time the connection was seen.
+   * @returns The last seen timestamp in seconds
+   */
+  getLastSeenAt(): number;
 }
 
 /**
@@ -78,18 +78,18 @@ export interface ISerializableConnection {
  * ```
  */
 export function serializeConnection(
-	connection: ISerializableConnection & {
-		hasBeenPinged: boolean;
-	},
+  connection: ISerializableConnection & {
+    hasBeenPinged: boolean;
+  },
 ): SerializedConnection {
-	return {
-		id: connection.id(),
-		identifier: connection.identifier(),
-		application: connection.app().id(),
-		origin: connection.getOrigin(),
-		lastSeenAt: connection.getLastSeenAt(),
-		hasBeenPinged: connection.hasBeenPinged,
-	};
+  return {
+    id: connection.id(),
+    identifier: connection.identifier(),
+    application: connection.app().id(),
+    origin: connection.getOrigin(),
+    lastSeenAt: connection.getLastSeenAt(),
+    hasBeenPinged: connection.hasBeenPinged,
+  };
 }
 
 /**
@@ -121,24 +121,24 @@ export function serializeConnection(
  * ```
  */
 export function deserializeConnection(
-	data: SerializedConnection,
-	applicationProvider: IApplicationProvider,
+  data: SerializedConnection,
+  applicationProvider: IApplicationProvider,
 ): {
-	id: string;
-	identifier: string;
-	application: Application;
-	origin: string | null;
-	lastSeenAt: number;
-	hasBeenPinged: boolean;
+  id: string;
+  identifier: string;
+  application: Application;
+  origin: string | null;
+  lastSeenAt: number;
+  hasBeenPinged: boolean;
 } {
-	return {
-		id: data.id,
-		identifier: data.identifier,
-		application: applicationProvider.findById(data.application),
-		origin: data.origin,
-		lastSeenAt: data.lastSeenAt ?? null,
-		hasBeenPinged: data.hasBeenPinged ?? false,
-	};
+  return {
+    id: data.id,
+    identifier: data.identifier,
+    application: applicationProvider.findById(data.application),
+    origin: data.origin,
+    lastSeenAt: data.lastSeenAt ?? null,
+    hasBeenPinged: data.hasBeenPinged ?? false,
+  };
 }
 
 /**
@@ -157,11 +157,11 @@ export function deserializeConnection(
  * ```
  */
 export function connectionToJson(
-	connection: ISerializableConnection & {
-		hasBeenPinged: boolean;
-	},
+  connection: ISerializableConnection & {
+    hasBeenPinged: boolean;
+  },
 ): string {
-	return JSON.stringify(serializeConnection(connection));
+  return JSON.stringify(serializeConnection(connection));
 }
 
 /**
@@ -183,9 +183,9 @@ export function connectionToJson(
  * ```
  */
 export function connectionFromJson(
-	json: string,
-	applicationProvider: IApplicationProvider,
+  json: string,
+  applicationProvider: IApplicationProvider,
 ): ReturnType<typeof deserializeConnection> {
-	const data = JSON.parse(json) as SerializedConnection;
-	return deserializeConnection(data, applicationProvider);
+  const data = JSON.parse(json) as SerializedConnection;
+  return deserializeConnection(data, applicationProvider);
 }

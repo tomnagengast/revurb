@@ -4,26 +4,26 @@ import type { Application } from "../../../application";
  * Types for channel information
  */
 export interface ChannelInfo {
-	occupied?: boolean;
-	user_count?: number;
-	subscription_count?: number;
-	cache?: any;
+  occupied?: boolean;
+  user_count?: number;
+  subscription_count?: number;
+  cache?: any;
 }
 
 export interface ChannelConnection {
-	data(key?: string): any;
-	send(message: string): void;
+  data(key?: string): any;
+  send(message: string): void;
 }
 
 export interface Channel {
-	name(): string;
-	connections(): Record<string, ChannelConnection>;
-	cachedPayload?(): any;
+  name(): string;
+  connections(): Record<string, ChannelConnection>;
+  cachedPayload?(): any;
 }
 
 export interface ChannelManager {
-	for(application: Application): ChannelManager;
-	find(channel: string): Channel | null;
+  for(application: Application): ChannelManager;
+  find(channel: string): Channel | null;
 }
 
 /**
@@ -41,19 +41,19 @@ export interface ChannelManager {
  * @returns Object mapping channel names to their info
  */
 export function infoForChannels(
-	application: Application,
-	channels: (string | Channel)[],
-	info: string,
-	channelManager: ChannelManager,
+  application: Application,
+  channels: (string | Channel)[],
+  info: string,
+  channelManager: ChannelManager,
 ): Record<string, ChannelInfo> {
-	const result: Record<string, ChannelInfo> = {};
+  const result: Record<string, ChannelInfo> = {};
 
-	for (const channel of channels) {
-		const name = typeof channel === "string" ? channel : channel.name();
-		result[name] = getChannelInfo(application, name, info, channelManager);
-	}
+  for (const channel of channels) {
+    const name = typeof channel === "string" ? channel : channel.name();
+    result[name] = getChannelInfo(application, name, info, channelManager);
+  }
 
-	return result;
+  return result;
 }
 
 /**
@@ -66,19 +66,19 @@ export function infoForChannels(
  * @returns Object containing requested channel information
  */
 export function getChannelInfo(
-	application: Application,
-	channelName: string,
-	info: string,
-	channelManager: ChannelManager,
+  application: Application,
+  channelName: string,
+  info: string,
+  channelManager: ChannelManager,
 ): ChannelInfo {
-	const infoFields = info.split(",").map((field) => field.trim());
-	const channel = channelManager.for(application).find(channelName);
+  const infoFields = info.split(",").map((field) => field.trim());
+  const channel = channelManager.for(application).find(channelName);
 
-	if (channel) {
-		return getOccupiedInfo(channel, infoFields);
-	}
+  if (channel) {
+    return getOccupiedInfo(channel, infoFields);
+  }
 
-	return getUnoccupiedInfo(infoFields);
+  return getUnoccupiedInfo(infoFields);
 }
 
 /**
@@ -89,28 +89,28 @@ export function getChannelInfo(
  * @returns Object containing channel information
  */
 function getOccupiedInfo(channel: Channel, info: string[]): ChannelInfo {
-	const connections = channel.connections();
-	const count = Object.keys(connections).length;
+  const connections = channel.connections();
+  const count = Object.keys(connections).length;
 
-	const result: ChannelInfo = {};
+  const result: ChannelInfo = {};
 
-	if (info.includes("occupied")) {
-		result.occupied = count > 0;
-	}
+  if (info.includes("occupied")) {
+    result.occupied = count > 0;
+  }
 
-	if (info.includes("user_count") && isPresenceChannel(channel)) {
-		result.user_count = getUserCount(channel);
-	}
+  if (info.includes("user_count") && isPresenceChannel(channel)) {
+    result.user_count = getUserCount(channel);
+  }
 
-	if (info.includes("subscription_count") && !isPresenceChannel(channel)) {
-		result.subscription_count = count;
-	}
+  if (info.includes("subscription_count") && !isPresenceChannel(channel)) {
+    result.subscription_count = count;
+  }
 
-	if (info.includes("cache") && isCacheChannel(channel)) {
-		result.cache = channel.cachedPayload?.();
-	}
+  if (info.includes("cache") && isCacheChannel(channel)) {
+    result.cache = channel.cachedPayload?.();
+  }
 
-	return result;
+  return result;
 }
 
 /**
@@ -120,13 +120,13 @@ function getOccupiedInfo(channel: Channel, info: string[]): ChannelInfo {
  * @returns Object containing channel information
  */
 function getUnoccupiedInfo(info: string[]): ChannelInfo {
-	const result: ChannelInfo = {};
+  const result: ChannelInfo = {};
 
-	if (info.includes("occupied")) {
-		result.occupied = false;
-	}
+  if (info.includes("occupied")) {
+    result.occupied = false;
+  }
 
-	return result;
+  return result;
 }
 
 /**
@@ -136,9 +136,9 @@ function getUnoccupiedInfo(info: string[]): ChannelInfo {
  * @returns True if the channel is a presence channel
  */
 export function isPresenceChannel(channel: Channel): boolean {
-	// Check if the channel has presence-specific methods/properties
-	// In TypeScript, we can check for the existence of presence-specific methods
-	return "data" in channel && typeof (channel as any).data === "function";
+  // Check if the channel has presence-specific methods/properties
+  // In TypeScript, we can check for the existence of presence-specific methods
+  return "data" in channel && typeof (channel as any).data === "function";
 }
 
 /**
@@ -148,10 +148,10 @@ export function isPresenceChannel(channel: Channel): boolean {
  * @returns True if the channel is a cache channel
  */
 export function isCacheChannel(channel: Channel): boolean {
-	// Check if the channel has cachedPayload method
-	return (
-		"cachedPayload" in channel && typeof channel.cachedPayload === "function"
-	);
+  // Check if the channel has cachedPayload method
+  return (
+    "cachedPayload" in channel && typeof channel.cachedPayload === "function"
+  );
 }
 
 /**
@@ -161,15 +161,15 @@ export function isCacheChannel(channel: Channel): boolean {
  * @returns The number of unique users
  */
 export function getUserCount(channel: Channel): number {
-	const connections = Object.values(channel.connections());
-	const uniqueUserIds = new Set<string>();
+  const connections = Object.values(channel.connections());
+  const uniqueUserIds = new Set<string>();
 
-	for (const connection of connections) {
-		const userId = connection.data("user_id");
-		if (userId !== null && userId !== undefined) {
-			uniqueUserIds.add(String(userId));
-		}
-	}
+  for (const connection of connections) {
+    const userId = connection.data("user_id");
+    if (userId !== null && userId !== undefined) {
+      uniqueUserIds.add(String(userId));
+    }
+  }
 
-	return uniqueUserIds.size;
+  return uniqueUserIds.size;
 }

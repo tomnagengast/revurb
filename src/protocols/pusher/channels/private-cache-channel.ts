@@ -51,138 +51,138 @@ import { CacheChannel } from "./cache-channel";
  * @see CacheChannel for caching details
  */
 export class PrivateCacheChannel extends CacheChannel {
-	/**
-	 * Subscribe to the private cache channel.
-	 *
-	 * Verifies authentication before allowing subscription.
-	 * Delegates to parent CacheChannel.subscribe() after verification.
-	 *
-	 * Implements the InteractsWithPrivateChannels trait behavior from PHP.
-	 *
-	 * @param connection - The connection to subscribe
-	 * @param auth - The authentication signature (required)
-	 * @param data - Optional JSON-encoded channel data
-	 * @throws {ConnectionUnauthorized} If authentication fails
-	 *
-	 * @example
-	 * ```typescript
-	 * const auth = connection.app().key() + ':' + hmacSignature;
-	 * channel.subscribe(connection, auth);
-	 * ```
-	 */
-	override subscribe(
-		connection: Connection,
-		auth: string | null = null,
-		data: string | null = null,
-	): void {
-		// Verify authentication first
-		this.verify(connection, auth, data);
+  /**
+   * Subscribe to the private cache channel.
+   *
+   * Verifies authentication before allowing subscription.
+   * Delegates to parent CacheChannel.subscribe() after verification.
+   *
+   * Implements the InteractsWithPrivateChannels trait behavior from PHP.
+   *
+   * @param connection - The connection to subscribe
+   * @param auth - The authentication signature (required)
+   * @param data - Optional JSON-encoded channel data
+   * @throws {ConnectionUnauthorized} If authentication fails
+   *
+   * @example
+   * ```typescript
+   * const auth = connection.app().key() + ':' + hmacSignature;
+   * channel.subscribe(connection, auth);
+   * ```
+   */
+  override subscribe(
+    connection: Connection,
+    auth: string | null = null,
+    data: string | null = null,
+  ): void {
+    // Verify authentication first
+    this.verify(connection, auth, data);
 
-		// Then delegate to parent for subscription handling
-		super.subscribe(connection, auth, data);
-	}
+    // Then delegate to parent for subscription handling
+    super.subscribe(connection, auth, data);
+  }
 
-	/**
-	 * Verify the authentication token.
-	 *
-	 * Validates that the provided auth signature matches the expected HMAC-SHA256
-	 * signature for the connection and channel.
-	 *
-	 * This implements the verify() method from the InteractsWithPrivateChannels
-	 * trait in the PHP implementation.
-	 *
-	 * Signature String Format:
-	 * - Without data: "{socket_id}:{channel_name}"
-	 * - With data: "{socket_id}:{channel_name}:{data}"
-	 *
-	 * Auth Token Format:
-	 * - "{app_key}:{signature}"
-	 * - Only the signature portion (after ':') is validated
-	 *
-	 * Algorithm (from PHP):
-	 * ```php
-	 * $signature = "{$connection->id()}:{$this->name()}";
-	 * if ($data) {
-	 *     $signature .= ":{$data}";
-	 * }
-	 *
-	 * if (! hash_equals(
-	 *     hash_hmac('sha256', $signature, $connection->app()->secret()),
-	 *     Str::after($auth, ':')
-	 * )) {
-	 *     throw new ConnectionUnauthorized;
-	 * }
-	 * ```
-	 *
-	 * @param connection - The connection attempting to subscribe
-	 * @param auth - The authentication token
-	 * @param data - Optional channel data to include in signature
-	 * @returns true if authentication is valid
-	 * @throws {ConnectionUnauthorized} If authentication fails or is invalid
-	 * @protected
-	 */
-	protected verify(
-		connection: Connection,
-		auth: string | null = null,
-		data: string | null = null,
-	): boolean {
-		// Build the signature string: "{socket_id}:{channel_name}:{data?}"
-		let signatureString = `${connection.id()}:${this.name()}`;
+  /**
+   * Verify the authentication token.
+   *
+   * Validates that the provided auth signature matches the expected HMAC-SHA256
+   * signature for the connection and channel.
+   *
+   * This implements the verify() method from the InteractsWithPrivateChannels
+   * trait in the PHP implementation.
+   *
+   * Signature String Format:
+   * - Without data: "{socket_id}:{channel_name}"
+   * - With data: "{socket_id}:{channel_name}:{data}"
+   *
+   * Auth Token Format:
+   * - "{app_key}:{signature}"
+   * - Only the signature portion (after ':') is validated
+   *
+   * Algorithm (from PHP):
+   * ```php
+   * $signature = "{$connection->id()}:{$this->name()}";
+   * if ($data) {
+   *     $signature .= ":{$data}";
+   * }
+   *
+   * if (! hash_equals(
+   *     hash_hmac('sha256', $signature, $connection->app()->secret()),
+   *     Str::after($auth, ':')
+   * )) {
+   *     throw new ConnectionUnauthorized;
+   * }
+   * ```
+   *
+   * @param connection - The connection attempting to subscribe
+   * @param auth - The authentication token
+   * @param data - Optional channel data to include in signature
+   * @returns true if authentication is valid
+   * @throws {ConnectionUnauthorized} If authentication fails or is invalid
+   * @protected
+   */
+  protected verify(
+    connection: Connection,
+    auth: string | null = null,
+    data: string | null = null,
+  ): boolean {
+    // Build the signature string: "{socket_id}:{channel_name}:{data?}"
+    let signatureString = `${connection.id()}:${this.name()}`;
 
-		if (data) {
-			signatureString += `:${data}`;
-		}
+    if (data) {
+      signatureString += `:${data}`;
+    }
 
-		// Extract the signature from auth token (format: "app_key:signature")
-		// PHP equivalent: Str::after($auth, ':')
-		const providedSignature = auth ? auth.split(":").slice(1).join(":") : "";
+    // Extract the signature from auth token (format: "app_key:signature")
+    // PHP equivalent: Str::after($auth, ':')
+    const providedSignature = auth ? auth.split(":").slice(1).join(":") : "";
 
-		// Compute expected signature using HMAC-SHA256
-		// PHP equivalent: hash_hmac('sha256', $signature, $connection->app()->secret())
-		const secret = connection.app().secret();
-		const expectedSignature = crypto
-			.createHmac("sha256", secret)
-			.update(signatureString)
-			.digest("hex");
+    // Compute expected signature using HMAC-SHA256
+    // PHP equivalent: hash_hmac('sha256', $signature, $connection->app()->secret())
+    const secret = connection.app().secret();
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(signatureString)
+      .digest("hex");
 
-		// Constant-time comparison to prevent timing attacks
-		// PHP equivalent: hash_equals($expected, $provided)
-		if (!this.timingSafeEqual(expectedSignature, providedSignature)) {
-			throw new ConnectionUnauthorized();
-		}
+    // Constant-time comparison to prevent timing attacks
+    // PHP equivalent: hash_equals($expected, $provided)
+    if (!this.timingSafeEqual(expectedSignature, providedSignature)) {
+      throw new ConnectionUnauthorized();
+    }
 
-		return true;
-	}
+    return true;
+  }
 
-	/**
-	 * Timing-safe string comparison.
-	 *
-	 * Compares two strings in constant time to prevent timing attacks.
-	 * Uses crypto.timingSafeEqual which is equivalent to PHP's hash_equals().
-	 *
-	 * Implementation notes:
-	 * - Handles length mismatches safely
-	 * - Performs dummy comparison when lengths differ to maintain constant time
-	 * - Uses Node.js crypto.timingSafeEqual for secure comparison
-	 *
-	 * @param a - First string to compare
-	 * @param b - Second string to compare
-	 * @returns true if strings are equal, false otherwise
-	 * @private
-	 */
-	private timingSafeEqual(a: string, b: string): boolean {
-		// If lengths differ, use dummy comparison to maintain constant time
-		if (a.length !== b.length) {
-			// Compare with dummy value to maintain constant time
-			const dummy = "a".repeat(a.length);
-			crypto.timingSafeEqual(Buffer.from(a), Buffer.from(dummy));
-			return false;
-		}
+  /**
+   * Timing-safe string comparison.
+   *
+   * Compares two strings in constant time to prevent timing attacks.
+   * Uses crypto.timingSafeEqual which is equivalent to PHP's hash_equals().
+   *
+   * Implementation notes:
+   * - Handles length mismatches safely
+   * - Performs dummy comparison when lengths differ to maintain constant time
+   * - Uses Node.js crypto.timingSafeEqual for secure comparison
+   *
+   * @param a - First string to compare
+   * @param b - Second string to compare
+   * @returns true if strings are equal, false otherwise
+   * @private
+   */
+  private timingSafeEqual(a: string, b: string): boolean {
+    // If lengths differ, use dummy comparison to maintain constant time
+    if (a.length !== b.length) {
+      // Compare with dummy value to maintain constant time
+      const dummy = "a".repeat(a.length);
+      crypto.timingSafeEqual(Buffer.from(a), Buffer.from(dummy));
+      return false;
+    }
 
-		try {
-			return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
-		} catch {
-			return false;
-		}
-	}
+    try {
+      return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+    } catch {
+      return false;
+    }
+  }
 }

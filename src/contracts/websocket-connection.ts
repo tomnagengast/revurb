@@ -22,18 +22,18 @@ import type { WebSocket } from "bun";
  * @see {@link https://datatracker.ietf.org/doc/html/rfc6455#section-11.8 RFC 6455 Opcodes}
  */
 export enum FrameOpcode {
-	/** Continuation frame (0x0) */
-	CONTINUATION = 0x0,
-	/** Text frame (0x1) */
-	TEXT = 0x1,
-	/** Binary frame (0x2) */
-	BINARY = 0x2,
-	/** Connection close frame (0x8) */
-	CLOSE = 0x8,
-	/** Ping frame (0x9) */
-	PING = 0x9,
-	/** Pong frame (0xA) */
-	PONG = 0xa,
+  /** Continuation frame (0x0) */
+  CONTINUATION = 0x0,
+  /** Text frame (0x1) */
+  TEXT = 0x1,
+  /** Binary frame (0x2) */
+  BINARY = 0x2,
+  /** Connection close frame (0x8) */
+  CLOSE = 0x8,
+  /** Ping frame (0x9) */
+  PING = 0x9,
+  /** Pong frame (0xA) */
+  PONG = 0xa,
 }
 
 /**
@@ -41,12 +41,12 @@ export enum FrameOpcode {
  * Used for sending PING, PONG, and CLOSE frames.
  */
 export interface Frame {
-	/** The frame payload (message content) */
-	payload: string | Buffer;
-	/** The frame opcode indicating the frame type */
-	opcode: FrameOpcode;
-	/** Get the frame contents as a buffer for transmission */
-	getContents(): Buffer | string;
+  /** The frame payload (message content) */
+  payload: string | Buffer;
+  /** The frame opcode indicating the frame type */
+  opcode: FrameOpcode;
+  /** Get the frame contents as a buffer for transmission */
+  getContents(): Buffer | string;
 }
 
 /**
@@ -78,93 +78,93 @@ export interface Frame {
  * ```
  */
 export interface IWebSocketConnection {
-	/**
-	 * Get the raw socket connection identifier.
-	 *
-	 * This identifier is used internally to track and manage connections.
-	 * In the PHP implementation (Ratchet), this returns an integer based on the
-	 * socket stream resource. In Bun, this could be based on the WebSocket object's
-	 * unique identifier or a generated ID.
-	 *
-	 * @returns The unique connection identifier (number for efficiency, string for flexibility)
-	 *
-	 * @example
-	 * ```typescript
-	 * const id = connection.id();
-	 * console.log(`Connection ID: ${id}`);
-	 * ```
-	 */
-	id(): number | string;
+  /**
+   * Get the raw socket connection identifier.
+   *
+   * This identifier is used internally to track and manage connections.
+   * In the PHP implementation (Ratchet), this returns an integer based on the
+   * socket stream resource. In Bun, this could be based on the WebSocket object's
+   * unique identifier or a generated ID.
+   *
+   * @returns The unique connection identifier (number for efficiency, string for flexibility)
+   *
+   * @example
+   * ```typescript
+   * const id = connection.id();
+   * console.log(`Connection ID: ${id}`);
+   * ```
+   */
+  id(): number | string;
 
-	/**
-	 * Send a message or frame to the connection.
-	 *
-	 * This method handles both regular messages (strings/buffers) and control frames.
-	 * When sending a Frame object, the implementation should extract the frame contents
-	 * and transmit them according to the WebSocket protocol.
-	 *
-	 * For regular messages, the implementation may wrap them in appropriate WebSocket
-	 * frames (TEXT or BINARY) based on the content type.
-	 *
-	 * @param message - The message to send. Can be:
-	 *   - string: Text message (will be sent as TEXT frame)
-	 *   - Buffer: Binary message (will be sent as BINARY frame)
-	 *   - Frame: Control frame (PING, PONG, CLOSE)
-	 *
-	 * @throws Error if the connection is closed or invalid
-	 *
-	 * @example
-	 * ```typescript
-	 * // Send a text message
-	 * connection.send("Hello, client!");
-	 *
-	 * // Send a binary message
-	 * connection.send(Buffer.from([0x01, 0x02, 0x03]));
-	 *
-	 * // Send a PING frame
-	 * connection.send({
-	 *   payload: "",
-	 *   opcode: FrameOpcode.PING,
-	 *   getContents: () => Buffer.from("")
-	 * });
-	 * ```
-	 */
-	send(message: string | Buffer | Frame): void;
+  /**
+   * Send a message or frame to the connection.
+   *
+   * This method handles both regular messages (strings/buffers) and control frames.
+   * When sending a Frame object, the implementation should extract the frame contents
+   * and transmit them according to the WebSocket protocol.
+   *
+   * For regular messages, the implementation may wrap them in appropriate WebSocket
+   * frames (TEXT or BINARY) based on the content type.
+   *
+   * @param message - The message to send. Can be:
+   *   - string: Text message (will be sent as TEXT frame)
+   *   - Buffer: Binary message (will be sent as BINARY frame)
+   *   - Frame: Control frame (PING, PONG, CLOSE)
+   *
+   * @throws Error if the connection is closed or invalid
+   *
+   * @example
+   * ```typescript
+   * // Send a text message
+   * connection.send("Hello, client!");
+   *
+   * // Send a binary message
+   * connection.send(Buffer.from([0x01, 0x02, 0x03]));
+   *
+   * // Send a PING frame
+   * connection.send({
+   *   payload: "",
+   *   opcode: FrameOpcode.PING,
+   *   getContents: () => Buffer.from("")
+   * });
+   * ```
+   */
+  send(message: string | Buffer | Frame): void;
 
-	/**
-	 * Close the WebSocket connection.
-	 *
-	 * Gracefully terminates the connection. If a message is provided, it will be
-	 * sent as a CLOSE frame before closing the connection. The message can be a
-	 * Frame object with a CLOSE opcode, or a string/buffer that will be wrapped
-	 * in a CLOSE frame.
-	 *
-	 * After calling this method, the connection should be considered terminated
-	 * and no further messages should be sent or received.
-	 *
-	 * @param message - Optional close message or frame. Can be:
-	 *   - undefined: Close without a message
-	 *   - string: Close message (will be sent as CLOSE frame)
-	 *   - Buffer: Close message (will be sent as CLOSE frame)
-	 *   - Frame: Close frame with custom opcode and payload
-	 *
-	 * @example
-	 * ```typescript
-	 * // Close without a message
-	 * connection.close();
-	 *
-	 * // Close with a message
-	 * connection.close("Server shutting down");
-	 *
-	 * // Close with a custom frame
-	 * connection.close({
-	 *   payload: "Protocol violation",
-	 *   opcode: FrameOpcode.CLOSE,
-	 *   getContents: () => Buffer.from("Protocol violation")
-	 * });
-	 * ```
-	 */
-	close(message?: string | Buffer | Frame): void;
+  /**
+   * Close the WebSocket connection.
+   *
+   * Gracefully terminates the connection. If a message is provided, it will be
+   * sent as a CLOSE frame before closing the connection. The message can be a
+   * Frame object with a CLOSE opcode, or a string/buffer that will be wrapped
+   * in a CLOSE frame.
+   *
+   * After calling this method, the connection should be considered terminated
+   * and no further messages should be sent or received.
+   *
+   * @param message - Optional close message or frame. Can be:
+   *   - undefined: Close without a message
+   *   - string: Close message (will be sent as CLOSE frame)
+   *   - Buffer: Close message (will be sent as CLOSE frame)
+   *   - Frame: Close frame with custom opcode and payload
+   *
+   * @example
+   * ```typescript
+   * // Close without a message
+   * connection.close();
+   *
+   * // Close with a message
+   * connection.close("Server shutting down");
+   *
+   * // Close with a custom frame
+   * connection.close({
+   *   payload: "Protocol violation",
+   *   opcode: FrameOpcode.CLOSE,
+   *   getContents: () => Buffer.from("Protocol violation")
+   * });
+   * ```
+   */
+  close(message?: string | Buffer | Frame): void;
 }
 
 /**
@@ -178,5 +178,5 @@ export type WebSocketConnection = IWebSocketConnection;
  * Used by server implementations to instantiate new connections.
  */
 export type WebSocketConnectionFactory = (
-	socket: WebSocket,
+  socket: WebSocket,
 ) => IWebSocketConnection;

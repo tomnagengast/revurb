@@ -26,36 +26,36 @@ import { join, sep } from "node:path";
  * ```
  */
 function certificateHerdPath(): string {
-	const home = homedir();
-	const os = platform();
+  const home = homedir();
+  const os = platform();
 
-	if (os === "win32") {
-		// Windows: %USERPROFILE%\.config\herd\config\valet\Certificates\
-		return (
-			join(home, ".config", "herd", "config", "valet", "Certificates", "") + sep
-		);
-	}
+  if (os === "win32") {
+    // Windows: %USERPROFILE%\.config\herd\config\valet\Certificates\
+    return (
+      join(home, ".config", "herd", "config", "valet", "Certificates", "") + sep
+    );
+  }
 
-	// macOS: ~/Library/Application Support/Herd/config/valet/Certificates/
-	if (os === "darwin") {
-		return (
-			join(
-				home,
-				"Library",
-				"Application Support",
-				"Herd",
-				"config",
-				"valet",
-				"Certificates",
-				"",
-			) + sep
-		);
-	}
+  // macOS: ~/Library/Application Support/Herd/config/valet/Certificates/
+  if (os === "darwin") {
+    return (
+      join(
+        home,
+        "Library",
+        "Application Support",
+        "Herd",
+        "config",
+        "valet",
+        "Certificates",
+        "",
+      ) + sep
+    );
+  }
 
-	// Linux/other: ~/.config/herd/config/valet/Certificates/
-	return (
-		join(home, ".config", "herd", "config", "valet", "Certificates", "") + sep
-	);
+  // Linux/other: ~/.config/herd/config/valet/Certificates/
+  return (
+    join(home, ".config", "herd", "config", "valet", "Certificates", "") + sep
+  );
 }
 
 /**
@@ -73,8 +73,8 @@ function certificateHerdPath(): string {
  * ```
  */
 function certificateValetPath(): string {
-	const home = homedir();
-	return join(home, ".config", "valet", "Certificates", "") + sep;
+  const home = homedir();
+  return join(home, ".config", "valet", "Certificates", "") + sep;
 }
 
 /**
@@ -89,7 +89,7 @@ function certificateValetPath(): string {
  * ```
  */
 function certificatePaths(): string[] {
-	return [certificateHerdPath(), certificateValetPath()];
+  return [certificateHerdPath(), certificateValetPath()];
 }
 
 /**
@@ -111,30 +111,30 @@ function certificatePaths(): string[] {
  * ```
  */
 function certificateResolve(url: string): [string, string] | null {
-	// Extract hostname from URL, fallback to url if parsing fails
-	let host: string;
-	try {
-		const parsed = new URL(url);
-		host = parsed.hostname;
-	} catch {
-		// If URL parsing fails, assume url is already a hostname
-		host = url;
-	}
+  // Extract hostname from URL, fallback to url if parsing fails
+  let host: string;
+  try {
+    const parsed = new URL(url);
+    host = parsed.hostname;
+  } catch {
+    // If URL parsing fails, assume url is already a hostname
+    host = url;
+  }
 
-	const certificate = `${host}.crt`;
-	const key = `${host}.key`;
+  const certificate = `${host}.crt`;
+  const key = `${host}.key`;
 
-	// Search all configured certificate paths
-	for (const path of certificatePaths()) {
-		const certPath = join(path, certificate);
-		const keyPath = join(path, key);
+  // Search all configured certificate paths
+  for (const path of certificatePaths()) {
+    const certPath = join(path, certificate);
+    const keyPath = join(path, key);
 
-		if (existsSync(certPath) && existsSync(keyPath)) {
-			return [certPath, keyPath];
-		}
-	}
+    if (existsSync(certPath) && existsSync(keyPath)) {
+      return [certPath, keyPath];
+    }
+  }
 
-	return null;
+  return null;
 }
 
 /**
@@ -150,7 +150,7 @@ function certificateResolve(url: string): [string, string] | null {
  * ```
  */
 function certificateExists(url: string): boolean {
-	return certificateResolve(url) !== null;
+  return certificateResolve(url) !== null;
 }
 
 /**
@@ -158,9 +158,9 @@ function certificateExists(url: string): boolean {
  * Provides functions to locate and validate SSL certificate files
  */
 export const Certificate = {
-	exists: certificateExists,
-	resolve: certificateResolve,
-	paths: certificatePaths,
-	herdPath: certificateHerdPath,
-	valetPath: certificateValetPath,
+  exists: certificateExists,
+  resolve: certificateResolve,
+  paths: certificatePaths,
+  herdPath: certificateHerdPath,
+  valetPath: certificateValetPath,
 };

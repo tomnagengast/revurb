@@ -5,7 +5,7 @@ import type { RedisClient as IRedisClient } from "./redis-client-factory";
  * Event payload for publishing to Redis
  */
 interface EventPayload {
-	[key: string]: unknown;
+  [key: string]: unknown;
 }
 
 /**
@@ -26,64 +26,64 @@ interface EventPayload {
  * ```
  */
 export class RedisPublishClient extends RedisClient {
-	/**
-	 * The name of the Redis connection
-	 */
-	protected override name = "publisher";
+  /**
+   * The name of the Redis connection
+   */
+  protected override name = "publisher";
 
-	/**
-	 * Queue of events to publish when reconnected
-	 */
-	protected queuedEvents: EventPayload[] = [];
+  /**
+   * Queue of events to publish when reconnected
+   */
+  protected queuedEvents: EventPayload[] = [];
 
-	/**
-	 * Publish an event to the given channel
-	 *
-	 * If the client is not connected, the event will be queued and published
-	 * automatically when the connection is restored.
-	 *
-	 * @param payload - The event payload to publish
-	 * @returns Promise that resolves when the event is published or queued
-	 */
-	public async publish(payload: EventPayload): Promise<void> {
-		if (!this.isConnected() || !this.client) {
-			this.queueEvent(payload);
-			return Promise.reject(new Error("Redis client not connected"));
-		}
-		await this.client.publish(this.channel, JSON.stringify(payload));
-	}
+  /**
+   * Publish an event to the given channel
+   *
+   * If the client is not connected, the event will be queued and published
+   * automatically when the connection is restored.
+   *
+   * @param payload - The event payload to publish
+   * @returns Promise that resolves when the event is published or queued
+   */
+  public async publish(payload: EventPayload): Promise<void> {
+    if (!this.isConnected() || !this.client) {
+      this.queueEvent(payload);
+      return Promise.reject(new Error("Redis client not connected"));
+    }
+    await this.client.publish(this.channel, JSON.stringify(payload));
+  }
 
-	/**
-	 * Queue the given publish event
-	 *
-	 * @param payload - The event payload to queue
-	 */
-	protected queueEvent(payload: EventPayload): void {
-		this.queuedEvents.push(payload);
-	}
+  /**
+   * Queue the given publish event
+   *
+   * @param payload - The event payload to queue
+   */
+  protected queueEvent(payload: EventPayload): void {
+    this.queuedEvents.push(payload);
+  }
 
-	/**
-	 * Process the queued events
-	 *
-	 * Publishes all queued events to Redis and clears the queue.
-	 */
-	protected processQueuedEvents(): void {
-		for (const event of this.queuedEvents) {
-			this.publish(event);
-		}
+  /**
+   * Process the queued events
+   *
+   * Publishes all queued events to Redis and clears the queue.
+   */
+  protected processQueuedEvents(): void {
+    for (const event of this.queuedEvents) {
+      this.publish(event);
+    }
 
-		this.queuedEvents = [];
-	}
+    this.queuedEvents = [];
+  }
 
-	/**
-	 * Handle a successful connection to the Redis server
-	 *
-	 * @param client - The connected Redis client
-	 */
-	protected override onConnection(client: IRedisClient): void {
-		super.onConnection(client);
+  /**
+   * Handle a successful connection to the Redis server
+   *
+   * @param client - The connected Redis client
+   */
+  protected override onConnection(client: IRedisClient): void {
+    super.onConnection(client);
 
-		// Process any queued events after connection is established
-		this.processQueuedEvents();
-	}
+    // Process any queued events after connection is established
+    this.processQueuedEvents();
+  }
 }

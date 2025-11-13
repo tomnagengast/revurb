@@ -2,11 +2,11 @@
  * Types for channel serialization
  */
 export interface SerializedChannel {
-	name: string;
+  name: string;
 }
 
 export interface ChannelConnectionManager {
-	for(channelName: string): any;
+  for(channelName: string): any;
 }
 
 /**
@@ -24,11 +24,11 @@ export interface ChannelConnectionManager {
  * @returns Serialized channel object containing only the name
  */
 export function serializeChannel<T extends { name: string }>(
-	channel: T,
+  channel: T,
 ): SerializedChannel {
-	return {
-		name: channel.name,
-	};
+  return {
+    name: channel.name,
+  };
 }
 
 /**
@@ -41,13 +41,13 @@ export function serializeChannel<T extends { name: string }>(
  * @returns Object containing the restored channel properties
  */
 export function deserializeChannel(
-	values: SerializedChannel,
-	channelConnectionManager: ChannelConnectionManager,
+  values: SerializedChannel,
+  channelConnectionManager: ChannelConnectionManager,
 ): { name: string; connections: any } {
-	return {
-		name: values.name,
-		connections: channelConnectionManager.for(values.name),
-	};
+  return {
+    name: values.name,
+    connections: channelConnectionManager.for(values.name),
+  };
 }
 
 /**
@@ -58,34 +58,34 @@ export function deserializeChannel(
  * @returns Object with serialize and deserialize methods
  */
 export function createChannelSerializer(
-	channelConnectionManager: ChannelConnectionManager,
+  channelConnectionManager: ChannelConnectionManager,
 ) {
-	return {
-		/**
-		 * Serialize the current channel instance.
-		 *
-		 * @param channel - The channel instance to serialize
-		 * @returns Serialized channel data
-		 */
-		serialize<T extends { name: string }>(channel: T): SerializedChannel {
-			return serializeChannel(channel);
-		},
+  return {
+    /**
+     * Serialize the current channel instance.
+     *
+     * @param channel - The channel instance to serialize
+     * @returns Serialized channel data
+     */
+    serialize<T extends { name: string }>(channel: T): SerializedChannel {
+      return serializeChannel(channel);
+    },
 
-		/**
-		 * Deserialize and apply values to a channel instance.
-		 *
-		 * @param channel - The channel instance to update
-		 * @param values - The serialized channel data
-		 */
-		deserialize<T extends { name: string; connections?: any }>(
-			channel: T,
-			values: SerializedChannel,
-		): void {
-			const deserialized = deserializeChannel(values, channelConnectionManager);
-			channel.name = deserialized.name;
-			channel.connections = deserialized.connections;
-		},
-	};
+    /**
+     * Deserialize and apply values to a channel instance.
+     *
+     * @param channel - The channel instance to update
+     * @param values - The serialized channel data
+     */
+    deserialize<T extends { name: string; connections?: any }>(
+      channel: T,
+      values: SerializedChannel,
+    ): void {
+      const deserialized = deserializeChannel(values, channelConnectionManager);
+      channel.name = deserialized.name;
+      channel.connections = deserialized.connections;
+    },
+  };
 }
 
 /**
@@ -96,13 +96,13 @@ export function createChannelSerializer(
  * @returns The channel with added serialization support
  */
 export function makeChannelSerializable<T extends { name: string }>(
-	channel: T,
+  channel: T,
 ): T & { toJSON(): SerializedChannel } {
-	return Object.assign(channel, {
-		toJSON(): SerializedChannel {
-			return serializeChannel(channel);
-		},
-	});
+  return Object.assign(channel, {
+    toJSON(): SerializedChannel {
+      return serializeChannel(channel);
+    },
+  });
 }
 
 /**
@@ -115,13 +115,13 @@ export function makeChannelSerializable<T extends { name: string }>(
  * @returns A new channel instance with restored connections
  */
 export function restoreChannel<T extends { name: string; connections?: any }>(
-	serializedData: SerializedChannel,
-	channelConnectionManager: ChannelConnectionManager,
-	channelClass: new (name: string, connections: any) => T,
+  serializedData: SerializedChannel,
+  channelConnectionManager: ChannelConnectionManager,
+  channelClass: new (name: string, connections: any) => T,
 ): T {
-	const deserialized = deserializeChannel(
-		serializedData,
-		channelConnectionManager,
-	);
-	return new channelClass(deserialized.name, deserialized.connections);
+  const deserialized = deserializeChannel(
+    serializedData,
+    channelConnectionManager,
+  );
+  return new channelClass(deserialized.name, deserialized.connections);
 }

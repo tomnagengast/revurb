@@ -8,20 +8,20 @@ import { EventDispatcher } from "./event-dispatcher";
  * This event is used for monitoring, logging, and metrics collection.
  */
 export class ChannelCreated {
-	/**
-	 * Create a new ChannelCreated event instance.
-	 *
-	 * @param channel - The channel that was created
-	 */
-	constructor(public readonly channel: Channel) {}
+  /**
+   * Create a new ChannelCreated event instance.
+   *
+   * @param channel - The channel that was created
+   */
+  constructor(public readonly channel: Channel) {}
 
-	/**
-	 * Dispatch the ChannelCreated event.
-	 *
-	 * @param channel - The channel that was created
-	 */
-	static dispatch(channel: Channel): void {
-		const event = new ChannelCreated(channel);
-		EventDispatcher.emit("channel:created", event);
-	}
+  /**
+   * Dispatch the ChannelCreated event.
+   *
+   * @param channel - The channel that was created
+   */
+  static dispatch(channel: Channel): void {
+    const event = new ChannelCreated(channel);
+    EventDispatcher.emit("channel:created", event);
+  }
 }
