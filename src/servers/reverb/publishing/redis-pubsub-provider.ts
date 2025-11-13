@@ -109,7 +109,8 @@ export class RedisPubSubProvider implements IPubSubProvider {
 
     this.subscriber.subscribe();
 
-    this.subscriber.on("message", (_channel: string, payload: string) => {
+    this.subscriber.on("message", (...args: unknown[]) => {
+      const payload = args[1] as string;
       this.messageHandler.handle(payload);
     });
   }
@@ -128,7 +129,8 @@ export class RedisPubSubProvider implements IPubSubProvider {
       throw new Error("Subscriber not initialized");
     }
 
-    this.subscriber.on("message", (_channel: string, payload: string) => {
+    this.subscriber.on("message", (...args: unknown[]) => {
+      const payload = args[1] as string;
       try {
         const parsed = JSON.parse(payload);
 

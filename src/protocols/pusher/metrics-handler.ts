@@ -1,4 +1,5 @@
 import type { Application } from "../../application";
+import type { ChannelConnection } from "./channels/channel-connection";
 
 /**
  * Metrics collection options for different metric types.
@@ -53,15 +54,7 @@ export interface Channel {
   /** Get the channel name */
   name(): string;
   /** Get all connections to the channel */
-  connections(): Connection[];
-}
-
-/**
- * Connection interface for metrics gathering.
- */
-export interface Connection {
-  /** Get connection data including user_id */
-  data(): Map<string, unknown>;
+  connections(): Record<string, ChannelConnection>;
 }
 
 /**
@@ -77,7 +70,7 @@ export interface ChannelManager {
  */
 export interface ApplicationChannelManager {
   /** Get all channels */
-  all(): Channel[];
+  all(): Record<string, Channel>;
   /** Find a specific channel by name */
   find(name: string): Channel | null;
   /** Get all connections for the application */

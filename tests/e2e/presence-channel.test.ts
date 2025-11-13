@@ -3,6 +3,7 @@ import * as crypto from "node:crypto";
 import type { Server } from "bun";
 import type { ReverbConfig } from "../../src/config/types";
 import { Factory } from "../../src/servers/reverb/factory";
+import type { PusherMessage } from "../../src/types/pusher-messages";
 
 describe("Presence Channel E2E Tests", () => {
   let server: Server;
@@ -82,7 +83,7 @@ describe("Presence Channel E2E Tests", () => {
   });
 
   it("should subscribe to a presence channel with valid auth and user data", async () => {
-    const messages: any[] = [];
+    const messages: PusherMessage[] = [];
 
     const result = await new Promise((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
@@ -178,7 +179,7 @@ describe("Presence Channel E2E Tests", () => {
   }, 10000);
 
   it("should reject presence channel subscription without channel_data", async () => {
-    const messages: any[] = [];
+    const messages: PusherMessage[] = [];
 
     const result = await new Promise((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
@@ -253,8 +254,8 @@ describe("Presence Channel E2E Tests", () => {
   }, 10000);
 
   it("should receive member_added event when another user joins", async () => {
-    const messages1: any[] = [];
-    const messages2: any[] = [];
+    const messages1: PusherMessage[] = [];
+    const messages2: PusherMessage[] = [];
 
     // Create first connection
     const ws1Promise = new Promise((resolve) => {

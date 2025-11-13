@@ -3,6 +3,7 @@ import * as crypto from "node:crypto";
 import type { Server } from "bun";
 import type { ReverbConfig } from "../../src/config/types";
 import { Factory } from "../../src/servers/reverb/factory";
+import type { PusherMessage } from "../../src/types/pusher-messages";
 
 describe("Private Channel E2E Tests", () => {
   let server: Server;
@@ -85,7 +86,7 @@ describe("Private Channel E2E Tests", () => {
   });
 
   it("should subscribe to a private channel with valid auth", async () => {
-    const messages: any[] = [];
+    const messages: PusherMessage[] = [];
 
     const result = await new Promise((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
@@ -152,7 +153,7 @@ describe("Private Channel E2E Tests", () => {
   }, 10000);
 
   it("should reject private channel subscription with invalid auth", async () => {
-    const messages: any[] = [];
+    const messages: PusherMessage[] = [];
 
     const result = await new Promise((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
@@ -219,7 +220,7 @@ describe("Private Channel E2E Tests", () => {
   }, 10000);
 
   it("should reject private channel subscription without auth", async () => {
-    const messages: any[] = [];
+    const messages: PusherMessage[] = [];
 
     const result = await new Promise((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);

@@ -7,7 +7,7 @@
  * @module Servers/Reverb/Factory
  */
 
-import type { ServeOptions } from "bun";
+import type { ServeOptions, ServerWebSocket, WebSocket } from "bun";
 import type { Application } from "../../application";
 import { ApplicationManager } from "../../application-manager";
 import { Certificate } from "../../certificate";
@@ -15,6 +15,7 @@ import type { ReverbConfig } from "../../config/types";
 import { Connection as ReverbConnection } from "../../connection";
 import type { IApplicationProvider } from "../../contracts/application-provider";
 import { ServerProvider } from "../../contracts/server-provider";
+import { FrameOpcode } from "../../contracts/websocket-connection";
 import { CliLogger } from "../../loggers/cli-logger";
 import { Log } from "../../loggers/log";
 import type { NullLogger } from "../../loggers/null-logger";
@@ -32,7 +33,9 @@ import { ArrayChannelManager } from "../../protocols/pusher/managers/array-chann
 import { MetricsHandler } from "../../protocols/pusher/metrics-handler";
 import { Server as PusherServer } from "../../protocols/pusher/server";
 import { Connection as WebSocketConnection } from "./connection";
+import type { Connection as HttpConnection } from "./http/connection";
 import { Response as HttpResponse } from "./http/response";
+import type { IHttpRequest } from "./http/router";
 
 /**
  * WebSocket connection data stored in Bun's ws.data
@@ -138,10 +141,12 @@ class Router {
     const paramNames: string[] = [];
     const paramRegex = /\{([^}]+)\}/g;
     let match_params: RegExpExecArray | null = null;
-    while ((match_params = paramRegex.exec(pattern)) !== null) {
+    match_params = paramRegex.exec(pattern);
+    while (match_params !== null) {
       if (match_params[1]) {
         paramNames.push(match_params[1]);
       }
+      match_params = paramRegex.exec(pattern);
     }
 
     // Build params object from matched groups
@@ -181,6 +186,7 @@ interface HttpServerOptions {
  * const server = Factory.make('0.0.0.0', '8080', '', 'localhost');
  * ```
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Factory pattern requires static methods for singleton-like behavior
 export class Factory {
   /**
    * Application manager for app lookup and validation
@@ -411,10 +417,10 @@ export class Factory {
       hostname: host,
       port: portNum,
       maxRequestBodySize: maxRequestSize,
-      fetch: async (req: Request, server: any) =>
+      fetch: async (req: Request, server: ReturnType<typeof Bun.serve>) =>
         Factory.handleRequest(req, router, server),
       websocket: {
-        open: (ws: any) => {
+        open: (ws: ServerWebSocket<unknown>) => {
           // WebSocket open handler - create connection and notify Pusher server
           const data = ws.data as WebSocketData | undefined;
           if (!data || !data.app) {
@@ -425,7 +431,9 @@ export class Factory {
 
           try {
             // Create WebSocket connection wrapper
-            const wsConnection = new WebSocketConnection(ws);
+            const wsConnection = new WebSocketConnection(
+              ws as unknown as WebSocket,
+            );
 
             // Create Reverb connection with app and origin
             const connection = new ReverbConnection(
@@ -446,7 +454,7 @@ export class Factory {
             ws.close();
           }
         },
-        message: (ws: any, message: string | Buffer) => {
+        message: (ws: ServerWebSocket<unknown>, message: string | Buffer) => {
           // WebSocket message handler
           const data = ws.data as WebSocketData | undefined;
           if (!data?.connection) {
@@ -466,7 +474,7 @@ export class Factory {
             console.error("Error handling WebSocket message:", error);
           }
         },
-        close: (ws: any) => {
+        close: (ws: ServerWebSocket<unknown>) => {
           // WebSocket close handler
           const data = ws.data as WebSocketData | undefined;
           if (!data?.connection) {
@@ -482,7 +490,7 @@ export class Factory {
             console.error("Error closing WebSocket connection:", error);
           }
         },
-        ping: (ws: any) => {
+        ping: (ws: ServerWebSocket<unknown>) => {
           // Ping handler
           const data = ws.data as WebSocketData | undefined;
           if (!data?.connection) {
@@ -493,7 +501,7 @@ export class Factory {
             // Create PING frame and pass to Pusher server
             if (Factory.pusherServer) {
               Factory.pusherServer.control(data.connection, {
-                opcode: 0x9 as any,
+                opcode: FrameOpcode.PING,
                 payload: "",
                 getContents: () => "",
               });
@@ -502,7 +510,7 @@ export class Factory {
             console.error("Error handling ping:", error);
           }
         },
-        pong: (ws: any) => {
+        pong: (ws: ServerWebSocket<unknown>) => {
           // Pong handler
           const data = ws.data as WebSocketData | undefined;
           if (!data?.connection) {
@@ -513,7 +521,7 @@ export class Factory {
             // Create PONG frame and pass to Pusher server
             if (Factory.pusherServer) {
               Factory.pusherServer.control(data.connection, {
-                opcode: 0xa as any,
+                opcode: FrameOpcode.PONG,
                 payload: "",
                 getContents: () => "",
               });
@@ -553,7 +561,7 @@ export class Factory {
   private static async handleRequest(
     req: Request,
     router: Router,
-    server: any,
+    server: ReturnType<typeof Bun.serve>,
   ): Promise<Response | undefined> {
     const url = new URL(req.url);
     const pathname = url.pathname;
@@ -688,7 +696,7 @@ export class Factory {
   private static handleWebSocketConnection(
     req: Request,
     params: Record<string, string>,
-    server?: any,
+    server?: ReturnType<typeof Bun.serve>,
   ): Response | undefined {
     // Check if this is a WebSocket upgrade request
     if (req.headers.get("upgrade") !== "websocket") {
@@ -1156,7 +1164,11 @@ export class Factory {
    *
    * @private
    */
-  private static async convertToHttpRequest(req: Request): Promise<any> {
+  private static async convertToHttpRequest(
+    req: Request,
+  ): Promise<
+    IHttpRequest & { url: string; httpVersion: string; getSize(): number }
+  > {
     const url = new URL(req.url);
     const body = req.method !== "GET" ? await req.text() : "";
     const method = req.method;
@@ -1211,7 +1223,7 @@ export class Factory {
    *
    * @private
    */
-  private static createHttpConnection(): any {
+  private static createHttpConnection(): HttpConnection {
     return {
       id: Math.floor(Math.random() * 1000000),
       connected: true,
@@ -1257,7 +1269,11 @@ export class Factory {
    *
    * @private
    */
-  private static convertToResponse(controllerResponse: any): Response {
+  private static convertToResponse(
+    controllerResponse:
+      | HttpResponse
+      | { status?: number; content?: string | Record<string, unknown> },
+  ): Response {
     // Check if it's our custom HttpResponse class
     if (controllerResponse instanceof HttpResponse) {
       const status = controllerResponse.getStatusCode();
