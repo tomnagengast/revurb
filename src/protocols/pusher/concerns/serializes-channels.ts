@@ -1,3 +1,5 @@
+import type { ChannelConnectionManager as IChannelConnectionManager } from "../contracts/channel-connection-manager";
+
 /**
  * Types for channel serialization
  */
@@ -5,9 +7,7 @@ export interface SerializedChannel {
   name: string;
 }
 
-export interface ChannelConnectionManager {
-  for(channelName: string): any;
-}
+export type ChannelConnectionManager = IChannelConnectionManager;
 
 /**
  * Utility functions for serializing and deserializing channels.
@@ -43,10 +43,11 @@ export function serializeChannel<T extends { name: string }>(
 export function deserializeChannel(
   values: SerializedChannel,
   channelConnectionManager: ChannelConnectionManager,
-): { name: string; connections: any } {
+): { name: string; connections: ChannelConnectionManager } {
+  const manager = channelConnectionManager.for(values.name);
   return {
     name: values.name,
-    connections: channelConnectionManager.for(values.name),
+    connections: manager,
   };
 }
 
@@ -77,10 +78,9 @@ export function createChannelSerializer(
      * @param channel - The channel instance to update
      * @param values - The serialized channel data
      */
-    deserialize<T extends { name: string; connections?: any }>(
-      channel: T,
-      values: SerializedChannel,
-    ): void {
+    deserialize<
+      T extends { name: string; connections?: ChannelConnectionManager },
+    >(channel: T, values: SerializedChannel): void {
       const deserialized = deserializeChannel(values, channelConnectionManager);
       channel.name = deserialized.name;
       channel.connections = deserialized.connections;
@@ -114,10 +114,12 @@ export function makeChannelSerializable<T extends { name: string }>(
  * @param channelClass - The channel class constructor
  * @returns A new channel instance with restored connections
  */
-export function restoreChannel<T extends { name: string; connections?: any }>(
+export function restoreChannel<
+  T extends { name: string; connections?: ChannelConnectionManager },
+>(
   serializedData: SerializedChannel,
   channelConnectionManager: ChannelConnectionManager,
-  channelClass: new (name: string, connections: any) => T,
+  channelClass: new (name: string, connections: ChannelConnectionManager) => T,
 ): T {
   const deserialized = deserializeChannel(
     serializedData,
