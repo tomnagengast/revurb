@@ -61,7 +61,7 @@ export interface Channel {
  */
 export interface Connection {
   /** Get connection data including user_id */
-  data(): ConnectionData;
+  data(): Map<string, unknown>;
 }
 
 /**
@@ -259,7 +259,7 @@ export class MetricsHandler {
 
     for (const channelConnection of connections) {
       // channelConnection.data() returns Map<string, unknown>, get user_id from Map
-      const connectionData = channelConnection.data() as Map<string, unknown>;
+      const connectionData = channelConnection.data();
       const userId = connectionData.get('user_id') as string | undefined;
       if (userId && !seenUserIds.has(userId)) {
         seenUserIds.add(userId);
@@ -580,7 +580,7 @@ export class MetricsHandler {
     const connections = Object.values(channel.connections());
     for (const channelConnection of connections) {
       // channelConnection.data() returns Map<string, unknown>, get user_id from Map
-      const connectionData = channelConnection.data() as Map<string, unknown>;
+      const connectionData = channelConnection.data();
       const userId = connectionData.get('user_id') as string | undefined;
       if (userId) {
         seenUserIds.add(userId);
