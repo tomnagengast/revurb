@@ -242,7 +242,7 @@ export class Factory {
     // Create a minimal server provider
     // By default, server does not subscribe to events (standalone mode)
     this.serverProvider = new class extends ServerProvider {
-      subscribesToEvents(): boolean {
+      override subscribesToEvents(): boolean {
         return false;
       }
     }();
