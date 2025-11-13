@@ -168,7 +168,12 @@ export class EventDispatcher {
 		// For now, we always dispatch synchronously
 		// In a distributed setup, this could check if pub/sub is enabled
 		// and publish to a message broker instead
-		this.dispatchSynchronously(app, payload, channelManager, connection);
+		EventDispatcher.dispatchSynchronously(
+			app,
+			payload,
+			channelManager,
+			connection,
+		);
 	}
 
 	/**
@@ -215,7 +220,7 @@ export class EventDispatcher {
 	): void {
 		// Extract channel names from payload
 		// Supports both 'channels' (array) and 'channel' (single) properties
-		const channelNames = this.normalizeChannels(
+		const channelNames = EventDispatcher.normalizeChannels(
 			payload.channels ?? payload.channel,
 		);
 

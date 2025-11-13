@@ -1,12 +1,7 @@
-import * as crypto from "crypto";
+import * as crypto from "node:crypto";
 import type { Connection } from "../../../contracts/connection";
-import type { ILogger } from "../../../contracts/logger";
 import { ConnectionUnauthorized } from "../exceptions/connection-unauthorized";
-import {
-	Channel,
-	type ChannelConnectionManager,
-	type ChannelManager,
-} from "./channel";
+import { Channel } from "./channel";
 
 /**
  * Private Channel
@@ -47,22 +42,6 @@ import {
  * ```
  */
 export class PrivateChannel extends Channel {
-	/**
-	 * Create a new private channel instance.
-	 *
-	 * @param name - The channel name
-	 * @param channelConnectionManager - Manager for handling channel connections
-	 * @param channelManager - Manager for handling channels
-	 * @param logger - Logger instance for logging channel operations
-	 */
-	constructor(
-		name: string,
-		channelConnectionManager: ChannelConnectionManager,
-		channelManager: ChannelManager,
-		logger: ILogger,
-	) {
-		super(name, channelConnectionManager, channelManager, logger);
-	}
 	/**
 	 * Subscribe to the private channel.
 	 *

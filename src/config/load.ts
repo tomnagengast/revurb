@@ -334,7 +334,7 @@ export async function loadConfig(configPath?: string): Promise<ReverbConfig> {
 			try {
 				const envAppsConfig = loadAppsConfig();
 				envApps = envAppsConfig.apps;
-			} catch (error) {
+			} catch (_error) {
 				// If env vars are missing, that's fine - we'll use config file apps only
 				// This allows config-driven deployments without requiring REVERB_APP_* vars
 			}
@@ -355,7 +355,7 @@ export async function loadConfig(configPath?: string): Promise<ReverbConfig> {
 					],
 				},
 			};
-		} catch (error) {
+		} catch (_error) {
 			// If config file doesn't exist or can't be loaded, fall through to env-only config
 			console.warn(
 				`Warning: Could not load config file at ${fileToLoad}, using environment variables`,

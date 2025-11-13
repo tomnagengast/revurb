@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import type { Connection } from "../../../connection";
 
 /**
@@ -127,7 +127,7 @@ export class Router {
 	 * @private
 	 */
 	private controller(route: Record<string, any>): ControllerCallback {
-		return route["_controller"];
+		return route._controller;
 	}
 
 	/**
@@ -183,7 +183,7 @@ export class Router {
 			"X-Powered-By: Reverb",
 		];
 
-		const responseHeaders = headers.join("\r\n") + "\r\n\r\n";
+		const responseHeaders = `${headers.join("\r\n")}\r\n\r\n`;
 		const upgradeResponse = statusLine + responseHeaders;
 
 		// Send the upgrade response
@@ -399,13 +399,13 @@ export class Router {
 
 		try {
 			connection.send(response);
-		} catch (error) {
+		} catch (_error) {
 			// Connection may already be closed
 		}
 
 		try {
 			connection.close();
-		} catch (error) {
+		} catch (_error) {
 			// Connection may already be closed
 		}
 	}

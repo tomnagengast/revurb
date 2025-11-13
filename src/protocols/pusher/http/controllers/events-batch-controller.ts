@@ -105,7 +105,7 @@ export class EventsBatchController {
 
 		try {
 			payload = JSON.parse(body);
-		} catch (error) {
+		} catch (_error) {
 			return new Response(
 				{
 					message: "Invalid JSON in request body",

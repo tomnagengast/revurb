@@ -322,7 +322,7 @@ export class MetricsHandler {
 		try {
 			const metrics = await this.timeoutPromise(metricsPromise, 10000);
 			return this.mergeSubscriberMetrics(metrics, type);
-		} catch (error) {
+		} catch (_error) {
 			// Timeout or error - return whatever metrics we have
 			return this.mergeSubscriberMetrics(this.metrics, type);
 		}
@@ -431,7 +431,7 @@ export class MetricsHandler {
 				if (!grouped.has(channel)) {
 					grouped.set(channel, []);
 				}
-				grouped.get(channel)!.push(data);
+				grouped.get(channel)?.push(data);
 			}
 		}
 

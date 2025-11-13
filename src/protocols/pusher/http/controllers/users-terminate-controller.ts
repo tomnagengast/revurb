@@ -126,7 +126,7 @@ export class UsersTerminateController {
 		let application: Application;
 		try {
 			application = this.applicationProvider.findById(appId);
-		} catch (error) {
+		} catch (_error) {
 			throw new Error(`No matching application for ID [${appId}].`);
 		}
 

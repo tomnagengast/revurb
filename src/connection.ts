@@ -1,9 +1,5 @@
-import type { Application } from "./application";
 import { Connection as ConnectionContract } from "./contracts/connection";
-import type {
-	FrameOpcode,
-	IWebSocketConnection,
-} from "./contracts/websocket-connection";
+import type { FrameOpcode } from "./contracts/websocket-connection";
 import { FrameOpcode as FrameOpcodeEnum } from "./contracts/websocket-connection";
 import { MessageSent } from "./events/message-sent";
 

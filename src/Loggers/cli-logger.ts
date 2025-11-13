@@ -90,7 +90,7 @@ export class CliLogger implements ILogger {
 	 */
 	message(message: string): void {
 		try {
-			const parsed: any = JSON.parse(message);
+			const parsed: Record<string, unknown> = JSON.parse(message) as Record<string, unknown>;
 
 			// Parse nested data field if it's a string
 			if (parsed.data && typeof parsed.data === "string") {
@@ -118,7 +118,7 @@ export class CliLogger implements ILogger {
 
 			// Limit to 200 characters
 			if (formatted.length > 200) {
-				formatted = formatted.substring(0, 200) + "...";
+				formatted = `${formatted.substring(0, 200)}...`;
 			}
 
 			// Add color coding to the JSON output
@@ -138,7 +138,7 @@ export class CliLogger implements ILogger {
 			console.log(
 				`  ${this.colors.dim}└${"─".repeat(this.terminalWidth - 4)}┘${this.colors.reset}\n`,
 			);
-		} catch (error) {
+		} catch (_error) {
 			// If JSON parsing fails, log the original message
 			console.log(`  ${this.colors.cyan}${message}${this.colors.reset}`);
 		}

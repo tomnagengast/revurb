@@ -1,4 +1,7 @@
-import { createHmac, timingSafeEqual as cryptoTimingSafeEqual } from "crypto";
+import {
+	createHmac,
+	timingSafeEqual as cryptoTimingSafeEqual,
+} from "node:crypto";
 import type { Connection } from "../../../contracts/connection.js";
 import { CacheChannel } from "./cache-channel.js";
 
@@ -172,13 +175,13 @@ export class PresenceCacheChannel extends CacheChannel {
 	 * // }
 	 * ```
 	 */
-	override data(): Record<string, any> {
+	override data(): Record<string, unknown> {
 		// Get all connection data and deduplicate by user_id
 		// Convert Map to array since _connections.all() returns a Map
 		const allConnections = Array.from(this._connections.all().values());
 
 		// Extract data from each connection and deduplicate by user_id
-		const uniqueUsersMap = new Map<string, any>();
+		const uniqueUsersMap = new Map<string, { user_id: unknown; user_info: unknown }>();
 
 		for (const channelConn of allConnections) {
 			const connData = channelConn.data() as Map<string, unknown>;
@@ -208,7 +211,7 @@ export class PresenceCacheChannel extends CacheChannel {
 		// Build presence data structure
 		const users = Array.from(uniqueUsersMap.values());
 		const ids = users.map((u) => u.user_id);
-		const hash: Record<string, any> = {};
+		const hash: Record<string, unknown> = {};
 
 		for (const user of users) {
 			hash[user.user_id] = user.user_info;

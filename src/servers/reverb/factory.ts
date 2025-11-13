@@ -232,66 +232,68 @@ export class Factory {
 	 * @param config - The Reverb configuration
 	 */
 	public static initialize(config: ReverbConfig): void {
-		this.logger = new CliLogger();
+		Factory.logger = new CliLogger();
 		// Set the logger in the Log facade so it's available globally
-		Log.setLogger(this.logger);
-		this.appManager = new ApplicationManager(config);
+		Log.setLogger(Factory.logger);
+		Factory.appManager = new ApplicationManager(config);
 
 		// Create application provider and channel connection manager
-		this.applicationProvider = this.appManager.driver();
+		Factory.applicationProvider = Factory.appManager.driver();
 		const channelConnectionManager = new ArrayChannelConnectionManager();
 
-		this.channelManager = new ArrayChannelManager(
-			this.applicationProvider,
+		Factory.channelManager = new ArrayChannelManager(
+			Factory.applicationProvider,
 			channelConnectionManager,
-			this.logger,
+			Factory.logger,
 		);
 
-		const eventHandler = new EventHandler(this.channelManager);
-		const clientEvent = new ClientEvent(this.channelManager);
+		const eventHandler = new EventHandler(Factory.channelManager);
+		const clientEvent = new ClientEvent(Factory.channelManager);
 
-		this.pusherServer = new PusherServer(
-			this.channelManager,
+		Factory.pusherServer = new PusherServer(
+			Factory.channelManager,
 			eventHandler,
 			clientEvent,
-			this.logger,
+			Factory.logger,
 		);
 
 		// Create a minimal server provider
 		// By default, server does not subscribe to events (standalone mode)
-		this.serverProvider = new (class extends ServerProvider {
+		Factory.serverProvider = new (class extends ServerProvider {
 			override subscribesToEvents(): boolean {
 				return false;
 			}
 		})();
 
 		// Initialize metrics handler with all required dependencies
-		this.metricsHandler = new MetricsHandler(
-			this.serverProvider as any,
-			this.channelManager as any,
+		Factory.metricsHandler = new MetricsHandler(
+			Factory.serverProvider as any,
+			Factory.channelManager as any,
 			null as any,
 		);
 
 		// Initialize class-based controllers with proper dependencies
-		this.eventsController = new EventsController(
-			this.channelManager,
-			this.metricsHandler,
+		Factory.eventsController = new EventsController(
+			Factory.channelManager,
+			Factory.metricsHandler,
 		);
-		this.eventsBatchController = new EventsBatchController(this.metricsHandler);
-		this.channelsController = new ChannelsController(
-			this.metricsHandler,
-			this.applicationProvider,
-			this.channelManager,
+		Factory.eventsBatchController = new EventsBatchController(
+			Factory.metricsHandler,
 		);
-		this.channelController = new ChannelController(
-			this.applicationProvider,
-			this.channelManager,
-			this.metricsHandler,
+		Factory.channelsController = new ChannelsController(
+			Factory.metricsHandler,
+			Factory.applicationProvider,
+			Factory.channelManager,
 		);
-		this.usersTerminateController = new UsersTerminateController(
-			this.applicationProvider,
-			this.channelManager,
-			this.serverProvider,
+		Factory.channelController = new ChannelController(
+			Factory.applicationProvider,
+			Factory.channelManager,
+			Factory.metricsHandler,
+		);
+		Factory.usersTerminateController = new UsersTerminateController(
+			Factory.applicationProvider,
+			Factory.channelManager,
+			Factory.serverProvider,
 			undefined,
 		);
 	}
@@ -303,12 +305,12 @@ export class Factory {
 	 * @throws {Error} If factory has not been initialized
 	 */
 	public static getChannelManager(): ArrayChannelManager {
-		if (!this.channelManager) {
+		if (!Factory.channelManager) {
 			throw new Error(
 				"Factory not initialized. Call Factory.initialize() first.",
 			);
 		}
-		return this.channelManager;
+		return Factory.channelManager;
 	}
 
 	/**
@@ -318,12 +320,12 @@ export class Factory {
 	 * @throws {Error} If factory has not been initialized
 	 */
 	public static getApplicationProvider(): any {
-		if (!this.applicationProvider) {
+		if (!Factory.applicationProvider) {
 			throw new Error(
 				"Factory not initialized. Call Factory.initialize() first.",
 			);
 		}
-		return this.applicationProvider;
+		return Factory.applicationProvider;
 	}
 
 	/**
@@ -333,12 +335,12 @@ export class Factory {
 	 * @throws {Error} If factory has not been initialized
 	 */
 	public static getLogger(): CliLogger | NullLogger {
-		if (!this.logger) {
+		if (!Factory.logger) {
 			throw new Error(
 				"Factory not initialized. Call Factory.initialize() first.",
 			);
 		}
-		return this.logger;
+		return Factory.logger;
 	}
 
 	/**
@@ -348,12 +350,12 @@ export class Factory {
 	 * @throws {Error} If factory has not been initialized
 	 */
 	public static getMetricsHandler(): MetricsHandler {
-		if (!this.metricsHandler) {
+		if (!Factory.metricsHandler) {
 			throw new Error(
 				"Factory not initialized. Call Factory.initialize() first.",
 			);
 		}
-		return this.metricsHandler;
+		return Factory.metricsHandler;
 	}
 
 	/**
@@ -395,8 +397,8 @@ export class Factory {
 			throw new Error(`Unsupported protocol [${protocol}].`);
 		}
 
-		const router = this.makePusherRouter(path);
-		const tlsContext = this.configureTls(
+		const router = Factory.makePusherRouter(path);
+		const tlsContext = Factory.configureTls(
 			options.tls ?? {},
 			hostname,
 			environment,
@@ -409,7 +411,7 @@ export class Factory {
 			port: portNum,
 			maxRequestBodySize: maxRequestSize,
 			fetch: async (req: Request, server: any) =>
-				this.handleRequest(req, router, server),
+				Factory.handleRequest(req, router, server),
 			websocket: {
 				open: (ws: any) => {
 					// WebSocket open handler - create connection and notify Pusher server
@@ -435,8 +437,8 @@ export class Factory {
 						data.connection = connection;
 
 						// Notify Pusher server of new connection
-						if (this.pusherServer) {
-							this.pusherServer.open(connection);
+						if (Factory.pusherServer) {
+							Factory.pusherServer.open(connection);
 						}
 					} catch (error) {
 						console.error("Error opening WebSocket connection:", error);
@@ -456,8 +458,8 @@ export class Factory {
 							typeof message === "string" ? message : message.toString("utf-8");
 
 						// Pass message to Pusher server
-						if (this.pusherServer) {
-							this.pusherServer.message(data.connection, messageStr);
+						if (Factory.pusherServer) {
+							Factory.pusherServer.message(data.connection, messageStr);
 						}
 					} catch (error) {
 						console.error("Error handling WebSocket message:", error);
@@ -472,8 +474,8 @@ export class Factory {
 
 					try {
 						// Notify Pusher server of connection close
-						if (this.pusherServer) {
-							this.pusherServer.close(data.connection);
+						if (Factory.pusherServer) {
+							Factory.pusherServer.close(data.connection);
 						}
 					} catch (error) {
 						console.error("Error closing WebSocket connection:", error);
@@ -488,8 +490,8 @@ export class Factory {
 
 					try {
 						// Create PING frame and pass to Pusher server
-						if (this.pusherServer) {
-							this.pusherServer.control(data.connection, {
+						if (Factory.pusherServer) {
+							Factory.pusherServer.control(data.connection, {
 								opcode: 0x9 as any,
 								payload: "",
 								getContents: () => "",
@@ -508,8 +510,8 @@ export class Factory {
 
 					try {
 						// Create PONG frame and pass to Pusher server
-						if (this.pusherServer) {
-							this.pusherServer.control(data.connection, {
+						if (Factory.pusherServer) {
+							Factory.pusherServer.control(data.connection, {
 								opcode: 0xa as any,
 								payload: "",
 								getContents: () => "",
@@ -524,7 +526,7 @@ export class Factory {
 
 		// Add TLS configuration if present
 		if (
-			this.usesTls(tlsContext) &&
+			Factory.usesTls(tlsContext) &&
 			tlsContext.local_cert &&
 			tlsContext.local_pk
 		) {
@@ -591,7 +593,7 @@ export class Factory {
 		const router = new Router();
 
 		// Set up Pusher routes with optional path prefix
-		const routes = this.pusherRoutes(path);
+		const routes = Factory.pusherRoutes(path);
 
 		for (const route of routes) {
 			if (route.method === "GET") {
@@ -627,47 +629,47 @@ export class Factory {
 			{
 				method: "GET",
 				path: prefix("/app/{appKey}"),
-				handler: this.handleWebSocketConnection.bind(this),
+				handler: Factory.handleWebSocketConnection.bind(Factory),
 			},
 			{
 				method: "POST",
 				path: prefix("/apps/{appId}/events"),
-				handler: this.handleEvents.bind(this),
+				handler: Factory.handleEvents.bind(Factory),
 			},
 			{
 				method: "POST",
 				path: prefix("/apps/{appId}/batch_events"),
-				handler: this.handleBatchEvents.bind(this),
+				handler: Factory.handleBatchEvents.bind(Factory),
 			},
 			{
 				method: "GET",
 				path: prefix("/apps/{appId}/connections"),
-				handler: this.handleConnections.bind(this),
+				handler: Factory.handleConnections.bind(Factory),
 			},
 			{
 				method: "GET",
 				path: prefix("/apps/{appId}/channels"),
-				handler: this.handleChannels.bind(this),
+				handler: Factory.handleChannels.bind(Factory),
 			},
 			{
 				method: "GET",
 				path: prefix("/apps/{appId}/channels/{channel}"),
-				handler: this.handleChannelInfo.bind(this),
+				handler: Factory.handleChannelInfo.bind(Factory),
 			},
 			{
 				method: "GET",
 				path: prefix("/apps/{appId}/channels/{channel}/users"),
-				handler: this.handleChannelUsers.bind(this),
+				handler: Factory.handleChannelUsers.bind(Factory),
 			},
 			{
 				method: "POST",
 				path: prefix("/apps/{appId}/users/{userId}/terminate_connections"),
-				handler: this.handleTerminateConnections.bind(this),
+				handler: Factory.handleTerminateConnections.bind(Factory),
 			},
 			{
 				method: "GET",
 				path: prefix("/up"),
-				handler: this.handleHealthCheck.bind(this),
+				handler: Factory.handleHealthCheck.bind(Factory),
 			},
 		];
 	}
@@ -696,7 +698,7 @@ export class Factory {
 			return new Response("Server instance not available", { status: 500 });
 		}
 
-		if (!this.appManager || !this.pusherServer) {
+		if (!Factory.appManager || !Factory.pusherServer) {
 			return new Response(
 				"Server not initialized. Call Factory.initialize() first.",
 				{ status: 500 },
@@ -711,7 +713,7 @@ export class Factory {
 		// Find application by key
 		let app: Application | null = null;
 		try {
-			const provider = this.appManager.driver();
+			const provider = Factory.appManager.driver();
 			app = provider.findByKey(appKey);
 		} catch (error) {
 			console.error("Error finding application:", error);
@@ -758,7 +760,11 @@ export class Factory {
 		req: Request,
 		params: Record<string, string>,
 	): Promise<Response> {
-		if (!this.eventsController || !this.channelManager || !this.appManager) {
+		if (
+			!Factory.eventsController ||
+			!Factory.channelManager ||
+			!Factory.appManager
+		) {
 			return new Response("Server not initialized", { status: 500 });
 		}
 
@@ -768,22 +774,22 @@ export class Factory {
 
 		try {
 			// Convert Bun Request to IHttpRequest
-			const httpRequest = await this.convertToHttpRequest(req);
-			const httpConnection = this.createHttpConnection();
+			const httpRequest = await Factory.convertToHttpRequest(req);
+			const httpConnection = Factory.createHttpConnection();
 
 			// Get the application
-			const app = this.appManager.driver().findById(params.appId);
-			const channelManager = this.channelManager.for(app);
+			const app = Factory.appManager.driver().findById(params.appId);
+			const channelManager = Factory.channelManager.for(app);
 
 			// Call the controller
-			const response = await this.eventsController.__invoke(
+			const response = await Factory.eventsController.__invoke(
 				httpRequest,
 				httpConnection,
 				app,
 				channelManager,
 			);
 
-			return this.convertToResponse(response);
+			return Factory.convertToResponse(response);
 		} catch (error) {
 			console.error("Error handling events:", error);
 			return new Response(
@@ -810,9 +816,9 @@ export class Factory {
 		params: Record<string, string>,
 	): Promise<Response> {
 		if (
-			!this.eventsBatchController ||
-			!this.channelManager ||
-			!this.appManager
+			!Factory.eventsBatchController ||
+			!Factory.channelManager ||
+			!Factory.appManager
 		) {
 			return new Response("Server not initialized", { status: 500 });
 		}
@@ -822,12 +828,12 @@ export class Factory {
 		}
 
 		try {
-			const httpRequest = await this.convertToHttpRequest(req);
-			const httpConnection = this.createHttpConnection();
-			const app = this.appManager.driver().findById(params.appId);
-			const channelManager = this.channelManager.for(app);
+			const httpRequest = await Factory.convertToHttpRequest(req);
+			const httpConnection = Factory.createHttpConnection();
+			const app = Factory.appManager.driver().findById(params.appId);
+			const channelManager = Factory.channelManager.for(app);
 
-			const response = await this.eventsBatchController.handle(
+			const response = await Factory.eventsBatchController.handle(
 				httpRequest,
 				httpConnection,
 				params.appId,
@@ -835,7 +841,7 @@ export class Factory {
 				channelManager,
 			);
 
-			return this.convertToResponse(response);
+			return Factory.convertToResponse(response);
 		} catch (error) {
 			console.error("Error handling batch events:", error);
 			return new Response(
@@ -861,7 +867,7 @@ export class Factory {
 		req: Request,
 		params: Record<string, string>,
 	): Promise<Response> {
-		if (!this.appManager) {
+		if (!Factory.appManager) {
 			return new Response("Server not initialized", { status: 500 });
 		}
 
@@ -870,15 +876,15 @@ export class Factory {
 		}
 
 		try {
-			const httpRequest = await this.convertToHttpRequest(req);
-			const httpConnection = this.createHttpConnection();
+			const httpRequest = await Factory.convertToHttpRequest(req);
+			const httpConnection = Factory.createHttpConnection();
 			const response = await connectionsController(
 				httpRequest,
 				httpConnection,
 				params.appId,
 			);
 
-			return this.convertToResponse(response);
+			return Factory.convertToResponse(response);
 		} catch (error) {
 			console.error("Error handling connections:", error);
 			return new Response(
@@ -904,7 +910,7 @@ export class Factory {
 		req: Request,
 		params: Record<string, string>,
 	): Promise<Response> {
-		if (!this.channelsController || !this.appManager) {
+		if (!Factory.channelsController || !Factory.appManager) {
 			return new Response("Server not initialized", { status: 500 });
 		}
 
@@ -913,15 +919,15 @@ export class Factory {
 		}
 
 		try {
-			const httpRequest = await this.convertToHttpRequest(req);
-			const httpConnection = this.createHttpConnection();
-			const response = await this.channelsController.__invoke(
+			const httpRequest = await Factory.convertToHttpRequest(req);
+			const httpConnection = Factory.createHttpConnection();
+			const response = await Factory.channelsController.__invoke(
 				httpRequest,
 				httpConnection,
 				params.appId,
 			);
 
-			return this.convertToResponse(response);
+			return Factory.convertToResponse(response);
 		} catch (error) {
 			console.error("Error handling channels:", error);
 			return new Response(
@@ -947,7 +953,7 @@ export class Factory {
 		req: Request,
 		params: Record<string, string>,
 	): Promise<Response> {
-		if (!this.channelController || !this.appManager) {
+		if (!Factory.channelController || !Factory.appManager) {
 			return new Response("Server not initialized", { status: 500 });
 		}
 
@@ -958,13 +964,13 @@ export class Factory {
 		}
 
 		try {
-			const response = await this.channelController.handle(
+			const response = await Factory.channelController.handle(
 				req,
 				params.appId,
 				params.channel,
 			);
 
-			return this.convertToResponse(response);
+			return Factory.convertToResponse(response);
 		} catch (error) {
 			console.error("Error handling channel info:", error);
 			return new Response(
@@ -990,7 +996,7 @@ export class Factory {
 		req: Request,
 		params: Record<string, string>,
 	): Promise<Response> {
-		if (!this.appManager) {
+		if (!Factory.appManager) {
 			return new Response("Server not initialized", { status: 500 });
 		}
 
@@ -1001,8 +1007,8 @@ export class Factory {
 		}
 
 		try {
-			const httpRequest = await this.convertToHttpRequest(req);
-			const httpConnection = this.createHttpConnection();
+			const httpRequest = await Factory.convertToHttpRequest(req);
+			const httpConnection = Factory.createHttpConnection();
 			const response = await channelUsersController(
 				httpRequest,
 				httpConnection,
@@ -1010,7 +1016,7 @@ export class Factory {
 				params.appId,
 			);
 
-			return this.convertToResponse(response);
+			return Factory.convertToResponse(response);
 		} catch (error) {
 			console.error("Error handling channel users:", error);
 			return new Response(
@@ -1036,7 +1042,7 @@ export class Factory {
 		req: Request,
 		params: Record<string, string>,
 	): Promise<Response> {
-		if (!this.usersTerminateController || !this.appManager) {
+		if (!Factory.usersTerminateController || !Factory.appManager) {
 			return new Response("Server not initialized", { status: 500 });
 		}
 
@@ -1045,13 +1051,13 @@ export class Factory {
 		}
 
 		try {
-			const response = await this.usersTerminateController.handle(
+			const response = await Factory.usersTerminateController.handle(
 				req,
 				params.appId,
 				params.userId,
 			);
 
-			return this.convertToResponse(response);
+			return Factory.convertToResponse(response);
 		} catch (error) {
 			console.error("Error handling terminate connections:", error);
 			return new Response(
@@ -1109,7 +1115,11 @@ export class Factory {
 		}
 
 		// Try to auto-detect certificates if not provided and hostname is given
-		if (!this.usesTls(filtered) && hostname && Certificate.exists(hostname)) {
+		if (
+			!Factory.usesTls(filtered) &&
+			hostname &&
+			Certificate.exists(hostname)
+		) {
 			const certs = Certificate.resolve(hostname);
 			if (certs) {
 				const [certPath, keyPath] = certs;

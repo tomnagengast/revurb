@@ -1,4 +1,4 @@
-import * as crypto from "crypto";
+import * as crypto from "node:crypto";
 import type { Connection } from "../../../contracts/connection";
 import { ConnectionUnauthorized } from "../exceptions/connection-unauthorized";
 import { CacheChannel } from "./cache-channel";

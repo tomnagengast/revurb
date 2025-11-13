@@ -70,11 +70,11 @@ export class ChannelsController {
 		this.verify(request, _connection, appId);
 
 		const options: Record<string, string> = {};
-		if (this.query["filter_by_prefix"]) {
-			options.filter = this.query["filter_by_prefix"];
+		if (this.query.filter_by_prefix) {
+			options.filter = this.query.filter_by_prefix;
 		}
-		if (this.query["info"]) {
-			options.info = this.query["info"];
+		if (this.query.info) {
+			options.info = this.query.info;
 		}
 
 		const channels = await this.metricsHandler.gather(
@@ -208,7 +208,7 @@ export class ChannelsController {
 
 		// Add body_md5 if body is not empty
 		if (this.body && this.body !== "") {
-			params["body_md5"] = this.md5(this.body);
+			params.body_md5 = this.md5(this.body);
 		}
 
 		// Sort params by key
@@ -228,9 +228,9 @@ export class ChannelsController {
 		// Calculate signature
 		const signature = this.hmacSha256(
 			signatureString,
-			this.application!.secret(),
+			this.application?.secret(),
 		);
-		const authSignature = this.query["auth_signature"] ?? "";
+		const authSignature = this.query.auth_signature ?? "";
 
 		if (signature !== authSignature) {
 			throw new Error("Authentication signature invalid.");
@@ -276,7 +276,7 @@ export class ChannelsController {
 	 * @returns The MD5 hash as a hex string
 	 */
 	protected md5(data: string): string {
-		const crypto = require("crypto");
+		const crypto = require("node:crypto");
 		return crypto.createHash("md5").update(data).digest("hex");
 	}
 
@@ -288,7 +288,7 @@ export class ChannelsController {
 	 * @returns The signature as a hex string
 	 */
 	protected hmacSha256(data: string, secret: string): string {
-		const crypto = require("crypto");
+		const crypto = require("node:crypto");
 		return crypto.createHmac("sha256", secret).update(data).digest("hex");
 	}
 }

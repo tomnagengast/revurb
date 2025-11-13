@@ -62,7 +62,7 @@ describe("ArrayChannelManager", () => {
 
 		const channelConnections = new Map();
 		mockConnectionManager = {
-			for: mock((channelName: string) => ({
+			for: mock((_channelName: string) => ({
 				all: () => channelConnections,
 				add: (conn: Connection, data: Map<string, unknown>) => {
 					channelConnections.set(conn.id(), {

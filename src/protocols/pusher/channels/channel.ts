@@ -1,3 +1,4 @@
+import type { Application } from "../../../application";
 import type { Connection } from "../../../contracts/connection";
 import type { ILogger } from "../../../contracts/logger";
 import type { SerializedChannel } from "../concerns/serializes-channels";
@@ -22,7 +23,7 @@ export interface ChannelManager {
 	 * @param app - The application instance
 	 * @returns A scoped channel manager
 	 */
-	for(app: any): ChannelManager;
+	for(app: Application): ChannelManager;
 
 	/**
 	 * Remove a channel from the manager

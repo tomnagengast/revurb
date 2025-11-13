@@ -108,7 +108,7 @@ export class PusherPubSubIncomingMessageHandler
 				);
 				break;
 
-			case "terminate":
+			case "terminate": {
 				// Terminate user connections
 				const connections = Object.values(
 					this.channelManager.for(application).connections(),
@@ -121,6 +121,7 @@ export class PusherPubSubIncomingMessageHandler
 					}
 				}
 				break;
+			}
 
 			default:
 				// Unknown message type - do nothing

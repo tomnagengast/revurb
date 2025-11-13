@@ -31,8 +31,8 @@
  * ```
  */
 
-import { ConfigApplicationProvider } from "./config-application-provider";
 import type { ReverbAppConfig, ReverbConfig } from "./config/types";
+import { ConfigApplicationProvider } from "./config-application-provider";
 import type { IApplicationProvider } from "./contracts/application-provider";
 
 /**

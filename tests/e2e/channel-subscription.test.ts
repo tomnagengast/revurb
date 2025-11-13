@@ -66,7 +66,7 @@ describe("Channel Subscription E2E Tests", () => {
 	it("should subscribe to a public channel", async () => {
 		const messages: any[] = [];
 
-		const result = await new Promise((resolve) => {
+		const _result = await new Promise((resolve) => {
 			const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
 
 			ws.onopen = () => {

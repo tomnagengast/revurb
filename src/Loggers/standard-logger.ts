@@ -42,15 +42,20 @@ export class StandardLogger implements ILogger {
 	 */
 	message(message: string): void {
 		try {
-			const parsed: any = JSON.parse(message);
+			const parsed: Record<string, unknown> = JSON.parse(message);
 
-			if (parsed.data?.channel_data) {
+			if (
+				parsed.data &&
+				typeof parsed.data === "object" &&
+				"channel_data" in parsed.data &&
+				typeof parsed.data.channel_data === "string"
+			) {
 				parsed.data.channel_data = JSON.parse(parsed.data.channel_data);
 			}
 
 			const formatted = JSON.stringify(parsed, null, 2);
 			console.log(formatted);
-		} catch (error) {
+		} catch (_error) {
 			// If JSON parsing fails, log the original message
 			console.log(message);
 		}

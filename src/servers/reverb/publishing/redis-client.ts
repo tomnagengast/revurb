@@ -1,4 +1,4 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import type { ILogger } from "../../../contracts/logger";
 import { RedisConnectionException } from "../../../exceptions/redis-connection-exception";
 import type {

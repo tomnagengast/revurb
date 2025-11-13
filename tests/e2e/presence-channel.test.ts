@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import * as crypto from "crypto";
+import * as crypto from "node:crypto";
 import type { Server } from "bun";
 import type { ReverbConfig } from "../../src/config/types";
 import { Factory } from "../../src/servers/reverb/factory";
@@ -362,7 +362,7 @@ describe("Presence Channel E2E Tests", () => {
 			}, 8000);
 		});
 
-		const [result1, result2] = await Promise.all([ws1Promise, ws2Promise]);
+		const [_result1, _result2] = await Promise.all([ws1Promise, ws2Promise]);
 
 		// First connection should receive member_added event
 		const events1 = messages1.map((m) => m.event);

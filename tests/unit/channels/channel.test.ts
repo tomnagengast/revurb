@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, mock } from "bun:test";
 import type { Application } from "../../../src/application";
 import type { Connection } from "../../../src/contracts/connection";
 import type { ILogger } from "../../../src/contracts/logger";
-import { Channel } from "../../../src/protocols/pusher/channels/channel";
 import type { ChannelManager } from "../../../src/protocols/pusher/channels/channel";
+import { Channel } from "../../../src/protocols/pusher/channels/channel";
 import type { ChannelConnection } from "../../../src/protocols/pusher/channels/channel-connection";
 import type { ChannelConnectionManager } from "../../../src/protocols/pusher/contracts/channel-connection-manager";
 
@@ -57,7 +57,7 @@ describe("Channel", () => {
 
 		// Create mock connection manager with proper state management
 		mockConnectionManager = {
-			for: mock((channelName: string) => mockConnectionManager),
+			for: mock((_channelName: string) => mockConnectionManager),
 			add: (conn: Connection, data: any) => {
 				connections.set(conn.id(), createMockChannelConnection(conn, data));
 			},

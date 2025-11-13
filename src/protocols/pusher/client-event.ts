@@ -107,7 +107,7 @@ export class ClientEvent {
 		event: unknown,
 	): ClientEvent | null {
 		// Validate event structure
-		const validationErrors = this.validate(event);
+		const validationErrors = ClientEvent.validate(event);
 		if (validationErrors.length > 0) {
 			return null;
 		}

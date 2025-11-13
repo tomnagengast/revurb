@@ -143,7 +143,7 @@ export class ChannelController {
 
 		try {
 			this.application = this.applicationProvider.findById(appId);
-		} catch (error) {
+		} catch (_error) {
 			throw new Error(`No matching application for ID [${appId}].`);
 		}
 	}
@@ -259,7 +259,7 @@ export class ChannelController {
 		const messageData = encoder.encode(data);
 
 		// Use Node.js crypto module for HMAC
-		const crypto = require("crypto");
+		const crypto = require("node:crypto");
 		const hmac = crypto.createHmac("sha256", keyData);
 		hmac.update(messageData);
 		return hmac.digest("hex");
@@ -272,7 +272,7 @@ export class ChannelController {
 	 * @returns The hexadecimal MD5 hash
 	 */
 	protected md5(data: string): string {
-		const crypto = require("crypto");
+		const crypto = require("node:crypto");
 		return crypto.createHash("md5").update(data).digest("hex");
 	}
 }

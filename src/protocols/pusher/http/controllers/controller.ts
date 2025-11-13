@@ -111,7 +111,7 @@ export abstract class Controller {
 		try {
 			this.application = this.applicationProvider.findById(appId);
 			return this.application;
-		} catch (error) {
+		} catch (_error) {
 			throw new HttpException(
 				404,
 				`No matching application for ID [${appId}].`,

@@ -94,12 +94,12 @@ class Request {
 		const buffer = connection.buffer();
 
 		// Check if we have reached the end of message
-		if (!this.isEndOfMessage(buffer)) {
+		if (!Request.isEndOfMessage(buffer)) {
 			return null;
 		}
 
 		// Parse the request
-		const request = this.parseRequest(buffer);
+		const request = Request.parseRequest(buffer);
 
 		if (!request) {
 			return null;
@@ -147,7 +147,7 @@ class Request {
 	 * ```
 	 */
 	private static isEndOfMessage(message: string): boolean {
-		return message.includes(this.EOM);
+		return message.includes(Request.EOM);
 	}
 
 	/**
@@ -169,13 +169,13 @@ class Request {
 	 */
 	private static parseRequest(buffer: string): IHttpRequestInternal | null {
 		// Split headers and body by EOM marker
-		const eomIndex = buffer.indexOf(this.EOM);
+		const eomIndex = buffer.indexOf(Request.EOM);
 		if (eomIndex === -1) {
 			return null;
 		}
 
 		const headerSection = buffer.substring(0, eomIndex);
-		const bodySection = buffer.substring(eomIndex + this.EOM.length);
+		const bodySection = buffer.substring(eomIndex + Request.EOM.length);
 
 		// Split header section into lines
 		const lines = headerSection.split("\r\n");
@@ -223,7 +223,7 @@ class Request {
 		}
 
 		// Extract host from headers
-		const host = headers["host"] || "";
+		const host = headers.host || "";
 
 		// Create request object matching Router's IHttpRequest interface
 		const request: IHttpRequestInternal = {

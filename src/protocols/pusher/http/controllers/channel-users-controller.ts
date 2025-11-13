@@ -133,7 +133,7 @@ async function setApplication(appId: string | null): Promise<Application> {
 
 	try {
 		return await applicationProvider.findById(appId);
-	} catch (error) {
+	} catch (_error) {
 		throw new Error(`No matching application for ID [${appId}].`);
 	}
 }
@@ -153,7 +153,7 @@ function verifySignature(
 	body: string,
 	application: Application,
 ): void {
-	const crypto = require("crypto");
+	const crypto = require("node:crypto");
 
 	// Prepare params for signature (exclude auth_signature and internal params)
 	const params: Record<string, string> = {};
@@ -173,7 +173,7 @@ function verifySignature(
 
 	// Add body_md5 if body is not empty
 	if (body !== "") {
-		params["body_md5"] = crypto.createHash("md5").update(body).digest("hex");
+		params.body_md5 = crypto.createHash("md5").update(body).digest("hex");
 	}
 
 	// Sort params by key
@@ -200,7 +200,7 @@ function verifySignature(
 		.update(signatureString)
 		.digest("hex");
 
-	const authSignature = query["auth_signature"] || "";
+	const authSignature = query.auth_signature || "";
 
 	if (signature !== authSignature) {
 		throw new Error("Authentication signature invalid.");

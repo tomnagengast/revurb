@@ -1,10 +1,4 @@
-import {
-	type FormEvent,
-	useCallback,
-	useEffect,
-	useRef,
-	useState,
-} from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 
 interface Message {
 	text: string;

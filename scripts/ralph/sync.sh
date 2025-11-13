@@ -3,7 +3,7 @@ set -eo pipefail
 
 prompt="$(<scripts/ralph/prompt-fast.md)"
 out="specs/logs/codex-$(date +%Y-%m-%d-%H%M).md"
-git pull origin main
+git pull origin main || { git stash && git pull origin main && git stash pop; }
 
 bun run .claude/hooks/discord.ts --start --message "$prompt"
 

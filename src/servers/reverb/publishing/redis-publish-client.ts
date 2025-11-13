@@ -1,6 +1,4 @@
-import type { ILogger } from "../../../contracts/logger";
-import { RedisClient, type RedisServerConfig } from "./redis-client";
-import type { RedisClientFactory } from "./redis-client-factory";
+import { RedisClient } from "./redis-client";
 import type { RedisClient as IRedisClient } from "./redis-client-factory";
 
 /**
@@ -39,25 +37,6 @@ export class RedisPublishClient extends RedisClient {
 	protected queuedEvents: EventPayload[] = [];
 
 	/**
-	 * Create a new instance of the Redis publish client
-	 *
-	 * @param logger - Logger instance for connection events
-	 * @param clientFactory - Factory for creating Redis client connections
-	 * @param channel - The Redis channel to publish to
-	 * @param server - Redis server configuration
-	 * @param onConnect - Optional callback when connection is established
-	 */
-	constructor(
-		logger: ILogger,
-		clientFactory: RedisClientFactory,
-		channel: string,
-		server: RedisServerConfig,
-		onConnect?: ((client: IRedisClient) => void) | null,
-	) {
-		super(logger, clientFactory, channel, server, onConnect);
-	}
-
-	/**
 	 * Publish an event to the given channel
 	 *
 	 * If the client is not connected, the event will be queued and published
@@ -71,12 +50,7 @@ export class RedisPublishClient extends RedisClient {
 			this.queueEvent(payload);
 			return Promise.reject(new Error("Redis client not connected"));
 		}
-
-		try {
-			await this.client.publish(this.channel, JSON.stringify(payload));
-		} catch (error) {
-			throw error;
-		}
+		await this.client.publish(this.channel, JSON.stringify(payload));
 	}
 
 	/**

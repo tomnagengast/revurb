@@ -22,22 +22,6 @@ import type {
  */
 export class Connection implements IWebSocketConnection {
 	/**
-	 * Handler for complete messages.
-	 */
-	private onMessageHandler?: (message: string | Buffer) => void;
-
-	/**
-	 * Handler for connection close.
-	 */
-	// @ts-expect-error - Reserved for future use
-	private _onCloseHandler?: () => void;
-
-	/**
-	 * Maximum allowed message payload size in bytes.
-	 */
-	private maxMessageSize?: number;
-
-	/**
 	 * Unique connection identifier.
 	 */
 	private connectionId: string;
@@ -63,30 +47,6 @@ export class Connection implements IWebSocketConnection {
 		const timestamp = Date.now();
 		const random = Math.random().toString(36).substr(2, 9);
 		return `conn_${timestamp}_${random}`;
-	}
-
-	/**
-	 * Handle incoming messages.
-	 * Processes fragmented messages and dispatches complete messages to handlers.
-	 *
-	 * @param data - The message data received from the WebSocket
-	 */
-	// @ts-expect-error - Reserved for future use
-	private _handleMessage(data: string | Buffer): void {
-		// Check message size if limit is set
-		if (this.maxMessageSize && data.length > this.maxMessageSize) {
-			console.warn(
-				`Message exceeds maximum size (${data.length} > ${this.maxMessageSize}) on connection ${this.connectionId}`,
-			);
-			this.close("Message size exceeded");
-			return;
-		}
-
-		// In Bun's WebSocket, fragmentation is handled automatically
-		// This is a simplified implementation that assumes complete messages
-		if (this.onMessageHandler) {
-			this.onMessageHandler(data);
-		}
 	}
 
 	/**

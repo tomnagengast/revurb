@@ -356,7 +356,7 @@ function setupGracefulShutdown(server: ReturnType<typeof Factory.make>): void {
 							// Disconnect
 							channelConn.disconnect();
 							totalDisconnected++;
-						} catch (error) {
+						} catch (_error) {
 							// Ignore individual connection errors during shutdown
 						}
 					}

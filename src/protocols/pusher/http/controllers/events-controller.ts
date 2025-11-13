@@ -93,7 +93,7 @@ export class EventsController extends Controller {
 
 		try {
 			payload = JSON.parse(body);
-		} catch (error) {
+		} catch (_error) {
 			return new Response({ message: "Invalid JSON payload" }, 422);
 		}
 

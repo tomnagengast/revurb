@@ -195,7 +195,7 @@ describe("WebSocket Connection E2E Tests", () => {
 					if (data.event === "pusher:pong") {
 						resolve(true);
 					}
-				} catch (e) {
+				} catch (_e) {
 					resolve(false);
 				}
 			};
