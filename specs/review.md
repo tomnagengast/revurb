@@ -1,2 +1,5 @@
-last commit: 6d56473
-status: ok
+last commit: 29fba8a
+status: not ok
+review comments:
+- `bun run lint` still exits non-zero (e.g. `src/protocols/pusher/channels/channel-broker.ts:37` fails `lint/complexity/noStaticOnlyClass`, and `src/protocols/pusher/concerns/interacts-with-channel-information.ts:10` fails `lint/suspicious/noExplicitAny`). Objective 0 was to fix the lint errors from this command, so we still need to resolve the remaining violations.
+- TypeScript no longer compiles—`bun run typecheck` fails with multiple errors: assigning `app.options` to `config.options` in `src/application-manager.ts:132` violates the expected `Record<string, unknown>` type; the JSON parsing helper in `src/Loggers/cli-logger.ts:109-114` tries to read `channel_data` off a value still typed as `unknown`; `src/protocols/pusher/channels/presence-cache-channel.ts:220` indexes an object with a key typed `unknown`; `src/protocols/pusher/http/controllers/channels-controller.ts:229-233` passes `this.application?.secret()` (possibly `undefined`) into `hmacSha256`; and `src/servers/reverb/connection.ts:199-228` references `onMessageHandler`, `_onCloseHandler`, and `maxMessageSize` properties that were never declared. These need to be fixed before the port can be considered stable.
