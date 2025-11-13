@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import * as crypto from "crypto";
 import type { Server } from "bun";
-import { Factory } from "../../src/Servers/Reverb/factory";
 import type { ReverbConfig } from "../../src/config/types";
+import { Factory } from "../../src/servers/reverb/factory";
 
 describe("Private Channel E2E Tests", () => {
 	let server: Server;
