@@ -181,7 +181,10 @@ export class PresenceCacheChannel extends CacheChannel {
 		const allConnections = Array.from(this._connections.all().values());
 
 		// Extract data from each connection and deduplicate by user_id
-		const uniqueUsersMap = new Map<string, { user_id: unknown; user_info: unknown }>();
+		const uniqueUsersMap = new Map<
+			string,
+			{ user_id: unknown; user_info: unknown }
+		>();
 
 		for (const channelConn of allConnections) {
 			const connData = channelConn.data() as Map<string, unknown>;

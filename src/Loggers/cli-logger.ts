@@ -90,7 +90,10 @@ export class CliLogger implements ILogger {
 	 */
 	message(message: string): void {
 		try {
-			const parsed: Record<string, unknown> = JSON.parse(message) as Record<string, unknown>;
+			const parsed: Record<string, unknown> = JSON.parse(message) as Record<
+				string,
+				unknown
+			>;
 
 			// Parse nested data field if it's a string
 			if (parsed.data && typeof parsed.data === "string") {
