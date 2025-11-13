@@ -83,9 +83,13 @@ export class ChannelController {
     // Add 'occupied' to the info fields if not already present
     const info = infoParam ? `${infoParam},occupied` : "occupied";
 
+    if (!this.application) {
+      throw new Error("Application not set.");
+    }
+
     // Gather channel metrics
     const channelData = await this.metricsHandler.gather(
-      this.application!,
+      this.application,
       "channel",
       {
         channel,
