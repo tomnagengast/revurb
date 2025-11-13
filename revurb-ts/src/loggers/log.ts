@@ -16,6 +16,7 @@ import { NullLogger } from "./null-logger";
  * // Use the logger
  * Log.info('Server started', 'Listening on port 8080');
  * Log.error('Connection failed');
+ * Log.debug('Channel created: presence-chat');
  * Log.message('{"event":"pusher:subscribe"}');
  * Log.line(2);
  * ```
@@ -65,6 +66,15 @@ export class Log {
    */
   static error(message: string): void {
     Log.getLogger().error(message);
+  }
+
+  /**
+   * Log a debug message.
+   *
+   * @param message - The debug message to log
+   */
+  static debug(message: string): void {
+    Log.getLogger().debug(message);
   }
 
   /**
