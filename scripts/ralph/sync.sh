@@ -2,8 +2,12 @@
 
 # SPEC=$1
 echo "
-$(cat scripts/ralph/prompt.md)
+$(cat scripts/ralph/prompt-fast.md)
 " | \
-  claude -p --output-format=stream-json --verbose --dangerously-skip-permissions --add-dir /tmp/test-revurb | \
-  tee -a specs/logs/ralph-$(date +%Y-%m-%d-%H%M).jsonl | \
-  bunx repomirror visualize --debug
+  a | \
+  tee -a specs/logs/ralph-$(date +%Y-%m-%d-%H%M).jsonl
+
+echo "
+$(cat scripts/ralph/prompt-smart.md)
+" | \
+  codex --yolo exec --skip-git-repo-check -o ./specs/logs/codex-$(date +%Y-%m-%d-%H%M).md
