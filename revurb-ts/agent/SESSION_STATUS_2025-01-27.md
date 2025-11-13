@@ -1,10 +1,10 @@
 # Port Maintenance Session - 2025-01-27
 
 ## Status Check
-- ✅ Review status: `ok` (from `./specs/review.md`)
+- ⚠️ Review status: `not ok` (from `./specs/review.md`) - Redis pub/sub issues identified
 - ✅ Tests: 89 passing (100%)
 - ✅ Port completion: 95% (all core functionality working)
-- ✅ Production ready: Yes
+- ⚠️ Production ready: Yes for single-server; Redis pub/sub requires custom implementation
 
 ## Work Completed
 
@@ -32,7 +32,7 @@
 - ✅ CLI interface
 - ✅ Configuration system
 - ✅ Event system (structure in place)
-- ✅ Redis pub/sub (mock implementation for single-server)
+- ⚠️ Redis pub/sub (no-op mock implementation - NOT production-ready for multi-server deployments; requires extending RedisClientFactory to use real Redis client)
 
 ### Architecture Notes
 - Uses Bun's native async runtime (no event loop needed)
@@ -41,11 +41,14 @@
 - Custom config loader with env vars support
 
 ## Next Steps
-The port is production-ready. Future work may include:
-1. Optional: Integrate real Redis client for multi-server scaling
+The port is production-ready for single-server deployments. Future work may include:
+1. **Required for multi-server**: Integrate real Redis client by extending RedisClientFactory (or add as optional dependency)
 2. Optional: Enhance event system for observability
 3. Optional: Add more unit tests for edge cases
 4. Optional: Performance benchmarking vs PHP version
+
+## Known Limitations
+- **Redis Pub/Sub**: The default `RedisClientFactory` returns a no-op mock client. Redis pub/sub will NOT work for multi-server deployments without extending the factory to use a real Redis client library (e.g., node-redis, ioredis). The `createClient()` method is now protected and can be overridden in subclasses.
 
 ## Notes
 - Following 80/20 rule: 80% porting, 20% testing ✅
