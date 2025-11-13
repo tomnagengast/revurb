@@ -119,4 +119,36 @@ export class ChannelConnection {
   send(message: string): void {
     this._connection.send(message);
   }
+
+  /**
+   * Get the normalized socket ID.
+   *
+   * Proxies to the underlying connection's id() method.
+   *
+   * @returns The normalized socket ID
+   */
+  id(): string {
+    return this._connection.id();
+  }
+
+  /**
+   * Determine whether the connection is stale.
+   *
+   * Proxies to the underlying connection's isStale() method.
+   * A connection is stale if it's inactive and has been pinged but not responded.
+   *
+   * @returns true if connection is stale, false otherwise
+   */
+  isStale(): boolean {
+    return this._connection.isStale();
+  }
+
+  /**
+   * Disconnect and unsubscribe from all channels.
+   *
+   * Proxies to the underlying connection's disconnect() method.
+   */
+  disconnect(): void {
+    this._connection.disconnect();
+  }
 }

@@ -1,0 +1,40 @@
+### System
+
+    * **model:** Composer 1
+    * **cwd:** .
+    * **permission:** default
+    * **api key:** login
+
+### User
+
+Your job is to port Laravel Reverb (PHP) to revurb-ts (Typescript) and maintain the repository. First, read the ./specs/review.md and address any review comments if the status is not ok. If the status is ok then procceed with the port. You have access to the current ./ repository and should target revurb-ts for your port. Make a commit and push your changes after every single file edit. Use the /tmp/test-revurb/agent/ directory as a scratchpad for your work. Store long term plans and todo lists there. The original project was tested with the Pest (https://pestphp.com/) testing framework. When porting, you will need to write end to end and unit tests for the project using Bun's test running (https://bun.com/docs/test.md). But make sure to spend most of your time on the actual porting, not on the testing. A good heuristic is to spend 80% of your time on the actual porting, and 20% on the testing.
+
+### Assistant
+
+Reading ./specs/review.md to check the status and any review comments.
+
+### Tool · read (started)
+
+    * **path:** `specs/review.md`
+    * **status:** pending
+
+### Tool · ls (started)
+
+    * **path:** `/tmp/test-revurb`
+    * **status:** pending
+
+### Tool · read (completed)
+
+    * **path:** `specs/review.md`
+    * **status:** success
+        * lines: 1-9
+    * **content:**
+
+    last commit: fc0fbbfe41985f661f3e2586095116e5ef72153f
+    status: not ok
+    review comments:
+    - No source changes landed in `revurb-ts` between 5c5deaf and fc0fbbf (only specs/logs were touched), so the port still cannot pass the issues called out previously—the server remains unusable for the HTTP API.
+    - `Factory.convertToResponse` still reads `controllerResponse.status`/`controllerResponse.content` even though the custom HTTP `Response` exposes `getStatusCode()`/`getContent()`, so every controller return winds up as `200 text/plain` regardless of what Laravel sends. Wire it up to the getters and original headers. (revurb-ts/src/Servers/Reverb/factory.ts:1085, revurb-ts/src/Servers/Reverb/Http/response.ts:40)
+    - `Factory.initialize` still wires `this.serverProvider = { pubSub: () => null }`, so `UsersTerminateController.handle` immediately throws “subscribesToEvents is not a function” before it can publish a terminate message. Provide a real `ServerProvider` or guard the call. (revurb-ts/src/Servers/Reverb/factory.ts:237, revurb-ts/src/Protocols/Pusher/Http/Controllers/users-terminate-controller.ts:72)
+    - `ChannelConnection` continues to expose only `connection()`, `data()`, and `send()`, yet `PruneStaleConnections.handle` still calls `connection.isStale()`, `connection.disconnect()`, and `connection.id()`, causing the job to blow up before pruning anything. Proxy those methods or unwrap the base connection before using it. (revurb-ts/src/Protocols/Pusher/Channels/channel-connection.ts:43, revurb-ts/src/jobs/prune-stale-connections.ts:63)
+    - `UsersTerminateController` still returns the Fetch API `Response` (which lacks `.content`) instead of the custom Response object that `Factory.convertToResponse` expects, so the mapper sees `undefined` content and still emits empty 200s. Import the custom Response and call `new Response({}, 200, headers)` so the JSON body/status propagate. (revurb-ts/src/Protocols/Pusher/Http/Controllers/users-terminate-controller.ts:80, revurb-ts/src/Servers/Reverb/factory.ts:1085)

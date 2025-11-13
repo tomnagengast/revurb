@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# SPEC=$1
-echo "
-$(cat scripts/ralph/prompt-fast.md)
-" | \
-  a | \
-  tee -a specs/logs/ralph-$(date +%Y-%m-%d-%H%M).jsonl
+# spec=$1
+prompt="$(<scripts/ralph/prompt-fast.md)"
+
+FORCE_COLOR=1 A_MARKDOWN=1 \
+  a "$prompt" | \
+  tee -a "specs/logs/ralph-$(date +%Y-%m-%d-%H%M).md"
 
 echo "
 $(cat scripts/ralph/prompt-smart.md)

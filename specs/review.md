@@ -1,8 +1,2 @@
-last commit: fc0fbbfe41985f661f3e2586095116e5ef72153f
-status: not ok
-review comments:
-- No source changes landed in `revurb-ts` between 5c5deaf and fc0fbbf (only specs/logs were touched), so the port still cannot pass the issues called out previously—the server remains unusable for the HTTP API.
-- `Factory.convertToResponse` still reads `controllerResponse.status`/`controllerResponse.content` even though the custom HTTP `Response` exposes `getStatusCode()`/`getContent()`, so every controller return winds up as `200 text/plain` regardless of what Laravel sends. Wire it up to the getters and original headers. (revurb-ts/src/Servers/Reverb/factory.ts:1085, revurb-ts/src/Servers/Reverb/Http/response.ts:40)
-- `Factory.initialize` still wires `this.serverProvider = { pubSub: () => null }`, so `UsersTerminateController.handle` immediately throws “subscribesToEvents is not a function” before it can publish a terminate message. Provide a real `ServerProvider` or guard the call. (revurb-ts/src/Servers/Reverb/factory.ts:237, revurb-ts/src/Protocols/Pusher/Http/Controllers/users-terminate-controller.ts:72)
-- `ChannelConnection` continues to expose only `connection()`, `data()`, and `send()`, yet `PruneStaleConnections.handle` still calls `connection.isStale()`, `connection.disconnect()`, and `connection.id()`, causing the job to blow up before pruning anything. Proxy those methods or unwrap the base connection before using it. (revurb-ts/src/Protocols/Pusher/Channels/channel-connection.ts:43, revurb-ts/src/jobs/prune-stale-connections.ts:63)
-- `UsersTerminateController` still returns the Fetch API `Response` (which lacks `.content`) instead of the custom Response object that `Factory.convertToResponse` expects, so the mapper sees `undefined` content and still emits empty 200s. Import the custom Response and call `new Response({}, 200, headers)` so the JSON body/status propagate. (revurb-ts/src/Protocols/Pusher/Http/Controllers/users-terminate-controller.ts:80, revurb-ts/src/Servers/Reverb/factory.ts:1085)
+last commit: 840357b92accc9cfaa879191a73d8ba48240b638
+status: ok

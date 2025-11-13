@@ -3,6 +3,7 @@ import type { IApplicationProvider } from '../../../../contracts/application-pro
 import type { ChannelManager } from '../../Contracts/channel-manager';
 import type { IPubSubProvider } from '../../../../Servers/Reverb/Contracts/pubsub-provider';
 import type { ServerProvider } from '../../../../contracts/server-provider';
+import { Response } from '../../../../Servers/Reverb/Http/response';
 
 /**
  * UsersTerminateController
@@ -77,10 +78,7 @@ export class UsersTerminateController {
         payload: { user_id: userId },
       });
 
-      return new Response(JSON.stringify({}), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response({}, 200, { 'Content-Type': 'application/json' });
     }
 
     // Standalone mode: directly disconnect connections on this server
@@ -98,10 +96,7 @@ export class UsersTerminateController {
       }
     }
 
-    return new Response(JSON.stringify({}), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response({}, 200, { 'Content-Type': 'application/json' });
   }
 
   /**

@@ -29,6 +29,8 @@ import { ChannelController } from '../../Protocols/Pusher/Http/Controllers/chann
 import { UsersTerminateController } from '../../Protocols/Pusher/Http/Controllers/users-terminate-controller';
 import { channelUsersController } from '../../Protocols/Pusher/Http/Controllers/channel-users-controller';
 import { connectionsController } from '../../Protocols/Pusher/Http/Controllers/connections-controller';
+import { Response as HttpResponse } from './Http/response';
+import { ServerProvider } from '../../contracts/server-provider';
 
 /**
  * WebSocket connection data stored in Bun's ws.data
@@ -234,10 +236,13 @@ export class Factory {
       this.logger
     );
 
-    // Create a minimal server provider (stub for now)
-    this.serverProvider = {
-      pubSub: () => null
-    };
+    // Create a minimal server provider
+    // By default, server does not subscribe to events (standalone mode)
+    this.serverProvider = new class extends ServerProvider {
+      subscribesToEvents(): boolean {
+        return false;
+      }
+    }();
 
     // Initialize metrics handler with all required dependencies
     this.metricsHandler = new MetricsHandler(
@@ -1083,6 +1088,19 @@ export class Factory {
    * @private
    */
   private static convertToResponse(controllerResponse: any): Response {
+    // Check if it's our custom HttpResponse class
+    if (controllerResponse instanceof HttpResponse) {
+      const status = controllerResponse.getStatusCode();
+      const body = controllerResponse.getContent();
+      const headers = controllerResponse.getHeaders();
+
+      return new Response(body, {
+        status,
+        headers,
+      });
+    }
+
+    // Fallback for other response types
     const status = controllerResponse.status || 200;
     const body = typeof controllerResponse.content === 'string'
       ? controllerResponse.content
