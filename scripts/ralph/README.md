@@ -1,3 +1,3 @@
 # Ralph
 
-Ralph is simple. 
+Ralph is simple. It's 
