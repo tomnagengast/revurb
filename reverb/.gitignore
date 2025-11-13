@@ -1,7 +1,0 @@
-/vendor
-composer.lock
-/phpunit.xml
-.phpunit.result.cache
-
-# Log files from agent sessions
-specs/logs/*.md
