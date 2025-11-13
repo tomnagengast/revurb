@@ -248,7 +248,9 @@ export class Connection implements IWebSocketConnection {
    *
    * @returns The message handler callback
    */
-  protected getMessageHandler(): ((message: string | Buffer) => void) | undefined {
+  protected getMessageHandler():
+    | ((message: string | Buffer) => void)
+    | undefined {
     return this.onMessageHandler;
   }
 
