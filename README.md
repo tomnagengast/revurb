@@ -91,6 +91,30 @@ export default {
 - `REVERB_APP_SECRET` - Application secret
 - `REVERB_APP_ALLOWED_ORIGINS` - Allowed origins (comma-separated)
 
+## Example Application
+
+Revurb includes a complete example chat application demonstrating real-time WebSocket communication. The example shows how to:
+
+- Connect to the Revurb WebSocket server
+- Subscribe to private channels
+- Send and receive client events
+- Handle ping/pong heartbeats
+- Switch between channels
+
+To run the example:
+
+```bash
+# Start the Revurb server
+bun run dev
+
+# In another terminal, start the example app
+cd example
+bun install
+bun run dev
+```
+
+The example app will be available at `http://localhost:5173` (or the port configured by your dev server). Make sure the Revurb server is running on `localhost:8080` with the app key `my-app-key` (or update the WebSocket URL in the example).
+
 ## Testing
 
 ```bash
