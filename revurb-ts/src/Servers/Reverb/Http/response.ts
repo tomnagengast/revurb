@@ -51,6 +51,11 @@ export class Response {
       this.headers.set(key, value);
     });
 
+    // Set default Content-Type header for JSON responses if not already set
+    if (!this.headers.has('Content-Type')) {
+      this.headers.set('Content-Type', 'application/json');
+    }
+
     // Stringify the content
     if (json && typeof data === 'string') {
       this.content = data;
