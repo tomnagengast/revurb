@@ -27,7 +27,8 @@ export class Certificate {
 	 * ```
 	 */
 	public static exists(url: string): boolean {
-		return Certificate.resolve(url) !== null;
+		// biome-ignore lint/complexity/noThisInStatic: Using `this` for late binding to support subclass overrides (matches PHP's static:: behavior)
+		return this.resolve(url) !== null;
 	}
 
 	/**
@@ -63,7 +64,8 @@ export class Certificate {
 		const key = `${host}.key`;
 
 		// Search all configured certificate paths
-		for (const path of Certificate.paths()) {
+		// biome-ignore lint/complexity/noThisInStatic: Using `this` for late binding to support subclass overrides (matches PHP's static:: behavior)
+		for (const path of this.paths()) {
 			const certPath = join(path, certificate);
 			const keyPath = join(path, key);
 
@@ -87,7 +89,8 @@ export class Certificate {
 	 * ```
 	 */
 	public static paths(): string[] {
-		return [Certificate.herdPath(), Certificate.valetPath()];
+		// biome-ignore lint/complexity/noThisInStatic: Using `this` for late binding to support subclass overrides (matches PHP's static:: behavior)
+		return [this.herdPath(), this.valetPath()];
 	}
 
 	/**
