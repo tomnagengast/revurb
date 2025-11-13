@@ -105,8 +105,15 @@ export class Server {
         ) => Promise<Response | undefined>;
         websocket: {
           open: (ws: ServerWebSocket<unknown>) => void;
-          message: (ws: ServerWebSocket<unknown>, message: string | Buffer) => void;
-          close: (ws: ServerWebSocket<unknown>, code: number, reason: string) => void;
+          message: (
+            ws: ServerWebSocket<unknown>,
+            message: string | Buffer,
+          ) => void;
+          close: (
+            ws: ServerWebSocket<unknown>,
+            code: number,
+            reason: string,
+          ) => void;
           ping: (ws: ServerWebSocket<unknown>, data: Buffer) => void;
           pong: (ws: ServerWebSocket<unknown>, data: Buffer) => void;
         };
@@ -333,7 +340,10 @@ export class Server {
    *
    * @private
    */
-  private handleWebSocketPing(_ws: ServerWebSocket<unknown>, _data: Buffer): void {
+  private handleWebSocketPing(
+    _ws: ServerWebSocket<unknown>,
+    _data: Buffer,
+  ): void {
     // Bun automatically sends a pong response, but we can log or monitor here
   }
 
@@ -348,7 +358,10 @@ export class Server {
    *
    * @private
    */
-  private handleWebSocketPong(_ws: ServerWebSocket<unknown>, _data: Buffer): void {
+  private handleWebSocketPong(
+    _ws: ServerWebSocket<unknown>,
+    _data: Buffer,
+  ): void {
     // Application-level pong handling would occur here
     // This would update connection state, mark as active, etc.
   }

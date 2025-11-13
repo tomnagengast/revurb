@@ -1,0 +1,4 @@
+#!/bin/sh
+bun lint:fix
+bun typecheck
+git update-index --again
