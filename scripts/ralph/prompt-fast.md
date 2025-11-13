@@ -4,16 +4,13 @@ Your job is to port Laravel Reverb (PHP) to revurb-ts (Typescript) and maintain 
 First, read the `./specs/review.md` and address any review comments if the status is `not ok`.
 If the status is `ok` then procceed with the port.
 
-- Current focus: update the `.github/workflows` actions for revurb based on `reverb/.github/workflows`
-- Next focus: continue porting Laravel Reverb features to revurb-ts
+Address the current objectives in @scripts/ralph/current.md
 
 As always, run your test/lint:fix/format rounds before committing.
 
 The Laravel Reverb project is located in `./reverb` and you should target `./` for your port.
 
-Use Docker for running Redis integration tests where mocks fall short.
-
-Make a commit and push your changes after every single file edit.
+Make a commit after every single file edit and push your changes before reporting back.
 
 Use the `./notes/` directory as a scratchpad for your work (prefix with YYYY-MM-DD-HHMM-<slug> for clarity). Store long term plans and todo lists there.
 

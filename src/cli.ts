@@ -91,7 +91,7 @@ START OPTIONS:
 
 EXAMPLES:
   revurb start                                    # Start with default config
-  revurb start --host 127.0.0.1 --port 8080      # Start with custom host/port
+  revurb start --host 127.0.0.1 --port 8080       # Start with custom host/port
   revurb start --debug                            # Start with debug logging
   revurb start --config ./reverb.config.ts        # Start with custom config
 
