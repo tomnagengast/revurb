@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import type { Connection } from "./connection";
+import { Response as HttpResponse } from "./response";
 
 /**
  * HTTP Router for request dispatch and WebSocket upgrade handling
@@ -401,12 +402,17 @@ export class Router {
    */
   private sendResponse(connection: Connection, response: unknown): Connection {
     if (response) {
-      const responseData =
-        typeof response === "string"
-          ? response
-          : response instanceof Uint8Array
-            ? response
-            : JSON.stringify(response);
+      let responseData: string | Uint8Array;
+      if (typeof response === "string") {
+        responseData = response;
+      } else if (response instanceof Uint8Array) {
+        responseData = response;
+      } else if (response instanceof HttpResponse) {
+        // Our HttpResponse class formats full HTTP frames via toString()
+        responseData = response.toString();
+      } else {
+        responseData = JSON.stringify(response);
+      }
       connection.send(responseData);
     }
     connection.close();

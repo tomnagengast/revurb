@@ -57,7 +57,7 @@ interface RouteDefinition {
   handler: (
     req: Request,
     params: Record<string, string>,
-    server?: any,
+    server?: ReturnType<typeof Bun.serve>,
   ) => Response | Promise<Response> | undefined;
 }
 
@@ -136,8 +136,8 @@ class Router {
 
     // Extract parameter names from pattern
     const paramNames: string[] = [];
-    let match_params;
     const paramRegex = /\{([^}]+)\}/g;
+    let match_params: RegExpExecArray | null = null;
     while ((match_params = paramRegex.exec(pattern)) !== null) {
       if (match_params[1]) {
         paramNames.push(match_params[1]);
@@ -225,7 +225,7 @@ export class Factory {
   /**
    * Server provider instance (used by controllers)
    */
-  private static serverProvider: any = null;
+  private static serverProvider: ServerProvider | null = null;
 
   /**
    * Initialize the factory with configuration
@@ -268,9 +268,9 @@ export class Factory {
 
     // Initialize metrics handler with all required dependencies
     Factory.metricsHandler = new MetricsHandler(
-      Factory.serverProvider as any,
-      Factory.channelManager as any,
-      null as any,
+      Factory.serverProvider,
+      Factory.channelManager,
+      null,
     );
 
     // Initialize class-based controllers with proper dependencies

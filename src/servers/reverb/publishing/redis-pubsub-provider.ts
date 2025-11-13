@@ -123,7 +123,7 @@ export class RedisPubSubProvider implements IPubSubProvider {
    * @param event - The event type to listen for
    * @param callback - Function to call when the event is received
    */
-  on(event: string, callback: (data: any) => void): void {
+  on(event: string, callback: (data: unknown) => void): void {
     if (!this.subscriber) {
       throw new Error("Subscriber not initialized");
     }
@@ -146,7 +146,7 @@ export class RedisPubSubProvider implements IPubSubProvider {
    *
    * @param payload - The data to publish
    */
-  async publish(payload: Record<string, any>): Promise<void> {
+  async publish(payload: Record<string, unknown>): Promise<void> {
     if (!this.publisher) {
       throw new Error("Publisher not initialized");
     }

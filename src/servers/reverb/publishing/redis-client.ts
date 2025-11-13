@@ -143,7 +143,10 @@ export class RedisClient extends EventEmitter {
    * @param event - Event name
    * @param callback - Event handler callback
    */
-  public override on(event: string, callback: (...args: any[]) => void): this {
+  public override on(
+    event: string,
+    callback: (...args: unknown[]) => void,
+  ): this {
     if (this.client) {
       this.client.on(event, callback);
     }

@@ -1,5 +1,6 @@
 import type { ServerWebSocket } from "bun";
 import type { ILogger } from "../../../contracts/logger";
+import { Response as HttpResponse } from "./response";
 import type { IHttpRequest, Router } from "./router";
 
 /**
@@ -222,7 +223,19 @@ export class Server {
       // For HTTP requests, pass null as connection since we don't have a Connection object yet
       const result = await this.config.router.dispatch(httpRequest, null);
 
-      // If result is already a Response, return it
+      // If result is our custom HttpResponse, convert it to Fetch Response
+      if (result instanceof HttpResponse) {
+        const status = result.getStatusCode();
+        const body = result.getContent();
+        const headers = result.getHeaders();
+
+        return new Response(body, {
+          status,
+          headers,
+        });
+      }
+
+      // If result is already a Fetch Response, return it
       if (result instanceof Response) {
         return result;
       }

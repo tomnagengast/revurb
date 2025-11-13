@@ -64,7 +64,7 @@ describe("Channel Subscription E2E Tests", () => {
   });
 
   it("should subscribe to a public channel", async () => {
-    const messages: any[] = [];
+    const messages: unknown[] = [];
 
     const _result = await new Promise((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
@@ -117,7 +117,7 @@ describe("Channel Subscription E2E Tests", () => {
   }, 10000);
 
   it("should handle ping/pong", async () => {
-    const messages: any[] = [];
+    const messages: unknown[] = [];
 
     const result = await new Promise((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
@@ -172,7 +172,7 @@ describe("Channel Subscription E2E Tests", () => {
   }, 10000);
 
   it("should unsubscribe from a channel", async () => {
-    const messages: any[] = [];
+    const messages: unknown[] = [];
 
     const result = await new Promise((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);

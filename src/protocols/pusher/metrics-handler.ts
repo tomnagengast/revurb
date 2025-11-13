@@ -154,7 +154,7 @@ export class MetricsHandler {
   constructor(
     protected serverProviderManager: ServerProviderManager,
     protected channels: ChannelManager,
-    protected pubSubProvider: PubSubProvider,
+    protected pubSubProvider: PubSubProvider | null,
   ) {}
 
   /**
@@ -352,6 +352,9 @@ export class MetricsHandler {
     type: string,
     options: MetricsOptions | null,
   ): void {
+    if (!this.pubSubProvider) {
+      return;
+    }
     this.pubSubProvider
       .publish({
         type: "metrics",
@@ -484,8 +487,12 @@ export class MetricsHandler {
    * @returns Promise that resolves when all metrics are collected
    */
   protected listenForMetrics(key: string): Promise<unknown[]> {
+    if (!this.pubSubProvider) {
+      return Promise.resolve([]);
+    }
+    const provider = this.pubSubProvider;
     return new Promise((resolve) => {
-      this.pubSubProvider.on("metrics-retrieved", (payload) => {
+      provider.on("metrics-retrieved", (payload) => {
         if (
           typeof payload === "object" &&
           payload !== null &&
@@ -522,6 +529,9 @@ export class MetricsHandler {
     type: string,
     options: MetricsOptions = {},
   ): void {
+    if (!this.pubSubProvider) {
+      return;
+    }
     this.pubSubProvider.publish({
       type: "metrics-retrieved",
       key,
