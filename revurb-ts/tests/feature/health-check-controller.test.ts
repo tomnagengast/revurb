@@ -38,8 +38,9 @@ describe('Health Check Controller', () => {
     const response = await fetch(`http://localhost:${port}/up`);
 
     expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('application/json');
     const text = await response.text();
-    expect(text).toBe('OK');
+    expect(text).toBe('{"health":"OK"}');
   });
 
   it('health check does not require app ID', async () => {
@@ -47,7 +48,8 @@ describe('Health Check Controller', () => {
     const response = await fetch(`http://localhost:${port}/up`);
 
     expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('application/json');
     const text = await response.text();
-    expect(text).toBe('OK');
+    expect(text).toBe('{"health":"OK"}');
   });
 });
