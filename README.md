@@ -28,7 +28,7 @@ Revurb is a complete TypeScript port of Laravel Reverb, designed to run on Bun r
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/tomnagengast/revurb
 cd revurb
 
 # Install dependencies

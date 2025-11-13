@@ -23,7 +23,7 @@
 <a name="introduction"></a>
 ## Introduction
 
-[Revurb](https://github.com/laravel/reverb) is a TypeScript port of Laravel Reverb, bringing blazing-fast and scalable real-time WebSocket communication to your applications. It runs on Bun runtime and provides seamless integration with applications that need real-time event broadcasting capabilities.
+[Revurb](https://github.com/tomnagengast/revurb) is a TypeScript port of Laravel Reverb, bringing blazing-fast and scalable real-time WebSocket communication to your applications. It runs on Bun runtime and provides seamless integration with applications that need real-time event broadcasting capabilities.
 
 Revurb implements the Pusher protocol, making it compatible with Pusher-compatible clients and Laravel's broadcasting system.
 
@@ -33,7 +33,7 @@ Revurb implements the Pusher protocol, making it compatible with Pusher-compatib
 You may install Revurb by cloning the repository and installing dependencies:
 
 ```shell
-git clone <repository-url>
+git clone https://github.com/tomnagengast/revurb
 cd revurb
 bun install
 ```
