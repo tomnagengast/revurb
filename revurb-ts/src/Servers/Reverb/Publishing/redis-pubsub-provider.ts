@@ -45,17 +45,17 @@ export class RedisPubSubProvider implements IPubSubProvider {
    * Create a new Redis Pub/Sub provider instance
    *
    * @param logger - Logger instance for connection events
-   * @param clientFactory - Factory for creating Redis clients
    * @param messageHandler - Handler for incoming messages
    * @param channel - Redis channel name
    * @param server - Redis server configuration
+   * @param clientFactory - Factory for creating Redis clients (defaults to RedisClientFactory instance)
    */
   constructor(
     protected logger: ILogger,
-    protected clientFactory: RedisClientFactory,
     protected messageHandler: IPubSubIncomingMessageHandler,
     protected channel: string,
-    protected server: RedisServerConfig = {}
+    protected server: RedisServerConfig = {},
+    protected clientFactory: RedisClientFactory = new RedisClientFactory()
   ) {}
 
   /**
