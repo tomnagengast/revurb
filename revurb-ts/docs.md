@@ -186,12 +186,24 @@ Or if you've built the project:
 bun run start
 ```
 
+You can also use the built binary directly:
+
+```shell
+./dist/cli.js start
+```
+
 By default, the Revurb server will be started at `0.0.0.0:8080`, making it accessible from all network interfaces.
 
 If you need to specify a custom host or port, you may do so via the `--host` and `--port` options when starting the server:
 
 ```shell
 bun run src/cli.ts start --host=127.0.0.1 --port=9000
+```
+
+You can also specify a custom configuration file:
+
+```shell
+bun run src/cli.ts start --config=./custom.config.ts
 ```
 
 Alternatively, you may define `REVERB_SERVER_HOST` and `REVERB_SERVER_PORT` environment variables in your environment configuration.
@@ -228,7 +240,7 @@ If you are running Revurb with a process manager such as Supervisor or PM2, the 
 <a name="monitoring"></a>
 ## Monitoring
 
-Revurb provides built-in health check endpoints for monitoring server status. You can access the health endpoint at:
+Revurb provides a built-in health check endpoint for monitoring server status. You can access the health endpoint at:
 
 ```
 GET /up
@@ -239,6 +251,11 @@ This endpoint returns a JSON response indicating the server's health status:
 ```json
 {"health": "OK"}
 ```
+
+The health check endpoint is useful for:
+- Load balancer health checks
+- Monitoring and alerting systems
+- Container orchestration health probes
 
 > [!NOTE]
 > Laravel Pulse and Telescope integrations are not currently available in the TypeScript port. These are Laravel framework-specific features that would require separate implementation.
@@ -304,7 +321,21 @@ server {
 ```
 
 > [!WARNING]
-> Revurb listens for WebSocket connections at `/app` and handles API requests at `/apps`. You should ensure the web server handling Revurb requests can serve both of these URIs.
+> Revurb listens for WebSocket connections at `/app/{appKey}` (where `{appKey}` is your application key) and handles API requests at `/apps`. You should ensure the web server handling Revurb requests can serve both of these URIs.
+
+To connect to Revurb using a WebSocket client, use the following format:
+
+```
+ws://your-server:8080/app/your-app-key?protocol=7&client=js&version=8.4.0
+```
+
+Or for secure connections:
+
+```
+wss://your-server:443/app/your-app-key?protocol=7&client=js&version=8.4.0
+```
+
+Replace `your-app-key` with the actual application key configured in your Revurb server.
 
 Typically, web servers are configured to limit the number of allowed connections in order to prevent overloading the server. To increase the number of allowed connections on an Nginx web server to 10,000, the `worker_rlimit_nofile` and `worker_connections` values of the `nginx.conf` file should be updated:
 
