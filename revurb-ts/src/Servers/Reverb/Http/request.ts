@@ -5,10 +5,10 @@
  * Implements HTTP message buffering with size limits and End-Of-Message (EOM) detection.
  */
 
-import type { IHttpRequest } from './router';
-
 // Re-export IHttpRequest for use by controllers
-export type { IHttpRequest };
+export type { IHttpRequest } from './router';
+
+import type { IHttpRequest } from './router';
 
 /**
  * Extended HTTP Request interface with additional properties for internal use.
