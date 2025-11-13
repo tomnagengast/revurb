@@ -5,6 +5,7 @@
 const DISCORD_WEBHOOK_URL = Bun.env.CLAUDE_CODE_DISCORD_WEBHOOK_URL;
 if (!DISCORD_WEBHOOK_URL) {
 	console.error("Missing CLAUDE_CODE_DISCORD_WEBHOOK_URL in env");
+	Bun.exit(1);
 }
 
 const argv = Bun.argv.slice(2);
