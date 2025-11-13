@@ -1,7 +1,7 @@
-/vendor
-composer.lock
-/phpunit.xml
-.phpunit.result.cache
-
-# Log files from agent sessions
-specs/logs/*.md
+node_modules/
+dist/
+.DS_Store
+*.log
+.env
+.env.local
+bun.lockb
