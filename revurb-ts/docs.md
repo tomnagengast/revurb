@@ -231,10 +231,14 @@ If you are running Revurb with a process manager such as Supervisor or PM2, the 
 Revurb provides built-in health check endpoints for monitoring server status. You can access the health endpoint at:
 
 ```
-GET /health
+GET /up
 ```
 
-This endpoint returns a JSON response indicating the server's health status.
+This endpoint returns a JSON response indicating the server's health status:
+
+```json
+{"health": "OK"}
+```
 
 > [!NOTE]
 > Laravel Pulse and Telescope integrations are not currently available in the TypeScript port. These are Laravel framework-specific features that would require separate implementation.
