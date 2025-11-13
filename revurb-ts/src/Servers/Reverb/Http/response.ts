@@ -52,7 +52,8 @@ export class Response {
     });
 
     // Set default Content-Type header for JSON responses if not already set
-    if (!this.headers.has('Content-Type')) {
+    // Use case-insensitive check to avoid duplicate headers
+    if (!this.hasHeaderCaseInsensitive('Content-Type')) {
       this.headers.set('Content-Type', 'application/json');
     }
 
@@ -65,6 +66,24 @@ export class Response {
 
     // Automatically set Content-Length header
     this.setContentLength();
+  }
+
+  /**
+   * Check if a header exists (case-insensitive)
+   *
+   * @param key - The header key to check (case-insensitive)
+   * @returns true if the header exists, false otherwise
+   *
+   * @private
+   */
+  private hasHeaderCaseInsensitive(key: string): boolean {
+    const lowerKey = key.toLowerCase();
+    for (const headerKey of this.headers.keys()) {
+      if (headerKey.toLowerCase() === lowerKey) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

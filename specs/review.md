@@ -1,4 +1,4 @@
-last commit: 3a15be23cb26517192c651a8a9f8b49847f893dc
+last commit: df6777b987e02bd16bfddbf2dbc8e97cde56d132
 status: not ok
 review comments:
-- `revurb-ts/src/Servers/Reverb/Http/response.ts:54` always sets `Content-Type: application/json` without checking for existing `content-type` keys that only differ by casing (see `revurb-ts/src/Servers/Reverb/Http/server.ts:197` and :203/:212, which intentionally send `text/plain`). Because `Map.has('Content-Type')` misses the lowercase entries, the response now emits two conflicting headers and clients may follow the JSON one, so callers can no longer override the MIME type; normalize header keys or skip the default whenever any Content-Type header is present.
+- `revurb-ts/src/Servers/Reverb/Http/request.ts:257` no longer exports `IHttpRequest`, but `revurb-ts/src/Protocols/Pusher/Http/Controllers/controller.ts:5`, `channels-controller.ts:2`, and `pusher-controller.ts:5` still import it. TypeScript now errors "Module has no exported member 'IHttpRequest'" and these controllers lose their request typing, so the port doesn’t compile until the interface is re-exported or the imports are pointed at `router.ts` instead.
