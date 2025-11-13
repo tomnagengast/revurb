@@ -7,6 +7,9 @@
 
 import type { IHttpRequest } from './router';
 
+// Re-export IHttpRequest for use by controllers
+export type { IHttpRequest };
+
 /**
  * Extended HTTP Request interface with additional properties for internal use.
  */
