@@ -5,15 +5,15 @@
  * Implements HTTP message buffering with size limits and End-Of-Message (EOM) detection.
  */
 
+import type { IHttpRequest } from './router';
+
 /**
- * Represents an HTTP request with headers and body.
- *
- * @interface IHttpRequest
+ * Extended HTTP Request interface with additional properties for internal use.
  */
-interface IHttpRequest {
-  /** HTTP method (GET, POST, etc.) */
+interface IHttpRequestInternal extends IHttpRequest {
+  /** HTTP method (GET, POST, etc.) - property for direct access */
   method: string;
-  /** Request path with query string */
+  /** Request path with query string - property for direct access */
   path: string;
   /** HTTP version (1.0, 1.1, 2.0) */
   httpVersion: string;
@@ -21,8 +21,6 @@ interface IHttpRequest {
   headers: Record<string, string>;
   /** Request body content */
   body: string;
-  /** Get a header value by name (case-insensitive) */
-  getHeader(name: string): string | undefined;
   /** Get body size in bytes */
   getSize(): number;
 }
@@ -79,7 +77,7 @@ class Request {
       clearBuffer(): void;
     },
     maxRequestSize: number
-  ): IHttpRequest | null {
+  ): IHttpRequestInternal | null {
     // Append message to buffer
     connection.appendToBuffer(message);
 
@@ -164,7 +162,7 @@ class Request {
    * // Returns { method: 'GET', path: '/', httpVersion: '1.1', headers: {...}, body: '' }
    * ```
    */
-  private static parseRequest(buffer: string): IHttpRequest | null {
+  private static parseRequest(buffer: string): IHttpRequestInternal | null {
     // Split headers and body by EOM marker
     const eomIndex = buffer.indexOf(this.EOM);
     if (eomIndex === -1) {
@@ -219,18 +217,36 @@ class Request {
       headers[headerName] = headerValue;
     }
 
-    // Create request object
-    const request: IHttpRequest = {
+    // Extract host from headers
+    const host = headers['host'] || '';
+
+    // Create request object matching Router's IHttpRequest interface
+    const request: IHttpRequestInternal = {
       method,
       path,
       httpVersion,
       headers,
       body: bodySection,
+      getMethod(): string {
+        return method;
+      },
+      getPath(): string {
+        return path;
+      },
+      getHost(): string {
+        return host;
+      },
       getHeader(name: string): string | undefined {
-        return this.headers[name.toLowerCase()];
+        return headers[name.toLowerCase()];
+      },
+      getHeaders(): Record<string, string> {
+        return { ...headers };
+      },
+      getUri(): { path: string; host: string } {
+        return { path, host };
       },
       getSize(): number {
-        return Buffer.byteLength(this.body, 'utf8');
+        return Buffer.byteLength(bodySection, 'utf8');
       },
     };
 
@@ -238,4 +254,4 @@ class Request {
   }
 }
 
-export { Request, type IHttpRequest };
+export { Request };

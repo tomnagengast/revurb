@@ -1033,6 +1033,9 @@ export class Factory {
   private static async convertToHttpRequest(req: Request): Promise<any> {
     const url = new URL(req.url);
     const body = req.method !== 'GET' ? await req.text() : '';
+    const method = req.method;
+    const path = url.pathname + url.search;
+    const host = url.host;
 
     // Convert Headers to Record<string, string>
     const headers: Record<string, string> = {};
@@ -1041,16 +1044,31 @@ export class Factory {
     });
 
     return {
-      method: req.method,
-      path: url.pathname + url.search,
+      method,
+      path,
       httpVersion: '1.1',
       headers,
       body,
+      getMethod(): string {
+        return method;
+      },
+      getPath(): string {
+        return path;
+      },
+      getHost(): string {
+        return host;
+      },
       getHeader(name: string): string | undefined {
-        return this.headers[name.toLowerCase()];
+        return headers[name.toLowerCase()];
+      },
+      getHeaders(): Record<string, string> {
+        return { ...headers };
+      },
+      getUri(): { path: string; host: string } {
+        return { path, host };
       },
       getSize(): number {
-        return Buffer.byteLength(this.body, 'utf8');
+        return Buffer.byteLength(body, 'utf8');
       },
     };
   }
