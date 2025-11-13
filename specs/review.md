@@ -1,3 +1,5 @@
-last commit: de40a71
-status: ok
+last commit: 84ad5ce
+status: not ok
 review comments:
+- tests/feature/health-check-controller.test.ts:2 (and the other spec/e2e suites updated alongside it) now import `../../src/servers/reverb/factory`, but git still records the implementation under `src/Servers/Reverb/factory.ts`. On the case-sensitive GitHub runners Bun throws “Cannot find module '../../src/servers/reverb/factory'...” and `tests.yml` run 19337509865 fails. Finish the directory rename with `git mv` (so the repo actually contains `src/servers/reverb`) or revert these imports to the capitalized path so CI can resolve the module.
+- tests/unit/managers/array-channel-manager.test.ts:6 and src/jobs/ping-inactive-connections.ts:4 import `src/protocols/pusher/...` with lowercase segments even though git still stores those folders as `src/Protocols/Pusher/...`. `static-analysis.yml` run 19337509860 hits TS2307 “Cannot find module …” errors for every reference, keeping the workflow red. Please make the filesystem casing match the imports (e.g., `git mv src/Protocols src/protocols`, `git mv src/Protocols/Pusher src/protocols/pusher`) or switch the imports back to the capitalized directories before landing more port work.
