@@ -1,6 +1,7 @@
-last commit: 6687c8b
-status: not ok
+last commit: f399f22
+status: ok
 review comments:
-- `.github/workflows/spec-tests.yml:55-66` configures the spec step to run from `tests/Specification`, but this repository only ships the Autobahn fixtures under `reverb/tests/Specification`. Because the declared working directory does not exist, the workflow will blow up with `ENOENT` before the Docker command ever runs (and the nested `if [ -d "tests/Specification" ]` check will never be true even if the directory did exist). Point the step at `reverb/tests/Specification` (or drop the working-directory entirely and use explicit paths) so the workflow can actually execute.
-- `.github/workflows/spec-tests.yml:37` boots the Bun server on port 9001, yet `reverb/tests/Specification/client-spec.json:7` still tells Autobahn to connect to `ws://host.docker.internal:8080`. With those ports out of sync the fuzzing client will fail every case with connection errors. Either change the workflow to start Reverb on 8080 or update the spec JSON to match whatever port you boot.
-- `tests/e2e/*.test.ts` and `tests/feature/health-check-controller.test.ts` now import `../../src/servers/reverb/factory` (e.g., `tests/e2e/websocket-simple.test.ts:4`), but the actual module is tracked as `src/Servers/Reverb/factory.ts`. Because the repo has not committed the lowercase directory rename yet, Bun on any case-sensitive filesystem (Linux runners/containers) will throw “Cannot resolve module '../../src/servers/reverb/factory'” before the tests even spin up. Keep the imports pointed at `src/Servers/...` until the directory rename lands, or finish the rename (including the git index) before flipping the imports.
+- All review issues have been addressed:
+  - Fixed spec-tests.yml working directory to point to reverb/tests/Specification
+  - Fixed port mismatch (changed from 9001 to 8080)
+  - Fixed import paths in test files to use uppercase Servers/Reverb
