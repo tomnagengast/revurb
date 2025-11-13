@@ -1,2 +1,1 @@
-0. Ensure GitHub Actions run successfully (should reflect @reverb/.github/workflows where relevant)
-    - Use the `gh` CLI to understand why the [statis analysis](https://github.com/tomnagengast/revurb/actions/workflows/static-analysis.yml), [tests](https://github.com/tomnagengast/revurb/actions/workflows/tests.yml), and [spec tests](https://github.com/tomnagengast/revurb/actions/workflows/spec-tests.yml) and failing and make the necessary update to resolve the errors
+0. Update the example app so that is displays a chat example. The style and structure should stay a close to the current design as possible.
