@@ -13,9 +13,14 @@ export function Chat() {
 	const [messageInput, setMessageInput] = useState("");
 	const [username, setUsername] = useState("User");
 	const wsRef = useRef<WebSocket | null>(null);
+	const channelRef = useRef(channel);
 	const channelInputRef = useRef<HTMLInputElement>(null);
 	const messageInputRef = useRef<HTMLInputElement>(null);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		channelRef.current = channel;
+	}, [channel]);
 
 	const scrollToBottom = () => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -30,7 +35,8 @@ export function Chat() {
 			return;
 		}
 
-		const wsUrl = `ws://localhost:8080/app/my-app-key?protocol=7&client=js&version=8.4.0`;
+		const wsUrl =
+			"ws://localhost:8080/app/my-app-key?protocol=7&client=js&version=8.4.0";
 		const ws = new WebSocket(wsUrl);
 
 		ws.onopen = () => {
@@ -43,7 +49,7 @@ export function Chat() {
 			if (message.event === "pusher:connection_established") {
 				const data = JSON.parse(message.data);
 				console.log("Connected with socket ID:", data.socket_id);
-				subscribeToChannel(ws, channel);
+				subscribeToChannel(ws, channelRef.current);
 			}
 
 			if (message.event === "pusher_internal:subscription_succeeded") {
@@ -190,9 +196,9 @@ export function Chat() {
 							: "Connect to start chatting"}
 					</div>
 				) : (
-					messages.map((msg, idx) => (
+					messages.map((msg) => (
 						<div
-							key={idx}
+							key={`${msg.timestamp.getTime()}-${msg.sender}`}
 							className="flex flex-col items-start gap-1 bg-[#242424] p-3 rounded-lg border border-[#fbf0df]/20"
 						>
 							<div className="text-[#fbf0df]">{msg.text}</div>
