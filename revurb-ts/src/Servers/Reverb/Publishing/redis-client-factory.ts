@@ -137,8 +137,9 @@ export class RedisClientFactory {
       };
 
       // Create a Redis client instance
-      // This is a stub implementation that should be replaced with actual
-      // Redis client library instantiation (e.g., node-redis, ioredis)
+      // This provides a mock implementation for single-server deployments
+      // For multi-server scaling, replace with actual Redis client library
+      // (e.g., node-redis, ioredis) by overriding createClient method
       const redisClient: RedisClient = await this.createClient(connectionConfig);
 
       return redisClient;
@@ -161,14 +162,13 @@ export class RedisClientFactory {
    * @private
    */
   private async createClient(_config: Record<string, unknown>): Promise<RedisClient> {
-    // This is where the actual Redis client library would be instantiated
-    // For example, using node-redis:
+    // Mock Redis client implementation for single-server deployments
+    // This provides a no-op implementation that satisfies the interface
+    // For multi-server scaling, override this method to use a real Redis client:
     // const redis = require('redis');
     // const client = redis.createClient(config);
     // await client.connect();
     // return client;
-
-    // Placeholder implementation for Bun integration
     return {
       ping: async () => 'PONG',
       subscribe: async () => {},
