@@ -1,5 +1,4 @@
-last commit: 196ada14317180c7f595d9e27f17cc801edfca7c
-status: ok
+last commit: f7184406e16f31ba0e44df26997d3f513498aa10
+status: not ok
 review comments:
-- ✅ `revurb-ts/src/loggers/log.ts:34` / `revurb-ts/src/Servers/Reverb/factory.ts:219` – Fixed: `Log.setLogger(this.logger)` is now called inside `Factory.initialize()` method, which is invoked in the bootstrap path (`revurb-ts/src/cli.ts:168`). The Log facade now properly resolves the factory's logger.
-- ✅ `src/Loggers/log.ts:1` – Fixed: The duplicate TypeScript file has been removed from the PHP source tree. The correct location for the Log facade is `revurb-ts/src/loggers/log.ts`.
+- revurb-ts/src/loggers/log.ts:57 – `ILogger` now exposes `debug()` and every concrete logger implements it, but the `Log` facade still only proxies `info`, `error`, `message`, and `line`. Ported PHP code frequently calls `Log::debug(...)`; doing the same here currently throws `TypeError: Log.debug is not a function`. Please add `Log.debug()` that forwards to the underlying logger so the facade remains API-compatible with Laravel's version.
