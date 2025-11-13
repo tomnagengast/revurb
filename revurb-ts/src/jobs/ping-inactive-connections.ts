@@ -61,7 +61,8 @@ export class PingInactiveConnections {
 
       // Filter and ping inactive connections
       for (const [, channelConnection] of Object.entries(allConnections)) {
-        const connection = channelConnection as any;
+        // Unwrap the underlying connection from ChannelConnection
+        const connection = channelConnection.connection();
 
         // Skip active connections
         if (connection.isActive()) {
@@ -69,7 +70,7 @@ export class PingInactiveConnections {
         }
 
         // Send ping to inactive connection
-        pusher.ping(connection.connection());
+        pusher.ping(connection);
 
         // Log the ping
         this.logger.info('Connection Pinged', connection.id());

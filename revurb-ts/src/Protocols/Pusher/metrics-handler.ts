@@ -221,7 +221,8 @@ export class MetricsHandler {
       return this.infoForChannels(application, options.channels, options.info ?? '');
     }
 
-    let channelList = this.channels.for(application).all();
+    // Convert Record to array since all() returns Record<string, Channel>
+    let channelList = Object.values(this.channels.for(application).all());
 
     // Apply filter if provided
     if (options.filter) {
@@ -230,7 +231,8 @@ export class MetricsHandler {
     }
 
     // Filter to only occupied channels
-    channelList = channelList.filter((channel) => channel.connections().length > 0);
+    // channel.connections() returns Record<string, ChannelConnection>, so get length via Object.keys()
+    channelList = channelList.filter((channel) => Object.keys(channel.connections()).length > 0);
 
     return this.infoForChannels(application, channelList, options.info ?? '');
   }
@@ -250,14 +252,18 @@ export class MetricsHandler {
     }
 
     // Get unique users by user_id
+    // channel.connections() returns Record<string, ChannelConnection>, convert to array
+    const connections = Object.values(channel.connections());
     const seenUserIds = new Set<string>();
     const users: ChannelUser[] = [];
 
-    for (const connection of channel.connections()) {
-      const data = connection.data();
-      if (data.user_id && !seenUserIds.has(data.user_id)) {
-        seenUserIds.add(data.user_id);
-        users.push({ id: data.user_id });
+    for (const channelConnection of connections) {
+      // channelConnection.data() returns Map<string, unknown>, get user_id from Map
+      const connectionData = channelConnection.data() as Map<string, unknown>;
+      const userId = connectionData.get('user_id') as string | undefined;
+      if (userId && !seenUserIds.has(userId)) {
+        seenUserIds.add(userId);
+        users.push({ id: userId });
       }
     }
 
@@ -512,7 +518,8 @@ export class MetricsHandler {
    * @returns Channel information
    */
   protected occupiedInfo(channel: Channel, info: string[]): ChannelInfo {
-    const count = channel.connections().length;
+    // channel.connections() returns Record<string, ChannelConnection>, get count via Object.keys()
+    const count = Object.keys(channel.connections()).length;
 
     return {
       ...(info.includes('occupied') ? { occupied: count > 0 } : {}),
@@ -569,10 +576,14 @@ export class MetricsHandler {
   protected userCount(channel: Channel): number {
     const seenUserIds = new Set<string>();
 
-    for (const connection of channel.connections()) {
-      const data = connection.data();
-      if (data.user_id) {
-        seenUserIds.add(data.user_id);
+    // channel.connections() returns Record<string, ChannelConnection>, convert to array
+    const connections = Object.values(channel.connections());
+    for (const channelConnection of connections) {
+      // channelConnection.data() returns Map<string, unknown>, get user_id from Map
+      const connectionData = channelConnection.data() as Map<string, unknown>;
+      const userId = connectionData.get('user_id') as string | undefined;
+      if (userId) {
+        seenUserIds.add(userId);
       }
     }
 

@@ -163,7 +163,8 @@ export class PresenceChannel extends PrivateChannel {
    */
   override data(): Record<string, unknown> {
     // Get all connections and extract their data
-    const allConnections = Object.values(this._connections.all());
+    // Convert Map to array since _connections.all() returns a Map
+    const allConnections = Array.from(this._connections.all().values());
 
     // Get unique users (deduplicate by user_id)
     const uniqueUsers = new Map<string, Map<string, unknown>>();
@@ -224,7 +225,8 @@ export class PresenceChannel extends PrivateChannel {
     }
 
     // Check if any connection has this user_id
-    const allConnections = Object.values(this._connections.all());
+    // Convert Map to array since _connections.all() returns a Map
+    const allConnections = Array.from(this._connections.all().values());
 
     for (const channelConnection of allConnections) {
       const connectionData = channelConnection.data() as Map<string, unknown>;

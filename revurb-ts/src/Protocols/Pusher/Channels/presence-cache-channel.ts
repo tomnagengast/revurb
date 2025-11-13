@@ -170,7 +170,8 @@ export class PresenceCacheChannel extends CacheChannel {
    */
   override data(): Record<string, any> {
     // Get all connection data and deduplicate by user_id
-    const allConnections = Object.values(this._connections.all());
+    // Convert Map to array since _connections.all() returns a Map
+    const allConnections = Array.from(this._connections.all().values());
 
     // Extract data from each connection and deduplicate by user_id
     const uniqueUsersMap = new Map<string, any>();
@@ -272,7 +273,8 @@ export class PresenceCacheChannel extends CacheChannel {
     }
 
     // Check all connections for matching user_id
-    const allConnections = Object.values(this._connections.all());
+    // Convert Map to array since _connections.all() returns a Map
+    const allConnections = Array.from(this._connections.all().values());
 
     for (const channelConn of allConnections) {
       const connData = channelConn.data() as Map<string, unknown>;
