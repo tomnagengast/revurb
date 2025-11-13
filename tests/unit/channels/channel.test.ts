@@ -22,7 +22,7 @@ function createMockConnection(id = "123.456"): Connection {
 // Mock channel connection factory
 function createMockChannelConnection(
   connection: Connection,
-  data: any = {},
+  data: Map<string, unknown> = new Map(),
 ): ChannelConnection {
   return {
     connection: () => connection,
@@ -58,7 +58,7 @@ describe("Channel", () => {
     // Create mock connection manager with proper state management
     mockConnectionManager = {
       for: mock((_channelName: string) => mockConnectionManager),
-      add: (conn: Connection, data: any) => {
+      add: (conn: Connection, data: Map<string, unknown>) => {
         connections.set(conn.id(), createMockChannelConnection(conn, data));
       },
       remove: (conn: Connection) => {

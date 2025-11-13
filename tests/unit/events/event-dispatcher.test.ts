@@ -19,7 +19,7 @@ describe("EventDispatcher", () => {
     });
 
     it("should pass event data to listener", () => {
-      let receivedData: any = null;
+      let receivedData: unknown = null;
       EventDispatcher.on("test:data", (data) => {
         receivedData = data;
       });
@@ -72,7 +72,7 @@ describe("EventDispatcher", () => {
     });
 
     it("should pass event data to listener", () => {
-      let receivedData: any = null;
+      let receivedData: unknown = null;
       EventDispatcher.once("test:once:data", (data) => {
         receivedData = data;
       });
@@ -304,16 +304,19 @@ describe("EventDispatcher", () => {
       const log: string[] = [];
 
       // Register multiple listeners
-      EventDispatcher.on("user:login", (data: any) => {
-        log.push(`login: ${data.user}`);
+      EventDispatcher.on("user:login", (data: unknown) => {
+        const eventData = data as { user: string };
+        log.push(`login: ${eventData.user}`);
       });
 
-      EventDispatcher.once("user:login", (data: any) => {
-        log.push(`once: ${data.user}`);
+      EventDispatcher.once("user:login", (data: unknown) => {
+        const eventData = data as { user: string };
+        log.push(`once: ${eventData.user}`);
       });
 
-      const unsubscribe = EventDispatcher.on("user:login", (data: any) => {
-        log.push(`temp: ${data.user}`);
+      const unsubscribe = EventDispatcher.on("user:login", (data: unknown) => {
+        const eventData = data as { user: string };
+        log.push(`temp: ${eventData.user}`);
       });
 
       // First login

@@ -93,7 +93,7 @@ describe("WebSocket Connection E2E Tests", () => {
   it("should receive connection_established message", async () => {
     const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
 
-    const message = await new Promise<any>((resolve, reject) => {
+    const message = await new Promise<unknown>((resolve, reject) => {
       const timeout = setTimeout(() => {
         ws.close();
         reject(new Error("Message timeout"));

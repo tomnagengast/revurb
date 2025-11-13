@@ -33,7 +33,7 @@ import { ArrayChannelManager } from "../../protocols/pusher/managers/array-chann
 import { MetricsHandler } from "../../protocols/pusher/metrics-handler";
 import { Server as PusherServer } from "../../protocols/pusher/server";
 import { Connection as WebSocketConnection } from "./connection";
-import type { Connection as HttpConnection } from "./http/connection";
+import { Connection as HttpConnection } from "./http/connection";
 import { Response as HttpResponse } from "./http/response";
 import type { IHttpRequest } from "./http/router";
 
@@ -1188,7 +1188,6 @@ export class Factory {
       path: pathWithQuery,
       url: req.url, // Include full URL with query string for controllers to access query params
       httpVersion: "1.1",
-      headers,
       body,
       getMethod(): string {
         return method;
@@ -1224,41 +1223,9 @@ export class Factory {
    * @private
    */
   private static createHttpConnection(): HttpConnection {
-    return {
-      id: Math.floor(Math.random() * 1000000),
-      connected: true,
-      _buffer: "",
-      getId() {
-        return this.id;
-      },
-      connect() {
-        this.connected = true;
-        return this;
-      },
-      isConnected() {
-        return this.connected;
-      },
-      buffer() {
-        return this._buffer;
-      },
-      hasBuffer() {
-        return this._buffer !== "";
-      },
-      bufferLength() {
-        return this._buffer.length;
-      },
-      appendToBuffer(msg: string) {
-        this._buffer += msg;
-        return this;
-      },
-      clearBuffer() {
-        this._buffer = "";
-        return this;
-      },
-      send() {
-        return this;
-      },
-    };
+    return new HttpConnection({
+      stream: Math.floor(Math.random() * 1000000),
+    });
   }
 
   /**

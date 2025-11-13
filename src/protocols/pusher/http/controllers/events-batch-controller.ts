@@ -1,5 +1,5 @@
 import type { Application } from "../../../../application";
-import type { Connection } from "../../../../contracts/connection";
+import type { Connection } from "../../../../servers/reverb/http/connection";
 import { Response } from "../../../../servers/reverb/http/response";
 import type { IHttpRequest } from "../../../../servers/reverb/http/router";
 import type { ChannelManager } from "../../contracts/channel-manager";

@@ -1,8 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
+import type { Server } from "bun";
 import { Factory } from "../../src/servers/reverb/factory";
 
 describe("Health Check Controller", () => {
-  let server: any;
+  let server: Server;
   const port = 8082; // Use different port to avoid conflicts
 
   beforeAll(() => {
