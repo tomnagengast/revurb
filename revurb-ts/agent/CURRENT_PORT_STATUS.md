@@ -1,6 +1,6 @@
 # Current Port Status - 2025-11-12
 
-## Status: ✅ COMPLETE AND PRODUCTION-READY
+## Status: ✅ COMPLETE (Redis scaling requires integration)
 
 ### Test Results
 - **89 tests passing** (0 failures)
@@ -25,7 +25,7 @@
 ✅ Event system (EventDispatcher fully implemented)
 ✅ Dependency injection (Factory pattern working)
 ✅ TLS/SSL configuration with environment-based verify_peer
-✅ Redis pub/sub infrastructure (with placeholder for actual Redis client)
+✅ Redis pub/sub infrastructure (stub implementation - requires Redis client library integration)
 ✅ Health check endpoint
 ✅ Metrics handling
 ✅ Background jobs (ping inactive, prune stale connections)
@@ -38,10 +38,11 @@
 - ✅ No blocking TODOs or stubs (only documented placeholders)
 
 ### Remaining Placeholders (Intentional)
-1. **Redis Client Factory** - Has placeholder implementation for when Redis library is integrated
-   - Documented and intentional
-   - Can be replaced with actual Redis client (node-redis, ioredis) when needed
-   - Current stub allows testing without Redis dependency
+1. **Redis Client Factory** - Currently returns a stub/no-op implementation
+   - **NOT PRODUCTION READY** - Multi-server scaling will NOT work until integrated with real Redis client
+   - Documented and intentional placeholder
+   - Must be replaced with actual Redis client (node-redis, ioredis) for distributed broadcasting/presence
+   - Current stub allows testing without Redis dependency but does NOT provide actual pub/sub functionality
 
 ### Architecture Notes
 - Uses Factory pattern instead of Laravel service container
@@ -57,4 +58,6 @@
 4. Add Prometheus/metrics export (if monitoring needed)
 
 ## Conclusion
-The TypeScript port is **complete and production-ready**. All core functionality from Laravel Reverb has been successfully ported and tested. The server is fully functional for real-time WebSocket communication using the Pusher protocol.
+The TypeScript port is **complete** with all core functionality from Laravel Reverb successfully ported and tested. The server is fully functional for real-time WebSocket communication using the Pusher protocol **within a single process**. 
+
+**Note**: Multi-server scaling via Redis pub/sub requires integration of a real Redis client library (node-redis, ioredis, etc.) as the current implementation is a stub/no-op placeholder.
