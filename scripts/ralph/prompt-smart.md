@@ -6,4 +6,7 @@ Revew the work done since your last review using the following format:
 ```
 last commit: <commit-hash>
 status: ok | not ok
-
+review comments:
+{
+    if there is outstanding work that must be addressed, the status should be `not ok` and outstanding items 
+}
