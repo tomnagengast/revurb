@@ -96,17 +96,15 @@ async function verify(
   appId: string,
 ): Promise<{ application: Application; channels: ChannelManager }> {
   // Parse query parameters
-  const url = new URL(
-    request.url || request.getPath?.() || "",
-    "http://localhost",
-  );
+  const path = request.path || request.getPath() || "";
+  const url = new URL(path, "http://localhost");
   const query: Record<string, string> = {};
   url.searchParams.forEach((value, key) => {
     query[key] = value;
   });
 
   // Get request body
-  const body = request.body || (await request.text?.()) || "";
+  const body = request.body || "";
 
   // Set application
   const application = await setApplication(appId);
@@ -190,10 +188,11 @@ function verifySignature(
   const queryString = formatQueryParametersForVerification(sortedParams);
 
   // Build signature string
-  const method = request.method || request.getMethod?.() || "GET";
-  const path = request.url
-    ? new URL(request.url, "http://localhost").pathname
-    : request.getPath?.() || "/";
+  const method = request.method || request.getMethod() || "GET";
+  const requestPath = request.path || request.getPath() || "/";
+  const path = requestPath.includes("?")
+    ? requestPath.substring(0, requestPath.indexOf("?"))
+    : requestPath;
 
   const signatureString = [method, path, queryString].join("\n");
 

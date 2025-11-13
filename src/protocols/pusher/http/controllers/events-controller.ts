@@ -104,6 +104,11 @@ export class EventsController extends Controller {
       return new Response(validator, 422);
     }
 
+    // At this point, validator ensures name and data exist
+    if (!payload.name || !payload.data) {
+      return new Response({ message: "Invalid payload" }, 422);
+    }
+
     // Normalize channels to array
     const channels = this.normalizeChannels(payload);
 
@@ -118,9 +123,9 @@ export class EventsController extends Controller {
     dispatch(
       application,
       {
-        event: payload.name!,
+        event: payload.name,
         channels,
-        data: payload.data!,
+        data: payload.data,
       },
       channelManager,
       except?.connection() ?? null,

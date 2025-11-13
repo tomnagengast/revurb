@@ -218,8 +218,10 @@ export class ArrayChannelManager implements ChannelManager {
     }
 
     // Store channel
-    const appChannels = this.applications.get(this.application.id())!;
-    appChannels.set(channel.name(), channel);
+    const appChannels = this.applications.get(this.application.id());
+    if (appChannels) {
+      appChannels.set(channel.name(), channel);
+    }
 
     // Dispatch ChannelCreated event
     ChannelCreated.dispatch(channel);

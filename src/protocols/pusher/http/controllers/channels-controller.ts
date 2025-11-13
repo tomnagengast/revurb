@@ -104,7 +104,11 @@ export class ChannelsController {
     const formatted: Record<string, unknown> = {};
 
     for (const [name, info] of Object.entries(channels)) {
-      formatted[name] = { ...info };
+      if (typeof info === "object" && info !== null) {
+        formatted[name] = { ...info };
+      } else {
+        formatted[name] = info;
+      }
     }
 
     return formatted;
@@ -265,7 +269,7 @@ export class ChannelsController {
    * @returns Formatted query string
    */
   protected formatQueryParametersForVerification(
-    params: Record<string, any>,
+    params: Record<string, string | string[]>,
   ): string {
     const parts: string[] = [];
 

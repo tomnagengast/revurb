@@ -1,6 +1,7 @@
 import { Application } from "../../application";
 import type { IPubSubIncomingMessageHandler } from "../../servers/reverb/contracts/pubsub-incoming-message-handler";
 import type { ChannelManager } from "./contracts/channel-manager";
+import type { EventPayload } from "./event-dispatcher";
 import { dispatchSynchronously } from "./event-dispatcher";
 import type { MetricsHandler } from "./metrics-handler";
 
@@ -11,8 +12,23 @@ interface PubSubEvent {
   type?: string;
   application: string;
   socket_id?: string;
-  payload: any;
+  payload: EventPayload | MetricsPayload | TerminatePayload;
   key?: string;
+}
+
+/**
+ * Metrics payload structure
+ */
+interface MetricsPayload {
+  type: string;
+  options?: Record<string, unknown>;
+}
+
+/**
+ * Terminate payload structure
+ */
+interface TerminatePayload {
+  user_id: string;
 }
 
 /**
@@ -92,30 +108,36 @@ export class PusherPubSubIncomingMessageHandler
         // Dispatch event to channels
         dispatchSynchronously(
           application,
-          event.payload,
+          event.payload as EventPayload,
           this.channelManager,
           except?.connection() ?? null,
         );
         break;
 
-      case "metrics":
+      case "metrics": {
         // Publish metrics
-        this.metricsHandler.publish(
-          application,
-          event.key!,
-          event.payload.type,
-          event.payload.options ?? {},
-        );
+        const metricsPayload = event.payload as MetricsPayload;
+        if (event.key && metricsPayload.type) {
+          this.metricsHandler.publish(
+            application,
+            event.key,
+            metricsPayload.type,
+            metricsPayload.options ?? {},
+          );
+        }
         break;
+      }
 
       case "terminate": {
         // Terminate user connections
+        const terminatePayload = event.payload as TerminatePayload;
         const connections = Object.values(
           this.channelManager.for(application).connections(),
         );
         for (const connection of connections) {
           if (
-            String(connection.data().get("user_id")) === event.payload.user_id
+            String(connection.data().get("user_id")) ===
+            terminatePayload.user_id
           ) {
             connection.connection().disconnect();
           }

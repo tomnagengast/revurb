@@ -1,6 +1,9 @@
 import type { Application } from "../../../../application";
+import type { IApplicationProvider } from "../../../../contracts/application-provider";
 import { Factory } from "../../../../servers/reverb/factory";
+import type { Connection } from "../../../../servers/reverb/http/connection";
 import { Response } from "../../../../servers/reverb/http/response";
+import type { IHttpRequest } from "../../../../servers/reverb/http/router";
 import type { ChannelManager } from "../../contracts/channel-manager";
 import type { MetricsHandler } from "../../metrics-handler";
 
@@ -33,8 +36,8 @@ import type { MetricsHandler } from "../../metrics-handler";
  * ```
  */
 export async function connectionsController(
-  request: any,
-  _connection: any,
+  request: IHttpRequest,
+  _connection: Connection,
   appId: string,
 ): Promise<Response> {
   // Verify authentication and set up application/channels
@@ -69,22 +72,20 @@ export async function connectionsController(
  * @throws {Error} If authentication fails or application not found
  */
 async function verify(
-  request: any,
-  _connection: any,
+  request: IHttpRequest,
+  _connection: Connection,
   appId: string,
 ): Promise<{ application: Application; channels: ChannelManager }> {
   // Parse query parameters
-  const url = new URL(
-    request.url || request.getPath?.() || "",
-    "http://localhost",
-  );
+  const path = request.path || request.getPath() || "";
+  const url = new URL(path, "http://localhost");
   const query: Record<string, string> = {};
   url.searchParams.forEach((value, key) => {
     query[key] = value;
   });
 
   // Get request body
-  const body = request.body || (await request.text?.()) || "";
+  const body = request.body || "";
 
   // Set application
   const application = await setApplication(appId);
@@ -129,7 +130,7 @@ async function setApplication(appId: string | null): Promise<Application> {
  * @throws {Error} If signature is invalid
  */
 function verifySignature(
-  request: any,
+  request: IHttpRequest,
   query: Record<string, string>,
   body: string,
   application: Application,
@@ -168,10 +169,11 @@ function verifySignature(
   const queryString = formatQueryParametersForVerification(sortedParams);
 
   // Build signature string
-  const method = request.method || request.getMethod?.() || "GET";
-  const path = request.url
-    ? new URL(request.url, "http://localhost").pathname
-    : request.getPath?.() || "/";
+  const method = request.method || request.getMethod() || "GET";
+  const requestPath = request.path || request.getPath() || "/";
+  const path = requestPath.includes("?")
+    ? requestPath.substring(0, requestPath.indexOf("?"))
+    : requestPath;
 
   const signatureString = [method, path, queryString].join("\n");
 
@@ -215,7 +217,7 @@ function formatQueryParametersForVerification(
  *
  * @returns The application provider instance
  */
-function getApplicationProvider(): any {
+function getApplicationProvider(): IApplicationProvider {
   return Factory.getApplicationProvider();
 }
 
