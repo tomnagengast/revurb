@@ -1,0 +1,25 @@
+name: issues
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues: write
+
+jobs:
+  help-wanted:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if help-wanted label
+        if: contains(github.event.label.name, 'help wanted')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'This issue is marked as "help wanted" and is open for community contributions!'
+            });
