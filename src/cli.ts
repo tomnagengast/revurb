@@ -8,18 +8,18 @@
  * @module cli
  */
 
-import { Factory } from "./servers/reverb/factory";
 import { loadConfig } from "./config/load";
 import type { ReverbConfig } from "./config/types";
-import { PruneStaleConnections } from "./jobs/prune-stale-connections";
-import { PingInactiveConnections } from "./jobs/ping-inactive-connections";
+import type { ChannelCreated } from "./events/channel-created";
+import type { ChannelRemoved } from "./events/channel-removed";
+import type { ConnectionPruned } from "./events/connection-pruned";
 import { EventDispatcher } from "./events/event-dispatcher";
-import { ChannelCreated } from "./events/channel-created";
-import { ChannelRemoved } from "./events/channel-removed";
-import { ConnectionPruned } from "./events/connection-pruned";
-import { MessageSent } from "./events/message-sent";
-import { MessageReceived } from "./events/message-received";
+import type { MessageReceived } from "./events/message-received";
+import type { MessageSent } from "./events/message-sent";
+import { PingInactiveConnections } from "./jobs/ping-inactive-connections";
+import { PruneStaleConnections } from "./jobs/prune-stale-connections";
 import type { ChannelConnection } from "./protocols/pusher/channels/channel-connection";
+import { Factory } from "./servers/reverb/factory";
 
 /**
  * CLI argument parsing result
@@ -235,7 +235,7 @@ async function startServer(
 /**
  * Setup event listeners for observability and logging
  */
-function setupEventListeners(debug: boolean = false): void {
+function setupEventListeners(debug = false): void {
 	const logger = Factory.getLogger();
 
 	// Channel lifecycle events

@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, mock } from "bun:test";
-import { ArrayChannelManager } from "../../../src/protocols/pusher/Managers/array-channel-manager";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { Application } from "../../../src/application";
-import type { Connection } from "../../../src/contracts/connection";
 import type { IApplicationProvider } from "../../../src/contracts/application-provider";
-import type { ChannelConnectionManager } from "../../../src/protocols/pusher/Contracts/channel-connection-manager";
+import type { Connection } from "../../../src/contracts/connection";
 import type { ILogger } from "../../../src/contracts/logger";
+import type { ChannelConnectionManager } from "../../../src/protocols/pusher/Contracts/channel-connection-manager";
+import { ArrayChannelManager } from "../../../src/protocols/pusher/Managers/array-channel-manager";
 
 // Mock factories
 function createMockApp(id: string): Application {

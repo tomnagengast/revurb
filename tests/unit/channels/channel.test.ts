@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach, mock } from "bun:test";
-import { Channel } from "../../../src/protocols/pusher/Channels/channel";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
+import type { Application } from "../../../src/application";
 import type { Connection } from "../../../src/contracts/connection";
-import type { ChannelConnectionManager } from "../../../src/protocols/pusher/Contracts/channel-connection-manager";
+import type { ILogger } from "../../../src/contracts/logger";
+import { Channel } from "../../../src/protocols/pusher/Channels/channel";
 import type { ChannelManager } from "../../../src/protocols/pusher/Channels/channel";
 import type { ChannelConnection } from "../../../src/protocols/pusher/Channels/channel-connection";
-import type { ILogger } from "../../../src/contracts/logger";
-import type { Application } from "../../../src/application";
+import type { ChannelConnectionManager } from "../../../src/protocols/pusher/Contracts/channel-connection-manager";
 
 // Mock connection factory
-function createMockConnection(id: string = "123.456"): Connection {
+function createMockConnection(id = "123.456"): Connection {
 	return {
 		id: () => id,
 		send: mock(() => {}),

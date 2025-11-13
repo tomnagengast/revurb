@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeAll, afterAll } from "bun:test";
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import type { Server } from "bun";
-import { Factory } from "../../src/Servers/Reverb/factory";
 import type { ReverbConfig } from "../../src/config/types";
+import { Factory } from "../../src/servers/reverb/factory";
 
 describe("WebSocket Connection E2E Tests", () => {
 	let server: Server;

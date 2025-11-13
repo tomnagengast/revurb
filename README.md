@@ -29,7 +29,7 @@ Revurb is a complete TypeScript port of Laravel Reverb, designed to run on Bun r
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd revurb-ts
+cd revurb
 
 # Install dependencies
 bun install
@@ -107,10 +107,10 @@ bun run typecheck
 ## Project Structure
 
 ```
-revurb-ts/
+revurb/
 ├── src/
-│   ├── Protocols/Pusher/     # Pusher protocol implementation
-│   ├── Servers/Reverb/        # Server factory and HTTP handling
+│   ├── protocols/pusher/     # Pusher protocol implementation
+│   ├── servers/reverb/        # Server factory and HTTP handling
 │   ├── events/                # Event system
 │   ├── loggers/               # Logging implementations
 │   ├── contracts/             # TypeScript interfaces

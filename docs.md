@@ -34,7 +34,7 @@ You may install Revurb by cloning the repository and installing dependencies:
 
 ```shell
 git clone <repository-url>
-cd revurb-ts
+cd revurb
 bun install
 ```
 
@@ -381,8 +381,8 @@ Example Supervisor configuration for Revurb:
 
 ```ini
 [program:revurb]
-command=bun run /path/to/revurb-ts/dist/cli.js start
-directory=/path/to/revurb-ts
+command=bun run /path/to/revurb/dist/cli.js start
+directory=/path/to/revurb
 autostart=true
 autorestart=true
 user=your-user
@@ -398,7 +398,7 @@ module.exports = {
     name: 'revurb',
     script: './dist/cli.js',
     args: 'start',
-    cwd: '/path/to/revurb-ts',
+    cwd: '/path/to/revurb',
     instances: 1,
     exec_mode: 'fork',
     env: {

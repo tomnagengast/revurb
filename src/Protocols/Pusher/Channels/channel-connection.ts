@@ -1,4 +1,4 @@
-import type { Connection } from '../../../contracts/connection';
+import type { Connection } from "../../../contracts/connection";
 
 /**
  * ChannelConnection - Wraps a Connection with Channel-Specific Data
@@ -41,114 +41,114 @@ import type { Connection } from '../../../contracts/connection';
  * ```
  */
 export class ChannelConnection {
-  /**
-   * Create a new channel connection instance.
-   *
-   * @param _connection - The underlying Connection instance
-   * @param _data - Optional key-value data associated with this subscription
-   */
-  constructor(
-    private readonly _connection: Connection,
-    private readonly _data: Map<string, unknown> = new Map()
-  ) {}
+	/**
+	 * Create a new channel connection instance.
+	 *
+	 * @param _connection - The underlying Connection instance
+	 * @param _data - Optional key-value data associated with this subscription
+	 */
+	constructor(
+		private readonly _connection: Connection,
+		private readonly _data: Map<string, unknown> = new Map(),
+	) {}
 
-  /**
-   * Get the underlying connection.
-   *
-   * Returns the raw Connection instance wrapped by this ChannelConnection.
-   * Use this to access connection-level methods and properties.
-   *
-   * @returns The underlying Connection instance
-   *
-   * @example
-   * ```typescript
-   * const conn = channelConn.connection();
-   * const socketId = conn.id();
-   * const isActive = conn.isActive();
-   * ```
-   */
-  connection(): Connection {
-    return this._connection;
-  }
+	/**
+	 * Get the underlying connection.
+	 *
+	 * Returns the raw Connection instance wrapped by this ChannelConnection.
+	 * Use this to access connection-level methods and properties.
+	 *
+	 * @returns The underlying Connection instance
+	 *
+	 * @example
+	 * ```typescript
+	 * const conn = channelConn.connection();
+	 * const socketId = conn.id();
+	 * const isActive = conn.isActive();
+	 * ```
+	 */
+	connection(): Connection {
+		return this._connection;
+	}
 
-  /**
-   * Get channel-specific connection data.
-   *
-   * Retrieves data associated with this channel subscription. If a key is
-   * provided, returns the value for that specific key. If no key is provided,
-   * returns the entire data Map.
-   *
-   * @param key - Optional key to retrieve specific data
-   * @returns The data value for the key, or the entire data Map if no key provided
-   *
-   * @example
-   * ```typescript
-   * // Get specific data
-   * const userId = channelConn.data('user_id'); // Returns string | undefined
-   *
-   * // Get all data
-   * const allData = channelConn.data(); // Returns Map<string, unknown>
-   * ```
-   */
-  data(): Map<string, unknown>;
-  data(key: string): unknown;
-  data(key?: string): Map<string, unknown> | unknown {
-    if (key !== undefined) {
-      return this._data.get(key);
-    }
-    return this._data;
-  }
+	/**
+	 * Get channel-specific connection data.
+	 *
+	 * Retrieves data associated with this channel subscription. If a key is
+	 * provided, returns the value for that specific key. If no key is provided,
+	 * returns the entire data Map.
+	 *
+	 * @param key - Optional key to retrieve specific data
+	 * @returns The data value for the key, or the entire data Map if no key provided
+	 *
+	 * @example
+	 * ```typescript
+	 * // Get specific data
+	 * const userId = channelConn.data('user_id'); // Returns string | undefined
+	 *
+	 * // Get all data
+	 * const allData = channelConn.data(); // Returns Map<string, unknown>
+	 * ```
+	 */
+	data(): Map<string, unknown>;
+	data(key: string): unknown;
+	data(key?: string): Map<string, unknown> | unknown {
+		if (key !== undefined) {
+			return this._data.get(key);
+		}
+		return this._data;
+	}
 
-  /**
-   * Send a message to the connection.
-   *
-   * Convenience method that delegates to the underlying connection's send method.
-   * Used to send messages to this specific channel subscriber.
-   *
-   * @param message - The message to send (typically JSON-encoded string)
-   *
-   * @example
-   * ```typescript
-   * channelConn.send(JSON.stringify({
-   *   event: 'pusher_internal:member_added',
-   *   channel: 'presence-room',
-   *   data: JSON.stringify({ user_id: '123' })
-   * }));
-   * ```
-   */
-  send(message: string): void {
-    this._connection.send(message);
-  }
+	/**
+	 * Send a message to the connection.
+	 *
+	 * Convenience method that delegates to the underlying connection's send method.
+	 * Used to send messages to this specific channel subscriber.
+	 *
+	 * @param message - The message to send (typically JSON-encoded string)
+	 *
+	 * @example
+	 * ```typescript
+	 * channelConn.send(JSON.stringify({
+	 *   event: 'pusher_internal:member_added',
+	 *   channel: 'presence-room',
+	 *   data: JSON.stringify({ user_id: '123' })
+	 * }));
+	 * ```
+	 */
+	send(message: string): void {
+		this._connection.send(message);
+	}
 
-  /**
-   * Get the normalized socket ID.
-   *
-   * Proxies to the underlying connection's id() method.
-   *
-   * @returns The normalized socket ID
-   */
-  id(): string {
-    return this._connection.id();
-  }
+	/**
+	 * Get the normalized socket ID.
+	 *
+	 * Proxies to the underlying connection's id() method.
+	 *
+	 * @returns The normalized socket ID
+	 */
+	id(): string {
+		return this._connection.id();
+	}
 
-  /**
-   * Determine whether the connection is stale.
-   *
-   * Proxies to the underlying connection's isStale() method.
-   * A connection is stale if it's inactive and has been pinged but not responded.
-   *
-   * @returns true if connection is stale, false otherwise
-   */
-  isStale(): boolean {
-    return this._connection.isStale();
-  }
+	/**
+	 * Determine whether the connection is stale.
+	 *
+	 * Proxies to the underlying connection's isStale() method.
+	 * A connection is stale if it's inactive and has been pinged but not responded.
+	 *
+	 * @returns true if connection is stale, false otherwise
+	 */
+	isStale(): boolean {
+		return this._connection.isStale();
+	}
 
-  /**
-   * Disconnect and unsubscribe from all channels.
-   *
-   * Proxies to the underlying connection's disconnect() method.
-   */
-  disconnect(): void {
-    this._connection.disconnect();
-  }
+	/**
+	 * Disconnect and unsubscribe from all channels.
+	 *
+	 * Proxies to the underlying connection's disconnect() method.
+	 */
+	disconnect(): void {
+		this._connection.disconnect();
+	}
 }

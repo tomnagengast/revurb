@@ -22,76 +22,76 @@ import { NullLogger } from "./null-logger";
  * ```
  */
 export class Log {
-  /**
-   * The global logger instance.
-   */
-  private static logger: ILogger | null = null;
+	/**
+	 * The global logger instance.
+	 */
+	private static logger: ILogger | null = null;
 
-  /**
-   * Set the global logger instance.
-   *
-   * @param logger - The logger implementation to use globally
-   */
-  static setLogger(logger: ILogger): void {
-    Log.logger = logger;
-  }
+	/**
+	 * Set the global logger instance.
+	 *
+	 * @param logger - The logger implementation to use globally
+	 */
+	static setLogger(logger: ILogger): void {
+		Log.logger = logger;
+	}
 
-  /**
-   * Get the current logger instance.
-   * Returns NullLogger if no logger has been set.
-   *
-   * @returns The current logger instance
-   */
-  static getLogger(): ILogger {
-    if (!Log.logger) {
-      Log.logger = new NullLogger();
-    }
-    return Log.logger;
-  }
+	/**
+	 * Get the current logger instance.
+	 * Returns NullLogger if no logger has been set.
+	 *
+	 * @returns The current logger instance
+	 */
+	static getLogger(): ILogger {
+		if (!Log.logger) {
+			Log.logger = new NullLogger();
+		}
+		return Log.logger;
+	}
 
-  /**
-   * Log an informational message.
-   *
-   * @param title - The main title or summary of the log entry
-   * @param message - Optional additional details or context
-   */
-  static info(title: string, message?: string | null): void {
-    Log.getLogger().info(title, message);
-  }
+	/**
+	 * Log an informational message.
+	 *
+	 * @param title - The main title or summary of the log entry
+	 * @param message - Optional additional details or context
+	 */
+	static info(title: string, message?: string | null): void {
+		Log.getLogger().info(title, message);
+	}
 
-  /**
-   * Log an error message.
-   *
-   * @param message - The error message to log
-   */
-  static error(message: string): void {
-    Log.getLogger().error(message);
-  }
+	/**
+	 * Log an error message.
+	 *
+	 * @param message - The error message to log
+	 */
+	static error(message: string): void {
+		Log.getLogger().error(message);
+	}
 
-  /**
-   * Log a debug message.
-   *
-   * @param message - The debug message to log
-   */
-  static debug(message: string): void {
-    Log.getLogger().debug(message);
-  }
+	/**
+	 * Log a debug message.
+	 *
+	 * @param message - The debug message to log
+	 */
+	static debug(message: string): void {
+		Log.getLogger().debug(message);
+	}
 
-  /**
-   * Log a WebSocket message sent to the server.
-   *
-   * @param message - A JSON string containing the WebSocket message data
-   */
-  static message(message: string): void {
-    Log.getLogger().message(message);
-  }
+	/**
+	 * Log a WebSocket message sent to the server.
+	 *
+	 * @param message - A JSON string containing the WebSocket message data
+	 */
+	static message(message: string): void {
+		Log.getLogger().message(message);
+	}
 
-  /**
-   * Append one or more blank lines to the log output.
-   *
-   * @param lines - The number of blank lines to append (default: 1)
-   */
-  static line(lines?: number): void {
-    Log.getLogger().line(lines);
-  }
+	/**
+	 * Append one or more blank lines to the log output.
+	 *
+	 * @param lines - The number of blank lines to append (default: 1)
+	 */
+	static line(lines?: number): void {
+		Log.getLogger().line(lines);
+	}
 }

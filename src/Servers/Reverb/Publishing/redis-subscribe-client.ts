@@ -1,4 +1,4 @@
-import { RedisClient } from './redis-client';
+import { RedisClient } from "./redis-client";
 
 /**
  * RedisSubscribeClient
@@ -11,18 +11,18 @@ import { RedisClient } from './redis-client';
  * - Override the connection name to 'subscriber'
  */
 export class RedisSubscribeClient extends RedisClient {
-  /**
-   * The name of the Redis connection.
-   */
-  protected override name = 'subscriber';
+	/**
+	 * The name of the Redis connection.
+	 */
+	protected override name = "subscriber";
 
-  /**
-   * Subscribe to the given Redis channel.
-   */
-  subscribe(): void {
-    if (!this.client) {
-      throw new Error('Redis client not connected');
-    }
-    this.client.subscribe(this.channel);
-  }
+	/**
+	 * Subscribe to the given Redis channel.
+	 */
+	subscribe(): void {
+		if (!this.client) {
+			throw new Error("Redis client not connected");
+		}
+		this.client.subscribe(this.channel);
+	}
 }

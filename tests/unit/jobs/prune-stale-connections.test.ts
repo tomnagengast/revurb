@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, mock } from "bun:test";
-import { PruneStaleConnections } from "../../../src/jobs/prune-stale-connections";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { Application } from "../../../src/application";
 import type { IApplicationProvider } from "../../../src/contracts/application-provider";
-import type { ILogger } from "../../../src/contracts/logger";
-import type { ChannelManager } from "../../../src/protocols/pusher/Contracts/channel-manager";
-import type { ChannelConnection } from "../../../src/protocols/pusher/Channels/channel-connection";
 import type { Connection } from "../../../src/contracts/connection";
+import type { ILogger } from "../../../src/contracts/logger";
+import { PruneStaleConnections } from "../../../src/jobs/prune-stale-connections";
+import type { ChannelConnection } from "../../../src/protocols/pusher/Channels/channel-connection";
+import type { ChannelManager } from "../../../src/protocols/pusher/Contracts/channel-manager";
 
 // Mock factories
 function createMockApp(id: string): Application {

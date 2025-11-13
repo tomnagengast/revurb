@@ -36,7 +36,7 @@ if (!mode) {
 }
 
 if (!message) {
-	console.error('Must provide message');
+	console.error("Must provide message");
 	Bun.exit(1);
 }
 

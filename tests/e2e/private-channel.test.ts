@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeAll, afterAll } from "bun:test";
-import type { Server } from "bun";
-import { Factory } from "../../src/Servers/Reverb/factory";
-import type { ReverbConfig } from "../../src/config/types";
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import * as crypto from "crypto";
+import type { Server } from "bun";
+import type { ReverbConfig } from "../../src/config/types";
+import { Factory } from "../../src/servers/reverb/factory";
 
 describe("Private Channel E2E Tests", () => {
 	let server: Server;
@@ -88,9 +88,7 @@ describe("Private Channel E2E Tests", () => {
 		const messages: any[] = [];
 
 		const result = await new Promise((resolve) => {
-			const ws = new WebSocket(
-				`ws://127.0.0.1:${testPort}/app/${testAppKey}`,
-			);
+			const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
 			let socketId = "";
 
 			ws.onopen = () => {
@@ -157,9 +155,7 @@ describe("Private Channel E2E Tests", () => {
 		const messages: any[] = [];
 
 		const result = await new Promise((resolve) => {
-			const ws = new WebSocket(
-				`ws://127.0.0.1:${testPort}/app/${testAppKey}`,
-			);
+			const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
 			let socketId = "";
 			let errorReceived = false;
 
@@ -226,9 +222,7 @@ describe("Private Channel E2E Tests", () => {
 		const messages: any[] = [];
 
 		const result = await new Promise((resolve) => {
-			const ws = new WebSocket(
-				`ws://127.0.0.1:${testPort}/app/${testAppKey}`,
-			);
+			const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
 			let socketId = "";
 			let errorReceived = false;
 

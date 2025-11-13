@@ -13,7 +13,7 @@
  * ```
  */
 export function generateId(): string {
-  const first = Math.floor(Math.random() * 1_000_000_000) + 1;
-  const second = Math.floor(Math.random() * 1_000_000_000) + 1;
-  return `${first}.${second}`;
+	const first = Math.floor(Math.random() * 1_000_000_000) + 1;
+	const second = Math.floor(Math.random() * 1_000_000_000) + 1;
+	return `${first}.${second}`;
 }

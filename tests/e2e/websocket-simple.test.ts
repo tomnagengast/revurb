@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeAll, afterAll } from "bun:test";
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import type { Server } from "bun";
-import { Factory } from "../../src/Servers/Reverb/factory";
 import type { ReverbConfig } from "../../src/config/types";
+import { Factory } from "../../src/servers/reverb/factory";
 
 describe("WebSocket Simple Test", () => {
 	let server: Server;
@@ -74,9 +74,7 @@ describe("WebSocket Simple Test", () => {
 		let connectionClosed = false;
 
 		const result = await new Promise((resolve) => {
-			const ws = new WebSocket(
-				`ws://127.0.0.1:${testPort}/app/${testAppKey}`,
-			);
+			const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
 
 			ws.onopen = () => {
 				console.log("Client: WebSocket opened");

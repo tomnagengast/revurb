@@ -1,2 +1,2 @@
-export { Controller } from './controller';
-export { HealthCheckController } from './health-check-controller';
+export { Controller } from "./controller";
+export { HealthCheckController } from "./health-check-controller";

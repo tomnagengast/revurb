@@ -8,30 +8,30 @@
  */
 
 import type { ServeOptions } from "bun";
-import { Certificate } from "../../certificate";
-import { ApplicationManager } from "../../application-manager";
-import { ArrayChannelManager } from "../../protocols/pusher/managers/array-channel-manager";
-import { ArrayChannelConnectionManager } from "../../protocols/pusher/managers/array-channel-connection-manager";
-import { EventHandler } from "../../protocols/pusher/event-handler";
-import { ClientEvent } from "../../protocols/pusher/client-event";
-import { Server as PusherServer } from "../../protocols/pusher/server";
-import { Connection as ReverbConnection } from "../../connection";
-import { Connection as WebSocketConnection } from "./connection";
-import type { ReverbConfig } from "../../config/types";
 import type { Application } from "../../application";
-import { CliLogger } from "../../loggers/cli-logger";
-import { NullLogger } from "../../loggers/null-logger";
-import { Log } from "../../loggers/log";
-import { MetricsHandler } from "../../protocols/pusher/metrics-handler";
-import { EventsController } from "../../protocols/pusher/http/controllers/events-controller";
-import { EventsBatchController } from "../../protocols/pusher/http/controllers/events-batch-controller";
-import { ChannelsController } from "../../protocols/pusher/http/controllers/channels-controller";
-import { ChannelController } from "../../protocols/pusher/http/controllers/channel-controller";
-import { UsersTerminateController } from "../../protocols/pusher/http/controllers/users-terminate-controller";
-import { channelUsersController } from "../../protocols/pusher/http/controllers/channel-users-controller";
-import { connectionsController } from "../../protocols/pusher/http/controllers/connections-controller";
-import { Response as HttpResponse } from "./http/response";
+import { ApplicationManager } from "../../application-manager";
+import { Certificate } from "../../certificate";
+import type { ReverbConfig } from "../../config/types";
+import { Connection as ReverbConnection } from "../../connection";
 import { ServerProvider } from "../../contracts/server-provider";
+import { CliLogger } from "../../loggers/cli-logger";
+import { Log } from "../../loggers/log";
+import type { NullLogger } from "../../loggers/null-logger";
+import { ClientEvent } from "../../protocols/pusher/client-event";
+import { EventHandler } from "../../protocols/pusher/event-handler";
+import { ChannelController } from "../../protocols/pusher/http/controllers/channel-controller";
+import { channelUsersController } from "../../protocols/pusher/http/controllers/channel-users-controller";
+import { ChannelsController } from "../../protocols/pusher/http/controllers/channels-controller";
+import { connectionsController } from "../../protocols/pusher/http/controllers/connections-controller";
+import { EventsBatchController } from "../../protocols/pusher/http/controllers/events-batch-controller";
+import { EventsController } from "../../protocols/pusher/http/controllers/events-controller";
+import { UsersTerminateController } from "../../protocols/pusher/http/controllers/users-terminate-controller";
+import { ArrayChannelConnectionManager } from "../../protocols/pusher/managers/array-channel-connection-manager";
+import { ArrayChannelManager } from "../../protocols/pusher/managers/array-channel-manager";
+import { MetricsHandler } from "../../protocols/pusher/metrics-handler";
+import { Server as PusherServer } from "../../protocols/pusher/server";
+import { Connection as WebSocketConnection } from "./connection";
+import { Response as HttpResponse } from "./http/response";
 
 /**
  * WebSocket connection data stored in Bun's ws.data
@@ -382,13 +382,13 @@ export class Factory {
 	 * ```
 	 */
 	public static make(
-		host: string = "0.0.0.0",
-		port: string = "8080",
-		path: string = "",
+		host = "0.0.0.0",
+		port = "8080",
+		path = "",
 		hostname?: string,
-		maxRequestSize: number = 10000,
+		maxRequestSize = 10000,
 		options: HttpServerOptions = {},
-		protocol: string = "pusher",
+		protocol = "pusher",
 		environment: string = process.env.NODE_ENV || "development",
 	) {
 		if (protocol !== "pusher") {
