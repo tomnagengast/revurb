@@ -104,7 +104,8 @@ export class ApplicationManager {
         key: app.key,
         secret: app.secret,
         ping_interval: app.ping_interval ?? 30,
-        allowed_origins: app.allowed_origins ?? [],
+        // Default to ['*'] to match PHP behavior - empty array blocks everything
+        allowed_origins: app.allowed_origins ?? ['*'],
         max_message_size: app.max_message_size ?? 10000,
       };
 

@@ -1046,7 +1046,9 @@ export class Factory {
     const url = new URL(req.url);
     const body = req.method !== 'GET' ? await req.text() : '';
     const method = req.method;
-    const path = url.pathname + url.search;
+    // Store pathname + search for full path, but pathname only for signature verification
+    const pathWithQuery = url.pathname + url.search;
+    const pathWithoutQuery = url.pathname;
     const host = url.host;
 
     // Convert Headers to Record<string, string>
@@ -1057,7 +1059,7 @@ export class Factory {
 
     return {
       method,
-      path,
+      path: pathWithQuery,
       httpVersion: '1.1',
       headers,
       body,
@@ -1065,7 +1067,9 @@ export class Factory {
         return method;
       },
       getPath(): string {
-        return path;
+        // Return path without query string for Pusher signature verification
+        // Pusher signatures are calculated over the path without the query string
+        return pathWithoutQuery;
       },
       getHost(): string {
         return host;
@@ -1077,7 +1081,7 @@ export class Factory {
         return { ...headers };
       },
       getUri(): { path: string; host: string } {
-        return { path, host };
+        return { path: pathWithoutQuery, host };
       },
       getSize(): number {
         return Buffer.byteLength(body, 'utf8');

@@ -276,15 +276,6 @@ function loadAppsConfig(): AppsConfig {
 export async function loadConfig(configPath?: string): Promise<ReverbConfig> {
   const defaultServer = env('REVERB_SERVER', 'reverb')!;
 
-  // Build default config from environment
-  const envConfig: ReverbConfig = {
-    default: defaultServer,
-    servers: {
-      [defaultServer]: loadReverbServerConfig(),
-    },
-    apps: loadAppsConfig(),
-  };
-
   // Determine which config file to load
   // Priority: 1. Explicit configPath, 2. ./reverb.config.ts, 3. Environment only
   let fileToLoad = configPath;
@@ -315,24 +306,60 @@ export async function loadConfig(configPath?: string): Promise<ReverbConfig> {
       const fileConfig = await import(importPath);
       const config = fileConfig.default || fileConfig;
 
-      // Merge configs - env vars take precedence
-      return {
-        ...config,
-        ...envConfig,
+      // Build server config from environment (always needed)
+      const envServerConfig: ReverbConfig = {
+        default: defaultServer,
         servers: {
-          ...config.servers,
-          ...envConfig.servers,
+          [defaultServer]: loadReverbServerConfig(),
         },
         apps: {
-          ...config.apps,
-          ...envConfig.apps,
+          provider: 'config',
+          apps: [],
+        },
+      };
+
+      // Try to load apps from environment, but don't fail if they're missing
+      // when a config file is provided - merge/append instead
+      let envApps: ReverbAppConfig[] = [];
+      try {
+        const envAppsConfig = loadAppsConfig();
+        envApps = envAppsConfig.apps;
+      } catch (error) {
+        // If env vars are missing, that's fine - we'll use config file apps only
+        // This allows config-driven deployments without requiring REVERB_APP_* vars
+      }
+
+      // Merge configs - env vars take precedence for servers, but append apps
+      return {
+        ...config,
+        default: envServerConfig.default,
+        servers: {
+          ...config.servers,
+          ...envServerConfig.servers,
+        },
+        apps: {
+          provider: config.apps?.provider ?? envServerConfig.apps.provider,
+          apps: [
+            ...(config.apps?.apps ?? []),
+            ...envApps, // Append env apps after config apps
+          ],
         },
       };
     } catch (error) {
-      // If config file doesn't exist or can't be loaded, just use env config
+      // If config file doesn't exist or can't be loaded, fall through to env-only config
       console.warn(`Warning: Could not load config file at ${fileToLoad}, using environment variables`);
     }
   }
+
+  // No config file or config file failed to load - use environment only
+  // Build default config from environment
+  const envConfig: ReverbConfig = {
+    default: defaultServer,
+    servers: {
+      [defaultServer]: loadReverbServerConfig(),
+    },
+    apps: loadAppsConfig(),
+  };
 
   return envConfig;
 }
