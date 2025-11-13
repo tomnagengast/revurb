@@ -19,6 +19,7 @@ import { ChannelRemoved } from './events/channel-removed';
 import { ConnectionPruned } from './events/connection-pruned';
 import { MessageSent } from './events/message-sent';
 import { MessageReceived } from './events/message-received';
+import type { ChannelConnection } from './Protocols/Pusher/Channels/channel-connection';
 
 /**
  * CLI argument parsing result
@@ -309,11 +310,12 @@ function setupGracefulShutdown(server: ReturnType<typeof Factory.make>): void {
           const allConnections = scopedChannels.connections();
 
           for (const [, channelConnection] of Object.entries(allConnections)) {
-            const connection = channelConnection as any;
+            const channelConn = channelConnection as ChannelConnection;
+            const connection = channelConn.connection();
 
             try {
               // Send closing message
-              connection.send(
+              channelConn.send(
                 JSON.stringify({
                   event: 'pusher:error',
                   data: JSON.stringify({
@@ -323,11 +325,11 @@ function setupGracefulShutdown(server: ReturnType<typeof Factory.make>): void {
                 })
               );
 
-              // Unsubscribe from all channels
+              // Unsubscribe from all channels (requires underlying Connection)
               scopedChannels.unsubscribeFromAll(connection);
 
               // Disconnect
-              connection.disconnect();
+              channelConn.disconnect();
               totalDisconnected++;
             } catch (error) {
               // Ignore individual connection errors during shutdown

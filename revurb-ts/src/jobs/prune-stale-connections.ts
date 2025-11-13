@@ -1,6 +1,7 @@
 import type { IApplicationProvider } from '../contracts/application-provider';
 import type { ILogger } from '../contracts/logger';
 import type { ChannelManager } from '../Protocols/Pusher/Contracts/channel-manager';
+import type { ChannelConnection } from '../Protocols/Pusher/Channels/channel-connection';
 import { ConnectionPruned } from '../events/connection-pruned';
 
 /**
@@ -61,15 +62,18 @@ export class PruneStaleConnections {
 
       // Filter and prune stale connections
       for (const [, channelConnection] of Object.entries(allConnections)) {
-        const connection = channelConnection as any;
-
+        // Type assertion for ChannelConnection
+        const channelConn = channelConnection as ChannelConnection;
         // Skip active connections
-        if (!connection.isStale()) {
+        if (!channelConn.isStale()) {
           continue;
         }
 
+        // Get the underlying connection for unsubscribeFromAll
+        const connection = channelConn.connection();
+
         // Send pusher:error event with pong timeout
-        connection.send(
+        channelConn.send(
           JSON.stringify({
             event: 'pusher:error',
             data: JSON.stringify({
@@ -79,17 +83,17 @@ export class PruneStaleConnections {
           })
         );
 
-        // Unsubscribe from all channels
+        // Unsubscribe from all channels (requires underlying Connection)
         scopedChannels.unsubscribeFromAll(connection);
 
         // Disconnect the connection
-        connection.disconnect();
+        channelConn.disconnect();
 
         // Dispatch ConnectionPruned event
-        ConnectionPruned.dispatch(channelConnection);
+        ConnectionPruned.dispatch(channelConn);
 
         // Log the prune operation
-        this.logger.info('Connection Pruned', connection.id());
+        this.logger.info('Connection Pruned', channelConn.id());
       }
     }
   }
