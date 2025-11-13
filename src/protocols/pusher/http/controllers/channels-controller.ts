@@ -69,6 +69,10 @@ export class ChannelsController {
   ): Promise<Response> {
     this.verify(request, _connection, appId);
 
+    if (!this.application) {
+      throw new Error("Application not set.");
+    }
+
     const options: Record<string, string> = {};
     if (this.query.filter_by_prefix) {
       options.filter = this.query.filter_by_prefix;
@@ -78,7 +82,7 @@ export class ChannelsController {
     }
 
     const channels = await this.metricsHandler.gather(
-      this.application!,
+      this.application,
       "channels",
       options,
     );
@@ -93,9 +97,11 @@ export class ChannelsController {
    * @param channels - Record of channel names to channel info
    * @returns Object with channels property containing the formatted data
    */
-  protected formatChannels(channels: Record<string, any>): Record<string, any> {
+  protected formatChannels(
+    channels: Record<string, unknown>,
+  ): Record<string, unknown> {
     // Convert each channel info object to a plain object
-    const formatted: Record<string, any> = {};
+    const formatted: Record<string, unknown> = {};
 
     for (const [name, info] of Object.entries(channels)) {
       formatted[name] = { ...info };
@@ -180,7 +186,10 @@ export class ChannelsController {
    * Set the Reverb channel manager instance for the application.
    */
   protected setChannels(): void {
-    this.channels = this.channelManager.for(this.application!);
+    if (!this.application) {
+      throw new Error("Application not set.");
+    }
+    this.channels = this.channelManager.for(this.application);
   }
 
   /**
