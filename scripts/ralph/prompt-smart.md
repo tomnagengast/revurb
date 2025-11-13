@@ -1,8 +1,8 @@
-Read @AGENTS.md
+Read `AGENTS.md`
 
 Your job is to review the work being done to port Laravel Reverb (PHP) to revurb-ts (Typescript).
 
-Read @AGENTS.md
+Read `./scripts/ralph/current.md`
 
 The Laravel Reverb project is located in `./reverb` and you should target `./` for your port.
 
