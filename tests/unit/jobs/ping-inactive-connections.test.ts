@@ -4,8 +4,8 @@ import type { IApplicationProvider } from "../../../src/contracts/application-pr
 import type { Connection } from "../../../src/contracts/connection";
 import type { ILogger } from "../../../src/contracts/logger";
 import { PingInactiveConnections } from "../../../src/jobs/ping-inactive-connections";
-import type { ChannelConnection } from "../../../src/protocols/pusher/Channels/channel-connection";
-import type { ChannelManager } from "../../../src/protocols/pusher/Contracts/channel-manager";
+import type { ChannelConnection } from "../../../src/protocols/pusher/channels/channel-connection";
+import type { ChannelManager } from "../../../src/protocols/pusher/contracts/channel-manager";
 
 // Mock factories
 function createMockApp(id: string): Application {

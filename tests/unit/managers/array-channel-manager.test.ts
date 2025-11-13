@@ -3,8 +3,8 @@ import { Application } from "../../../src/application";
 import type { IApplicationProvider } from "../../../src/contracts/application-provider";
 import type { Connection } from "../../../src/contracts/connection";
 import type { ILogger } from "../../../src/contracts/logger";
-import type { ChannelConnectionManager } from "../../../src/protocols/pusher/Contracts/channel-connection-manager";
-import { ArrayChannelManager } from "../../../src/protocols/pusher/Managers/array-channel-manager";
+import type { ChannelConnectionManager } from "../../../src/protocols/pusher/contracts/channel-connection-manager";
+import { ArrayChannelManager } from "../../../src/protocols/pusher/managers/array-channel-manager";
 
 // Mock factories
 function createMockApp(id: string): Application {
