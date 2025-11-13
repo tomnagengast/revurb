@@ -13,6 +13,12 @@ import { loadConfig } from './config/load';
 import type { ReverbConfig } from './config/types';
 import { PruneStaleConnections } from './jobs/prune-stale-connections';
 import { PingInactiveConnections } from './jobs/ping-inactive-connections';
+import { EventDispatcher } from './events/event-dispatcher';
+import { ChannelCreated } from './events/channel-created';
+import { ChannelRemoved } from './events/channel-removed';
+import { ConnectionPruned } from './events/connection-pruned';
+import { MessageSent } from './events/message-sent';
+import { MessageReceived } from './events/message-received';
 
 /**
  * CLI argument parsing result
@@ -160,6 +166,9 @@ async function startServer(options: Record<string, string | boolean>): Promise<v
     // Initialize factory with configuration
     Factory.initialize(config);
 
+    // Setup event listeners for observability
+    setupEventListeners(options.debug === true);
+
     // Create and start server
     const server = Factory.make(
       host,
@@ -203,6 +212,46 @@ async function startServer(options: Record<string, string | boolean>): Promise<v
     }
     process.exit(1);
   }
+}
+
+/**
+ * Setup event listeners for observability and logging
+ */
+function setupEventListeners(debug: boolean = false): void {
+  const logger = Factory.getLogger();
+
+  // Channel lifecycle events
+  EventDispatcher.on('channel:created', (event: ChannelCreated) => {
+    if (debug) {
+      logger.debug(`Channel created: ${event.channel.name()}`);
+    }
+  });
+
+  EventDispatcher.on('channel:removed', (event: ChannelRemoved) => {
+    if (debug) {
+      logger.debug(`Channel removed: ${event.channel.name()}`);
+    }
+  });
+
+  // Connection lifecycle events
+  EventDispatcher.on('connection:pruned', (event: ConnectionPruned) => {
+    if (debug) {
+      logger.debug(`Connection pruned: ${event.connection.id()}`);
+    }
+  });
+
+  // Message events
+  EventDispatcher.on('message:sent', (event: MessageSent) => {
+    if (debug) {
+      logger.debug(`Message sent to connection ${event.connection.id()}`);
+    }
+  });
+
+  EventDispatcher.on('message:received', (event: MessageReceived) => {
+    if (debug) {
+      logger.debug(`Message received from connection ${event.connection.id()}`);
+    }
+  });
 }
 
 /**

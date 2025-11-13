@@ -337,13 +337,15 @@ export class Factory {
    * @param maxRequestSize - Maximum request size in bytes (default: 10000)
    * @param options - Additional server options (default: {})
    * @param protocol - Protocol to use ('pusher' only for now) (default: 'pusher')
+   * @param environment - The environment name (default: NODE_ENV or 'development')
+   *                      Used to determine TLS peer verification settings
    * @returns The configured Bun server instance
    *
    * @throws {Error} If protocol is unsupported
    *
    * @example
    * ```typescript
-   * const server = Factory.make('127.0.0.1', '8080', '', 'myapp.test');
+   * const server = Factory.make('127.0.0.1', '8080', '', 'myapp.test', 10000, {}, 'pusher', 'production');
    * console.log('Server running on port 8080');
    * ```
    */
@@ -355,13 +357,14 @@ export class Factory {
     maxRequestSize: number = 10000,
     options: HttpServerOptions = {},
     protocol: string = 'pusher',
+    environment: string = process.env.NODE_ENV || 'development',
   ) {
     if (protocol !== 'pusher') {
       throw new Error(`Unsupported protocol [${protocol}].`);
     }
 
     const router = this.makePusherRouter(path);
-    const tlsContext = this.configureTls(options.tls ?? {}, hostname);
+    const tlsContext = this.configureTls(options.tls ?? {}, hostname, environment);
     const portNum = Number.parseInt(port, 10);
 
     // Build Bun server options
@@ -976,14 +979,21 @@ export class Factory {
    *
    * Filters out null values and attempts to auto-detect certificates
    * for the given hostname if not explicitly provided.
+   * Sets verify_peer to true in production environments for better security.
    *
    * @param context - Initial TLS context (may contain null values)
    * @param hostname - Hostname for certificate auto-detection
+   * @param environment - The environment name (default: NODE_ENV or 'development')
+   *                     Used to determine TLS peer verification settings
    * @returns Configured TLS context
    *
    * @private
    */
-  private static configureTls(context: TlsContext, hostname?: string): TlsContext {
+  private static configureTls(
+    context: TlsContext,
+    hostname?: string,
+    environment: string = process.env.NODE_ENV || 'development'
+  ): TlsContext {
     // Filter out null/undefined values
     const filtered: TlsContext = {};
     for (const [key, value] of Object.entries(context)) {
@@ -1000,8 +1010,7 @@ export class Factory {
         filtered.local_cert = certPath;
         filtered.local_pk = keyPath;
         // Enable peer verification in production for better security
-        const isProduction = process.env.NODE_ENV === 'production';
-        filtered.verify_peer = isProduction;
+        filtered.verify_peer = environment === 'production';
       }
     }
 
