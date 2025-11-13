@@ -21,6 +21,7 @@ export function App() {
         />
       </a>
       <p className="mb-4">
+        {/* Update this message with a short description of how to use the example demo app */}
         Connect to the Revurb WebSocket server and start chatting in real-time
       </p>
       <Chat />
