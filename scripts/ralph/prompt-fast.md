@@ -2,8 +2,6 @@ Your job is to port Laravel Reverb (PHP) to revurb-ts (Typescript) and maintain 
 First, read the `./specs/review.md` and address any review comments if the status is `not ok`.
 If the status is `ok` then procceed with the port.
 
-Current focus: translate the docs/docs.md to revurb-ts and ensure the documentation works as described.
-
 You have access to the current `./` repository and should target revurb-ts for your port.
 
 Use Docker for running Redis integration tests where mocks fall short.
