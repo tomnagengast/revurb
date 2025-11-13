@@ -4,7 +4,7 @@
   "title": "Codex Review Response",
   "type": "object",
   "additionalProperties": false,
-  "required": ["commit", "status", "review_comments"],
+  "required": ["commit", "status", "review_comments", "additional_comments"],
   "properties": {
     "commit": {
       "type": "string",
@@ -23,7 +23,7 @@
       }
     },
     "additional_comments": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Additional comments or notes from the reviewer"
     }
   }
