@@ -7,7 +7,5 @@ dist/
 .env.local
 bun.lockb
 
-reverb/
-
 specs/logs/archive/
 notes/

@@ -1,0 +1,57 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - main
+      - '*.x'
+  pull_request:
+  schedule:
+    - cron: '0 0 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    timeout-minutes: 3
+
+    runs-on: ubuntu-22.04
+
+    services:
+      redis:
+        image: redis:5.0
+        ports:
+          - 6379:6379
+        options: --entrypoint redis-server
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [8.2, 8.3, 8.4]
+        laravel: [10, 11, 12]
+        exclude:
+          - laravel: 10
+            php: 8.4
+
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip
+          ini-values: error_reporting=E_ALL
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer update --prefer-dist --no-interaction --no-progress --with="laravel/framework:^${{ matrix.laravel }}"
+
+      - name: Execute tests
+        run: vendor/bin/pest
