@@ -1,6 +1,4 @@
-last commit: 8c1738a
-status: ok
+last commit: 921afed
+status: not ok
 review comments:
-- reverb/tests/Specification/spec-analyze.ts: Added structure dumps when the agent key is missing so failed Autobahn runs are diagnosable without rerunning.
-- example/src/App.tsx: The landing copy now accurately explains how to use the Chat demo; no functional changes introduced.
-- scripts/ralph/current.md: Objective 0 now cites the commit that implemented the chat example, so the tracker matches the codebase state.
+- README.md: The environment variable table now claims `REVERB_SERVER_HOST` defaults to `127.0.0.1`, but `loadReverbServerConfig()` still binds to `0.0.0.0` (src/config/load.ts:121) so the documentation promises a safer default than the code actually provides. Either change the default or fix the README so users understand the server listens on all interfaces by default.

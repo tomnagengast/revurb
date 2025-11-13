@@ -1,0 +1,11 @@
+**Documentation Status**
+- README already spells out that Revurb is a Bun-based TypeScript port with the Pusher protocol feature set, so questions (1) and (2) are covered (`README.md:3-20`).
+- `docs.md` mirrors the upstream Laravel docs structure, but each section is rewritten for Bun/TypeScript workflows (install, configuration precedence, CLI usage, production tuning, scaling) and even calls out Laravel-only features that aren't yet ported (`docs.md:33-215` and `docs.md:240-458`, note the Pulse/Telescope disclaimer at `docs.md:260-261`). That satisfies question (4).
+
+**Needs Updates**
+- The CLI example omits the `start` subcommand (`README.md:45-54`), yet the CLI parser treats the first argument as the command (`src/cli.ts:36-67`), so readers who follow the README get the help text instead of a running server.
+- The configuration snippet references `config/reverb.ts` and a `server` object (`README.md:60-81`), but the loader only looks for `reverb.config.ts` with a `default` + `servers` shape (`example/reverb.config.ts:1-20`). Copying the README sample verbatim won’t be picked up.
+- Host/port env vars are mislabeled: server binding keys are `REVERB_SERVER_HOST/PORT/PATH` while `REVERB_HOST/PORT` describe the public endpoint and allowed origins live at `REVERB_ALLOWED_ORIGINS` (`README.md:86-93` vs `src/config/load.ts:145-214`). Using the README values leaves the server misconfigured.
+- The API table lists `GET /health` and `DELETE /apps/{appId}/users/{userId}` (`README.md:149-158`), but the implementation ships `GET /up` plus `POST /apps/{appId}/users/{userId}/terminate_connections` (`src/servers/reverb/factory.ts:639-682`). Aligning those paths—and referencing the health-check wording already present in `docs.md:243-261`—would prevent confusion.
+
+Next steps: 1) fix the README usage/config/env sections to reflect the actual CLI and config loader; 2) correct the API endpoint table (health + terminate routes); 3) keep the README terminology consistent with `docs.md` so both entry points describe the same Bun-based workflow.
