@@ -13,8 +13,7 @@
 
 ## Top of Mind
 
-- Align the phrasing and prose of ./revurb-ts/docs.md to ./docs/docs.md as close as possible while ensuring ./revurb-ts/docs.md is accurate and appropriate for typescript
-- Use Docker for testing services like Redis where mock are not sufficient
+- Use the gh cli to ensure the github actions are passing
 
 ## Tool Calling
 
