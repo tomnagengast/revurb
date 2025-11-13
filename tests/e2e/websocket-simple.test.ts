@@ -5,17 +5,17 @@ import { Factory } from "../../src/servers/reverb/factory";
 
 describe("WebSocket Simple Test", () => {
   let server: Server;
-  const testPort = 8084;
+  let testPort: number;
   const testAppKey = "simple-test-key";
   const testAppSecret = "simple-test-secret";
   const testAppId = "simple-test-id";
 
   beforeAll(async () => {
-    // Create test configuration
+    // Create test configuration with ephemeral port (0)
     const config: ReverbConfig = {
       server: {
         host: "127.0.0.1",
-        port: testPort,
+        port: 0,
         path: "",
       },
       apps: {
@@ -37,7 +37,7 @@ describe("WebSocket Simple Test", () => {
     Factory.initialize(config);
 
     const host = config.server?.host || "127.0.0.1";
-    const port = config.server?.port?.toString() || testPort.toString();
+    const port = "0";
     const path = config.server?.path || "";
     const hostname = config.server?.hostname;
     const maxRequestSize = config.server?.max_request_size || 10000;
@@ -55,6 +55,9 @@ describe("WebSocket Simple Test", () => {
       options,
       protocol,
     );
+
+    // Get the actual port assigned by the OS
+    testPort = server.port;
 
     // Give server time to start
     await new Promise((resolve) => setTimeout(resolve, 500));
