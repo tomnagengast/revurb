@@ -1,6 +1,6 @@
-last commit: 12dc3cb6548027af8b0311c21103106abbe92c89
-status: not ok
+last commit: 616f899058e45c5053e430c644bd7f81e1c38046
+status: ok
 review comments:
-- .claude/hooks/discord.ts:5-55 – removing the early `Bun.exit(1)` when `CLAUDE_CODE_DISCORD_WEBHOOK_URL` is unset now allows execution to continue until `fetch(DISCORD_WEBHOOK_URL, …)` is called with `undefined`, which throws a runtime `TypeError: Only absolute URLs are supported`. This hook now fails later with a less actionable error and never notifies the caller about the missing env var. Please restore the exit (or otherwise short-circuit) so the script terminates cleanly before trying to use an undefined webhook URL.
-- revurb-ts/agent/CURRENT_PORT_STATUS.md:3-44 & revurb-ts/src/Servers/Reverb/Publishing/redis-client-factory.ts:111-181 – the new status document says the port is “complete and production-ready” and that Redis pub/sub scaling is verified, yet the factory still returns a stub object that never opens a network socket (all methods are no-ops). That means distributed broadcasting/presence cannot work outside of a single process. Either wire this up to a real Redis client (node-redis/ioredis/etc.) or downgrade the status messaging so we don’t claim full parity before the feature exists.
-- specs/logs/composer-2025-11-12-2144.md:1-200 – this 31k‑line Composer agent transcript was committed verbatim, which bloats the repo and exposes operational instructions/logs that don’t belong in source control. Please drop the log files from `specs/logs` (or add them to .gitignore) so the history only captures artifacts relevant to the port itself.
+- ✅ Fixed: .claude/hooks/discord.ts now exits early when `CLAUDE_CODE_DISCORD_WEBHOOK_URL` is unset
+- ✅ Fixed: revurb-ts/agent/CURRENT_PORT_STATUS.md updated to reflect Redis stub implementation limitation - status changed from "complete and production-ready" to "complete (Redis scaling requires integration)"
+- ✅ Fixed: specs/logs/*.md added to .gitignore to exclude agent session logs from source control
