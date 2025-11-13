@@ -3,7 +3,7 @@ import type { Connection } from "../../../../contracts/connection";
 import { Response } from "../../../../servers/reverb/http/response";
 import type { IHttpRequest } from "../../../../servers/reverb/http/router";
 import type { ChannelManager } from "../../contracts/channel-manager";
-import { EventDispatcher } from "../../event-dispatcher";
+import { dispatch } from "../../event-dispatcher";
 import type { MetricsHandler } from "../../metrics-handler";
 
 /**
@@ -136,7 +136,7 @@ export class EventsBatchController {
         ? channelConnection.connection()
         : null;
 
-      EventDispatcher.dispatch(
+      dispatch(
         application,
         {
           event: item.name,

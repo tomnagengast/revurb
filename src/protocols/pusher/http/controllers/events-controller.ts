@@ -4,7 +4,7 @@ import { Response } from "../../../../servers/reverb/http/response";
 import type { IHttpRequest } from "../../../../servers/reverb/http/router";
 import type { ChannelConnection } from "../../channels/channel-connection";
 import type { ChannelManager } from "../../contracts/channel-manager";
-import { EventDispatcher } from "../../event-dispatcher";
+import { dispatch } from "../../event-dispatcher";
 import type { MetricsHandler } from "../../metrics-handler";
 import { Controller } from "./controller";
 
@@ -115,7 +115,7 @@ export class EventsController extends Controller {
     }
 
     // Dispatch the event to all specified channels
-    EventDispatcher.dispatch(
+    dispatch(
       application,
       {
         event: payload.name!,

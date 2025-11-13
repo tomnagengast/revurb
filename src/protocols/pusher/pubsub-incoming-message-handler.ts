@@ -1,7 +1,7 @@
 import { Application } from "../../application";
 import type { IPubSubIncomingMessageHandler } from "../../servers/reverb/contracts/pubsub-incoming-message-handler";
 import type { ChannelManager } from "./contracts/channel-manager";
-import { EventDispatcher } from "./event-dispatcher";
+import { dispatchSynchronously } from "./event-dispatcher";
 import type { MetricsHandler } from "./metrics-handler";
 
 /**
@@ -90,7 +90,7 @@ export class PusherPubSubIncomingMessageHandler
     switch (event.type ?? null) {
       case "message":
         // Dispatch event to channels
-        EventDispatcher.dispatchSynchronously(
+        dispatchSynchronously(
           application,
           event.payload,
           this.channelManager,
