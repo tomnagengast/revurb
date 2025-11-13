@@ -12,7 +12,7 @@ Revurb is a complete TypeScript port of Laravel Reverb, designed to run on Bun r
 - ✅ **Pusher Protocol** - Full Pusher protocol implementation
 - ✅ **Channel Management** - Public, private, and presence channels
 - ✅ **HTTP API** - RESTful API for server management and event triggering
-- ✅ **Redis Pub/Sub** - Multi-server scaling support
+- ⚠️ **Redis Pub/Sub** - Mock implementation (not production-ready for multi-server deployments)
 - ✅ **Authentication** - Application key/secret validation
 - ✅ **Event System** - Comprehensive event dispatching
 - ✅ **Connection Management** - Lifecycle management and pruning
@@ -164,7 +164,8 @@ This is a complete TypeScript port of Laravel Reverb. All core functionality has
 - ✅ 89 tests passing (100%)
 - ✅ 0 TypeScript compilation errors
 - ✅ All core features implemented
-- ✅ Production ready
+- ✅ Production ready for single-server deployments
+- ⚠️ **Redis Pub/Sub**: Default implementation is a no-op mock. For multi-server deployments requiring Redis, extend `RedisClientFactory` and override `createClient()` to use a real Redis client library.
 
 ### Not Ported (Laravel-Specific)
 
