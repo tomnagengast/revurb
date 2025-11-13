@@ -15,3 +15,5 @@ status: ok
 ```
 
 This file should be overwritten with each code review.
+
+Once you're finished with your review, commit all and push.

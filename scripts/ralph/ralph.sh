@@ -4,7 +4,6 @@
 ralph_loop=1
 while :; do
   bash scripts/ralph/sync.sh $spec
-  git add -A; git commit -m "ralph: loop $ralph_loop"; git push;
   echo -e "==== 😴 ====\n"
   sleep 10
   echo -e "==== 👾 ====\n"
