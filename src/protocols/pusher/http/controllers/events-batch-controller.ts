@@ -101,10 +101,10 @@ export class EventsBatchController {
   ): Promise<Response> {
     // Parse request body
     const body = this.getBody(request);
-    let payload: any;
+    let payload: unknown;
 
     try {
-      payload = JSON.parse(body);
+      payload = JSON.parse(body) as { batch?: BatchItem[] };
     } catch (_error) {
       return new Response(
         {
@@ -124,7 +124,8 @@ export class EventsBatchController {
       );
     }
 
-    const batch = payload.batch as BatchItem[];
+    const typedPayload = payload as { batch: BatchItem[] };
+    const batch = typedPayload.batch;
 
     // Process each batch item
     const items = batch.map((item) => {
@@ -183,7 +184,7 @@ export class EventsBatchController {
    * @param payload - The parsed request body
    * @returns Validation errors object or null if valid
    */
-  protected validate(payload: any): ValidationErrors | null {
+  protected validate(payload: unknown): ValidationErrors | null {
     const errors: ValidationErrors = {};
 
     // Validate batch field exists
@@ -192,57 +193,70 @@ export class EventsBatchController {
       return errors;
     }
 
-    if (!payload.batch) {
+    const payloadObj = payload as Record<string, unknown>;
+
+    if (!payloadObj.batch) {
       errors.batch = ["The batch field is required."];
       return errors;
     }
 
     // Validate batch is an array
-    if (!Array.isArray(payload.batch)) {
+    if (!Array.isArray(payloadObj.batch)) {
       errors.batch = ["The batch field must be an array."];
       return errors;
     }
 
     // Validate batch size (max 10 events)
-    if (payload.batch.length > 10) {
+    if (payloadObj.batch.length > 10) {
       errors.batch = ["The batch may not contain more than 10 events."];
       return errors;
     }
 
     // Validate each batch item
-    payload.batch.forEach((item: any, index: number) => {
+    const batch = payloadObj.batch as unknown[];
+    batch.forEach((item: unknown, index: number) => {
+      if (typeof item !== "object" || item === null) {
+        errors[`batch.${index}`] = ["The batch item must be an object."];
+        return;
+      }
+
+      const itemObj = item as Record<string, unknown>;
+
       // Validate name
-      if (!item.name) {
+      if (!itemObj.name) {
         errors[`batch.${index}.name`] = ["The name field is required."];
-      } else if (typeof item.name !== "string") {
+      } else if (typeof itemObj.name !== "string") {
         errors[`batch.${index}.name`] = ["The name field must be a string."];
       }
 
       // Validate data
-      if (!item.data) {
+      if (!itemObj.data) {
         errors[`batch.${index}.data`] = ["The data field is required."];
-      } else if (typeof item.data !== "string") {
+      } else if (typeof itemObj.data !== "string") {
         errors[`batch.${index}.data`] = ["The data field must be a string."];
       }
 
       // Validate channel (required_without channels, but in batch mode it's just required)
-      if (!item.channel) {
+      if (!itemObj.channel) {
         errors[`batch.${index}.channel`] = ["The channel field is required."];
-      } else if (typeof item.channel !== "string") {
+      } else if (typeof itemObj.channel !== "string") {
         errors[`batch.${index}.channel`] = [
           "The channel field must be a string.",
         ];
       }
 
       // Validate optional socket_id field
-      if (item.socket_id !== undefined && typeof item.socket_id !== "string") {
+      if (
+        itemObj.socket_id !== undefined &&
+        typeof itemObj.socket_id !== "string"
+      ) {
         errors[`batch.${index}.socket_id`] = [
           "The socket_id field must be a string.",
         ];
       }
 
       // Validate optional info field
-      if (item.info !== undefined && typeof item.info !== "string") {
+      if (itemObj.info !== undefined && typeof itemObj.info !== "string") {
         errors[`batch.${index}.info`] = ["The info field must be a string."];
       }
     });
@@ -261,8 +275,8 @@ export class EventsBatchController {
    */
   protected getBody(request: IHttpRequest): string {
     // Access body from the request object
-    // The actual implementation depends on how the request is structured
-    return (request as any).body || "";
+    // IHttpRequest has a body property directly
+    return request.body || "";
   }
 }
 

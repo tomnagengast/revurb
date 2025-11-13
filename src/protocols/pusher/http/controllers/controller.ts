@@ -56,7 +56,7 @@ export abstract class Controller {
    * @param channelManager - The channel manager for accessing channels
    */
   constructor(
-    protected readonly applicationProvider: IApplicationProvider,
+    protected readonly applicationProvider: IApplicationProvider | null,
     protected readonly channelManager: ChannelManager,
   ) {}
 
@@ -106,6 +106,10 @@ export abstract class Controller {
   protected setApplication(appId: string | null): Application {
     if (!appId) {
       throw new HttpException(400, "Application ID not provided.");
+    }
+
+    if (!this.applicationProvider) {
+      throw new HttpException(500, "Application provider not available.");
     }
 
     try {

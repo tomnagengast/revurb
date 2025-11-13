@@ -15,7 +15,13 @@ export class Connection {
    *
    * @param connection - The underlying socket/connection object
    */
-  constructor(private readonly connection: any) {
+  constructor(
+    private readonly connection: {
+      stream?: unknown;
+      write?: (data: string | Uint8Array) => void;
+      end?: () => void;
+    },
+  ) {
     this.id = Number(connection.stream) || 0;
   }
 

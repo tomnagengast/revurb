@@ -63,7 +63,7 @@ export class EventsController extends Controller {
   ) {
     // EventsController uses a simplified constructor since it doesn't need applicationProvider
     // The channelManager is already scoped to the app by the router
-    super(null as any, channelManager);
+    super(null, channelManager);
   }
 
   /**
@@ -172,8 +172,7 @@ export class EventsController extends Controller {
   protected getBody(request: IHttpRequest): string {
     // The IHttpRequest from router wraps the parsed request
     // Access the body property directly
-    const httpRequest = request as any;
-    return httpRequest.body || "";
+    return request.body || "";
   }
 
   /**

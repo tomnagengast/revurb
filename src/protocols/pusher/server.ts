@@ -124,7 +124,7 @@ export class Server {
         this.handler.handle(
           from,
           event.event,
-          (event.data || {}) as Record<string, any>,
+          (event.data || {}) as Record<string, unknown>,
         );
       } else {
         this.clientEvent.handle(from, event);

@@ -25,7 +25,7 @@ export interface ChannelInfo {
   /** Number of subscriptions (non-presence channels only) */
   subscription_count?: number;
   /** Cached payload (cache channels only) */
-  cache?: any;
+  cache?: Record<string, unknown> | null;
 }
 
 /**
@@ -43,7 +43,7 @@ export interface ConnectionData {
   /** User identifier */
   user_id: string;
   /** Additional connection metadata */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -81,7 +81,7 @@ export interface ApplicationChannelManager {
   /** Find a specific channel by name */
   find(name: string): Channel | null;
   /** Get all connections for the application */
-  connections(): Record<string, any>;
+  connections(): Record<string, unknown>;
 }
 
 /**
@@ -105,7 +105,7 @@ export interface PubSubProvider {
   /**
    * Subscribe to events from other servers.
    */
-  on(event: string, handler: (payload: any) => void): void;
+  on(event: string, handler: (payload: unknown) => void): void;
 }
 
 /**
@@ -119,7 +119,7 @@ export interface PubSubMessage {
   /** Serialized application data */
   application?: string;
   /** Message payload */
-  payload?: any;
+  payload?: unknown;
 }
 
 /**
@@ -141,7 +141,7 @@ export class MetricsHandler {
   /**
    * The metrics being gathered from subscribers.
    */
-  protected metrics: any[] = [];
+  protected metrics: unknown[] = [];
 
   /**
    * The total number of subscribers gathering metrics.
@@ -169,7 +169,7 @@ export class MetricsHandler {
     application: Application,
     type: string,
     options: MetricsOptions = {},
-  ): Promise<any> {
+  ): Promise<unknown> {
     return this.serverProviderManager.subscribesToEvents()
       ? this.gatherMetricsFromSubscribers(application, type, options)
       : this.get(application, type, options);
@@ -183,7 +183,11 @@ export class MetricsHandler {
    * @param options - Additional options for the metrics request
    * @returns The metrics data
    */
-  get(application: Application, type: string, options: MetricsOptions): any {
+  get(
+    application: Application,
+    type: string,
+    options: MetricsOptions,
+  ): unknown {
     switch (type) {
       case "channel":
         return this.channel(application, options);
@@ -209,7 +213,10 @@ export class MetricsHandler {
     application: Application,
     options: MetricsOptions,
   ): ChannelInfo {
-    return this.info(application, options.channel!, options.info ?? "");
+    if (!options.channel) {
+      return {};
+    }
+    return this.info(application, options.channel, options.info ?? "");
   }
 
   /**
@@ -262,7 +269,10 @@ export class MetricsHandler {
     application: Application,
     options: MetricsOptions,
   ): ChannelUser[] {
-    const channel = this.channels.for(application).find(options.channel!);
+    if (!options.channel) {
+      return [];
+    }
+    const channel = this.channels.for(application).find(options.channel);
 
     if (!channel) {
       return [];
@@ -293,7 +303,7 @@ export class MetricsHandler {
    * @param application - The application
    * @returns Connection information
    */
-  protected connections(application: Application): Record<string, any> {
+  protected connections(application: Application): Record<string, unknown> {
     return this.channels.for(application).connections();
   }
 
@@ -309,7 +319,7 @@ export class MetricsHandler {
     application: Application,
     type: string,
     options: MetricsOptions = {},
-  ): Promise<any> {
+  ): Promise<unknown> {
     const key = this.generateRandomKey(10);
 
     // Set up listener for metrics responses
@@ -361,18 +371,41 @@ export class MetricsHandler {
    * @param type - The type of metrics being merged
    * @returns Merged metrics
    */
-  protected mergeSubscriberMetrics(metrics: any[], type: string): any {
+  protected mergeSubscriberMetrics(metrics: unknown[], type: string): unknown {
     switch (type) {
-      case "connections":
-        return metrics.reduce((carry, item) => ({ ...carry, ...item }), {});
+      case "connections": {
+        const result: Record<string, unknown> = {};
+        for (const item of metrics) {
+          if (typeof item === "object" && item !== null) {
+            Object.assign(result, item);
+          }
+        }
+        return result;
+      }
       case "channels":
-        return this.mergeChannels(metrics);
+        return this.mergeChannels(
+          metrics.filter(
+            (m): m is Record<string, ChannelInfo> =>
+              typeof m === "object" && m !== null,
+          ),
+        );
       case "channel":
-        return this.mergeChannel(metrics);
+        return this.mergeChannel(
+          metrics.filter(
+            (m): m is ChannelInfo => typeof m === "object" && m !== null,
+          ),
+        );
       case "channel_users":
         // Flatten and get unique users
         return metrics
           .flat()
+          .filter(
+            (user): user is ChannelUser =>
+              typeof user === "object" &&
+              user !== null &&
+              "id" in user &&
+              typeof user.id === "string",
+          )
           .filter(
             (user, index, self) =>
               self.findIndex((u) => u.id === user.id) === index,
@@ -450,7 +483,7 @@ export class MetricsHandler {
    * @param key - Unique key for correlating responses
    * @returns Promise that resolves when all metrics are collected
    */
-  protected listenForMetrics(key: string): Promise<any[]> {
+  protected listenForMetrics(key: string): Promise<unknown[]> {
     return new Promise((resolve) => {
       this.pubSubProvider.on("metrics-retrieved", (payload) => {
         if (payload.key !== key) {
@@ -564,7 +597,7 @@ export class MetricsHandler {
         ? { subscription_count: count }
         : {}),
       ...(info.includes("cache") && this.isCacheChannel(channel)
-        ? { cache: (channel as any).cachedPayload() }
+        ? { cache: this.getCachedPayload(channel) }
         : {}),
     };
   }
@@ -599,6 +632,22 @@ export class MetricsHandler {
    */
   protected isCacheChannel(channel: Channel): boolean {
     return "cachedPayload" in channel;
+  }
+
+  /**
+   * Get the cached payload from a cache channel.
+   *
+   * @param channel - The channel (must be a cache channel)
+   * @returns The cached payload or null
+   */
+  protected getCachedPayload(channel: Channel): Record<string, unknown> | null {
+    if (
+      "cachedPayload" in channel &&
+      typeof channel.cachedPayload === "function"
+    ) {
+      return channel.cachedPayload();
+    }
+    return null;
   }
 
   /**

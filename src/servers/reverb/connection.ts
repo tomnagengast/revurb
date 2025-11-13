@@ -167,9 +167,12 @@ export class Connection implements IWebSocketConnection {
    * @param obj - The object to check
    * @returns true if the object implements the Frame interface
    */
-  private isFrameObject(obj: any): obj is Frame {
+  private isFrameObject(obj: unknown): obj is Frame {
     return (
-      obj && typeof obj === "object" && "opcode" in obj && "getContents" in obj
+      obj !== null &&
+      typeof obj === "object" &&
+      "opcode" in obj &&
+      "getContents" in obj
     );
   }
 

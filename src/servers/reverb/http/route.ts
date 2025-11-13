@@ -1,7 +1,10 @@
 /**
  * HTTP route handler type
  */
-type RouteHandler = (req?: any, res?: any) => any | Promise<any>;
+type RouteHandler = (
+  req?: unknown,
+  res?: unknown,
+) => unknown | Promise<unknown>;
 
 /**
  * HTTP methods supported by the route

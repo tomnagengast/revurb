@@ -54,7 +54,10 @@ export class Router {
    *
    * @throws Will close connection with appropriate HTTP error code if route matching fails
    */
-  async dispatch(request: IHttpRequest, connection: Connection): Promise<any> {
+  async dispatch(
+    request: IHttpRequest,
+    connection: Connection,
+  ): Promise<unknown> {
     try {
       // Set up route matcher context
       this.matcher.setContext({
@@ -63,7 +66,7 @@ export class Router {
       });
 
       // Attempt to match the route
-      let route: Record<string, any>;
+      let route: Record<string, unknown>;
       try {
         route = this.matcher.match(request.getPath());
       } catch (error) {
@@ -126,7 +129,7 @@ export class Router {
    *
    * @private
    */
-  private controller(route: Record<string, any>): ControllerCallback {
+  private controller(route: Record<string, unknown>): ControllerCallback {
     return route._controller;
   }
 
@@ -162,7 +165,10 @@ export class Router {
    *
    * @private
    */
-  private attemptUpgrade(request: IHttpRequest, connection: Connection): any {
+  private attemptUpgrade(
+    request: IHttpRequest,
+    connection: Connection,
+  ): Connection {
     // Get the Sec-WebSocket-Key from the request
     const secWebSocketKey = request.getHeader("sec-websocket-key");
 
@@ -232,8 +238,8 @@ export class Router {
    */
   private arguments(
     controller: ControllerCallback,
-    routeParameters: Record<string, any>,
-  ): any[] {
+    routeParameters: Record<string, unknown>,
+  ): unknown[] {
     const params = this.parameters(controller);
 
     return params.map((param) => {
@@ -292,8 +298,10 @@ export class Router {
    *
    * @private
    */
-  private extractRouteParams(route: Record<string, any>): Record<string, any> {
-    const params: Record<string, any> = {};
+  private extractRouteParams(
+    route: Record<string, unknown>,
+  ): Record<string, unknown> {
+    const params: Record<string, unknown> = {};
 
     Object.entries(route).forEach(([key, value]) => {
       if (!key.startsWith("_")) {
@@ -312,8 +320,14 @@ export class Router {
    *
    * @private
    */
-  private isMethodNotAllowedException(error: any): boolean {
-    return error?.name === "MethodNotAllowedException" || error?.code === 405;
+  private isMethodNotAllowedException(error: unknown): boolean {
+    if (typeof error === "object" && error !== null) {
+      return (
+        ("name" in error && error.name === "MethodNotAllowedException") ||
+        ("code" in error && error.code === 405)
+      );
+    }
+    return false;
   }
 
   /**
@@ -324,8 +338,14 @@ export class Router {
    *
    * @private
    */
-  private isResourceNotFoundException(error: any): boolean {
-    return error?.name === "ResourceNotFoundException" || error?.code === 404;
+  private isResourceNotFoundException(error: unknown): boolean {
+    if (typeof error === "object" && error !== null) {
+      return (
+        ("name" in error && error.name === "ResourceNotFoundException") ||
+        ("code" in error && error.code === 404)
+      );
+    }
+    return false;
   }
 
   /**
@@ -336,12 +356,20 @@ export class Router {
    *
    * @private
    */
-  private getAllowedMethods(error: any): string {
-    if (Array.isArray(error?.allowedMethods)) {
-      return error.allowedMethods.join(", ");
-    }
-    if (typeof error?.allowedMethods === "string") {
-      return error.allowedMethods;
+  private getAllowedMethods(error: unknown): string {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "allowedMethods" in error
+    ) {
+      const allowedMethods = (error as { allowedMethods?: unknown })
+        .allowedMethods;
+      if (Array.isArray(allowedMethods)) {
+        return allowedMethods.join(", ");
+      }
+      if (typeof allowedMethods === "string") {
+        return allowedMethods;
+      }
     }
     return "OPTIONS, GET, POST, PUT, DELETE, PATCH";
   }
@@ -355,7 +383,7 @@ export class Router {
    *
    * @private
    */
-  private sendResponse(connection: any, response: any): any {
+  private sendResponse(connection: Connection, response: unknown): Connection {
     if (response) {
       connection.send(response);
     }
@@ -376,7 +404,7 @@ export class Router {
    * @private
    */
   private close(
-    connection: any,
+    connection: Connection,
     statusCode: number,
     message: string,
     additionalHeaders: Record<string, string> = {},
@@ -499,7 +527,7 @@ export interface IRouteMatcher {
   /**
    * Match a path to a route
    */
-  match(path: string): Record<string, any>;
+  match(path: string): Record<string, unknown>;
 
   /**
    * Get the current context
@@ -520,4 +548,6 @@ export interface MatcherContext {
  *
  * Represents a controller function that can be called with request and route parameters
  */
-export type ControllerCallback = (...args: any[]) => any | Promise<any>;
+export type ControllerCallback = (
+  ...args: unknown[]
+) => unknown | Promise<unknown>;

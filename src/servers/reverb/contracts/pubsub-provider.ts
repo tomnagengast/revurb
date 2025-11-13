@@ -53,7 +53,7 @@ export interface IPubSubProvider {
    * @param event - The event name to listen for
    * @param callback - Function to invoke when the event is received
    */
-  on(event: string, callback: (data: any) => void): void;
+  on(event: string, callback: (data: unknown) => void): void;
 
   /**
    * Publish a payload to the publisher.
@@ -63,5 +63,5 @@ export interface IPubSubProvider {
    * @param payload - The data object to publish
    * @returns Promise that resolves when the message is published
    */
-  publish(payload: Record<string, any>): Promise<void>;
+  publish(payload: Record<string, unknown>): Promise<void>;
 }

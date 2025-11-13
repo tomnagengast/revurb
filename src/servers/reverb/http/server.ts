@@ -79,7 +79,7 @@ export class Server {
     // Disable automatic garbage collection; we'll do it manually
     if (typeof gc !== "undefined") {
       // Note: gc.disable() may not be available in all Bun versions
-      (gc as any).disable?.();
+      (gc as { disable?: () => void }).disable?.();
     }
   }
 
@@ -95,18 +95,21 @@ export class Server {
    */
   start(): void {
     try {
-      const config: any = {
+      const config = {
         port: this.config.port,
         hostname: this.config.host,
-        fetch: (req: Request, server: any) => this.handleRequest(req, server),
+        fetch: (req: Request, server: unknown) =>
+          this.handleRequest(req, server),
         websocket: {
-          open: (ws: any) => this.handleWebSocketOpen(ws),
-          message: (ws: any, message: string | Buffer) =>
+          open: (ws: unknown) => this.handleWebSocketOpen(ws),
+          message: (ws: unknown, message: string | Buffer) =>
             this.handleWebSocketMessage(ws, message),
-          close: (ws: any, code: number, reason: string) =>
+          close: (ws: unknown, code: number, reason: string) =>
             this.handleWebSocketClose(ws, code, reason),
-          ping: (ws: any, data: Buffer) => this.handleWebSocketPing(ws, data),
-          pong: (ws: any, data: Buffer) => this.handleWebSocketPong(ws, data),
+          ping: (ws: unknown, data: Buffer) =>
+            this.handleWebSocketPing(ws, data),
+          pong: (ws: unknown, data: Buffer) =>
+            this.handleWebSocketPong(ws, data),
         },
       };
 
