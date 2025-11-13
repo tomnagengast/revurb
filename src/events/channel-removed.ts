@@ -1,5 +1,5 @@
-import type { Channel } from '../Protocols/Pusher/Channels/channel';
-import { EventDispatcher } from './event-dispatcher';
+import type { Channel } from "../protocols/pusher/Channels/channel";
+import { EventDispatcher } from "./event-dispatcher";
 
 /**
  * ChannelRemoved Event
@@ -9,20 +9,20 @@ import { EventDispatcher } from './event-dispatcher';
  * This event is used for monitoring, logging, and metrics collection.
  */
 export class ChannelRemoved {
-  /**
-   * Create a new ChannelRemoved event instance.
-   *
-   * @param channel - The channel that was removed
-   */
-  constructor(public readonly channel: Channel) {}
+	/**
+	 * Create a new ChannelRemoved event instance.
+	 *
+	 * @param channel - The channel that was removed
+	 */
+	constructor(public readonly channel: Channel) {}
 
-  /**
-   * Dispatch the ChannelRemoved event.
-   *
-   * @param channel - The channel that was removed
-   */
-  static dispatch(channel: Channel): void {
-    const event = new ChannelRemoved(channel);
-    EventDispatcher.emit('channel:removed', event);
-  }
+	/**
+	 * Dispatch the ChannelRemoved event.
+	 *
+	 * @param channel - The channel that was removed
+	 */
+	static dispatch(channel: Channel): void {
+		const event = new ChannelRemoved(channel);
+		EventDispatcher.emit("channel:removed", event);
+	}
 }

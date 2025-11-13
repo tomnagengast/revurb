@@ -1,5 +1,5 @@
-import type { ChannelConnection } from '../Protocols/Pusher/Channels/channel-connection';
-import { EventDispatcher } from './event-dispatcher';
+import type { ChannelConnection } from "../protocols/pusher/Channels/channel-connection";
+import { EventDispatcher } from "./event-dispatcher";
 
 /**
  * ConnectionPruned Event
@@ -10,20 +10,20 @@ import { EventDispatcher } from './event-dispatcher';
  * This event is used for monitoring, logging, and metrics collection.
  */
 export class ConnectionPruned {
-  /**
-   * Create a new ConnectionPruned event instance.
-   *
-   * @param connection - The channel connection that was pruned
-   */
-  constructor(public readonly connection: ChannelConnection) {}
+	/**
+	 * Create a new ConnectionPruned event instance.
+	 *
+	 * @param connection - The channel connection that was pruned
+	 */
+	constructor(public readonly connection: ChannelConnection) {}
 
-  /**
-   * Dispatch the ConnectionPruned event.
-   *
-   * @param connection - The channel connection that was pruned
-   */
-  static dispatch(connection: ChannelConnection): void {
-    const event = new ConnectionPruned(connection);
-    EventDispatcher.emit('connection:pruned', event);
-  }
+	/**
+	 * Dispatch the ConnectionPruned event.
+	 *
+	 * @param connection - The channel connection that was pruned
+	 */
+	static dispatch(connection: ChannelConnection): void {
+		const event = new ConnectionPruned(connection);
+		EventDispatcher.emit("connection:pruned", event);
+	}
 }

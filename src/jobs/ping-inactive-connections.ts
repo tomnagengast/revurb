@@ -1,7 +1,7 @@
-import type { IApplicationProvider } from '../contracts/application-provider';
-import type { ILogger } from '../contracts/logger';
-import type { ChannelManager } from '../Protocols/Pusher/Contracts/channel-manager';
-import { EventHandler } from '../Protocols/Pusher/event-handler';
+import type { IApplicationProvider } from "../contracts/application-provider";
+import type { ILogger } from "../contracts/logger";
+import type { ChannelManager } from "../protocols/pusher/Contracts/channel-manager";
+import { EventHandler } from "../protocols/pusher/event-handler";
 
 /**
  * PingInactiveConnections Job
@@ -24,57 +24,57 @@ import { EventHandler } from '../Protocols/Pusher/event-handler';
  * ```
  */
 export class PingInactiveConnections {
-  /**
-   * Create a new PingInactiveConnections job instance.
-   *
-   * @param applicationProvider - Provider for accessing all applications
-   * @param logger - Logger instance for logging operations
-   * @param channels - Channel manager for accessing connections
-   */
-  constructor(
-    protected readonly applicationProvider: IApplicationProvider,
-    protected readonly logger: ILogger,
-    protected readonly channels: ChannelManager
-  ) {}
+	/**
+	 * Create a new PingInactiveConnections job instance.
+	 *
+	 * @param applicationProvider - Provider for accessing all applications
+	 * @param logger - Logger instance for logging operations
+	 * @param channels - Channel manager for accessing connections
+	 */
+	constructor(
+		protected readonly applicationProvider: IApplicationProvider,
+		protected readonly logger: ILogger,
+		protected readonly channels: ChannelManager,
+	) {}
 
-  /**
-   * Execute the job.
-   *
-   * Iterates through all applications and their connections,
-   * sending ping messages to inactive connections.
-   */
-  async handle(): Promise<void> {
-    this.logger.info('Pinging Inactive Connections');
+	/**
+	 * Execute the job.
+	 *
+	 * Iterates through all applications and their connections,
+	 * sending ping messages to inactive connections.
+	 */
+	async handle(): Promise<void> {
+		this.logger.info("Pinging Inactive Connections");
 
-    const pusher = new EventHandler(this.channels);
+		const pusher = new EventHandler(this.channels);
 
-    // Get all applications
-    const applications = this.applicationProvider.all();
+		// Get all applications
+		const applications = this.applicationProvider.all();
 
-    // Process each application
-    for (const application of applications) {
-      // Scope channel manager to this application
-      const scopedChannels = this.channels.for(application);
+		// Process each application
+		for (const application of applications) {
+			// Scope channel manager to this application
+			const scopedChannels = this.channels.for(application);
 
-      // Get all connections for this application
-      const allConnections = scopedChannels.connections();
+			// Get all connections for this application
+			const allConnections = scopedChannels.connections();
 
-      // Filter and ping inactive connections
-      for (const [, channelConnection] of Object.entries(allConnections)) {
-        // Unwrap the underlying connection from ChannelConnection
-        const connection = channelConnection.connection();
+			// Filter and ping inactive connections
+			for (const [, channelConnection] of Object.entries(allConnections)) {
+				// Unwrap the underlying connection from ChannelConnection
+				const connection = channelConnection.connection();
 
-        // Skip active connections
-        if (connection.isActive()) {
-          continue;
-        }
+				// Skip active connections
+				if (connection.isActive()) {
+					continue;
+				}
 
-        // Send ping to inactive connection
-        pusher.ping(connection);
+				// Send ping to inactive connection
+				pusher.ping(connection);
 
-        // Log the ping
-        this.logger.info('Connection Pinged', connection.id());
-      }
-    }
-  }
+				// Log the ping
+				this.logger.info("Connection Pinged", connection.id());
+			}
+		}
+	}
 }
