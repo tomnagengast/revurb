@@ -30,13 +30,10 @@ export function Chat() {
 		currentChannelRef.current = channel;
 	}, [channel]);
 
-	const scrollToBottom = useCallback(() => {
-		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, []);
-
+	// biome-ignore lint/correctness/useExhaustiveDependencies: We need to scroll when messages change
 	useEffect(() => {
-		scrollToBottom();
-	}, [messages, scrollToBottom]);
+		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+	}, [messages.length]);
 
 	const connect = () => {
 		if (wsRef.current?.readyState === WebSocket.OPEN) {
