@@ -31,6 +31,13 @@ export class StandardLogger implements ILogger {
   }
 
   /**
+   * Log a debug message.
+   */
+  debug(message: string): void {
+    console.log(`DEBUG: ${message}`);
+  }
+
+  /**
    * Log a message sent to the server.
    */
   message(message: string): void {

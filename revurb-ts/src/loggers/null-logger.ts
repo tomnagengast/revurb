@@ -23,6 +23,13 @@ export class NullLogger implements ILogger {
   }
 
   /**
+   * Log a debug message.
+   */
+  debug(_message: string): void {
+    //
+  }
+
+  /**
    * Log a message sent to the server.
    */
   message(_message: string): void {

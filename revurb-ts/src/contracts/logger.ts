@@ -49,6 +49,23 @@ export interface ILogger {
   error(message: string): void;
 
   /**
+   * Log a debug message.
+   *
+   * This method is used for debug-level logging that provides detailed information
+   * about the internal state and operations of the server. Debug messages are typically
+   * only enabled during development or troubleshooting.
+   *
+   * @param message - The debug message to log
+   *
+   * @example
+   * ```typescript
+   * logger.debug('Channel created: presence-chat');
+   * logger.debug('Connection pruned: abc123');
+   * ```
+   */
+  debug(message: string): void;
+
+  /**
    * Log a WebSocket message sent to the server.
    *
    * This method is specifically designed for logging WebSocket protocol messages.

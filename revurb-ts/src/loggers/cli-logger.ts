@@ -71,6 +71,13 @@ export class CliLogger implements ILogger {
   }
 
   /**
+   * Log a debug message with dim color coding
+   */
+  debug(message: string): void {
+    console.log(`  ${this.colors.dim}DEBUG${this.colors.reset} ${this.colors.gray}${message}${this.colors.reset}`);
+  }
+
+  /**
    * Log a WebSocket message with pretty-printing and syntax highlighting
    *
    * Parses nested JSON data and displays it with indentation and color coding.
