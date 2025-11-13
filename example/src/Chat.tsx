@@ -8,18 +8,20 @@ interface Message {
 
 export function Chat() {
 	const [connected, setConnected] = useState(false);
-	const [channel, setChannel] = useState("chat");
+	const [channel, setChannel] = useState("private-chat");
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [messageInput, setMessageInput] = useState("");
 	const [username, setUsername] = useState("User");
 	const wsRef = useRef<WebSocket | null>(null);
 	const channelRef = useRef(channel);
+	const currentChannelRef = useRef(channel);
 	const channelInputRef = useRef<HTMLInputElement>(null);
 	const messageInputRef = useRef<HTMLInputElement>(null);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		channelRef.current = channel;
+		currentChannelRef.current = channel;
 	}, [channel]);
 
 	const scrollToBottom = () => {
@@ -50,6 +52,13 @@ export function Chat() {
 				const data = JSON.parse(message.data);
 				console.log("Connected with socket ID:", data.socket_id);
 				subscribeToChannel(ws, channelRef.current);
+			}
+
+			if (message.event === "pusher:ping") {
+				const pongMessage = {
+					event: "pusher:pong",
+				};
+				ws.send(JSON.stringify(pongMessage));
 			}
 
 			if (message.event === "pusher_internal:subscription_succeeded") {
@@ -101,14 +110,31 @@ export function Chat() {
 		ws.send(JSON.stringify(subscribeMessage));
 	};
 
+	const unsubscribeFromChannel = (ws: WebSocket, channelName: string) => {
+		const unsubscribeMessage = {
+			event: "pusher:unsubscribe",
+			data: {
+				channel: channelName,
+			},
+		};
+		ws.send(JSON.stringify(unsubscribeMessage));
+	};
+
 	const handleJoinChannel = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const formData = new FormData(e.currentTarget);
-		const channelName = (formData.get("channel") as string) || "chat";
+		const channelName = (formData.get("channel") as string) || "private-chat";
 
 		if (wsRef.current?.readyState === WebSocket.OPEN) {
+			const previousChannel = currentChannelRef.current;
+			if (previousChannel !== channelName) {
+				unsubscribeFromChannel(wsRef.current, previousChannel);
+				setMessages([]);
+			}
 			subscribeToChannel(wsRef.current, channelName);
 			setChannel(channelName);
+			currentChannelRef.current = channelName;
+			channelRef.current = channelName;
 		}
 	};
 
@@ -175,7 +201,7 @@ export function Chat() {
 						type="text"
 						name="channel"
 						defaultValue={channel}
-						placeholder="Join channel..."
+						placeholder="Join channel (e.g., private-chat)..."
 						className="w-full flex-1 bg-transparent border-0 text-[#fbf0df] font-mono text-base py-1.5 px-2 outline-none focus:text-white placeholder-[#fbf0df]/40"
 					/>
 					<button
