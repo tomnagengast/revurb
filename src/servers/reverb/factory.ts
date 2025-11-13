@@ -13,6 +13,7 @@ import { ApplicationManager } from "../../application-manager";
 import { Certificate } from "../../certificate";
 import type { ReverbConfig } from "../../config/types";
 import { Connection as ReverbConnection } from "../../connection";
+import type { IApplicationProvider } from "../../contracts/application-provider";
 import { ServerProvider } from "../../contracts/server-provider";
 import { CliLogger } from "../../loggers/cli-logger";
 import { Log } from "../../loggers/log";
@@ -219,7 +220,7 @@ export class Factory {
   /**
    * Application provider instance (used by controllers)
    */
-  private static applicationProvider: any = null;
+  private static applicationProvider: IApplicationProvider | null = null;
 
   /**
    * Server provider instance (used by controllers)
@@ -319,7 +320,7 @@ export class Factory {
    * @returns The application provider instance
    * @throws {Error} If factory has not been initialized
    */
-  public static getApplicationProvider(): any {
+  public static getApplicationProvider(): IApplicationProvider {
     if (!Factory.applicationProvider) {
       throw new Error(
         "Factory not initialized. Call Factory.initialize() first.",
