@@ -426,6 +426,21 @@ export class Router {
  */
 export interface IHttpRequest {
   /**
+   * HTTP method (GET, POST, PUT, DELETE, etc.) - property for direct access
+   */
+  method: string;
+
+  /**
+   * Request path with query string - property for direct access
+   */
+  path: string;
+
+  /**
+   * Request body content - property for direct access
+   */
+  body: string;
+
+  /**
    * Get the HTTP method (GET, POST, PUT, DELETE, etc.)
    */
   getMethod(): string;
