@@ -21,7 +21,7 @@ export interface Channel {
    * @param payload - The message payload to broadcast
    * @param except - Optional connection to exclude from broadcast (for echo prevention)
    */
-  broadcast(payload: Record<string, any>, except?: Connection | null): void;
+  broadcast(payload: Record<string, unknown>, except?: Connection | null): void;
 }
 
 /**
@@ -80,12 +80,12 @@ export interface EventPayload {
   /**
    * The event data
    */
-  data?: any;
+  data?: unknown;
 
   /**
    * Additional payload properties
    */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -102,21 +102,21 @@ export interface EventPayload {
  * - Coordinate with ChannelManager for channel lookup
  *
  * Architecture Notes:
- * - This is a static utility class (no instance state)
+ * - These are utility functions (no instance state)
  * - Delegates channel management to injected ChannelManager
  * - Supports both single-channel and multi-channel broadcasts
  *
  * @example
  * ```typescript
  * // Dispatch to a single channel
- * EventDispatcher.dispatch(
+ * dispatch(
  *   app,
  *   { channel: 'my-channel', event: 'my-event', data: { foo: 'bar' } },
  *   channelManager
  * );
  *
  * // Dispatch to multiple channels (excluding sender)
- * EventDispatcher.dispatch(
+ * dispatch(
  *   app,
  *   { channels: ['channel-1', 'channel-2'], event: 'broadcast', data: { msg: 'hi' } },
  *   channelManager,
@@ -124,160 +124,150 @@ export interface EventPayload {
  * );
  * ```
  */
-export class EventDispatcher {
-  /**
-   * Dispatch a message to one or more channels.
-   *
-   * This is the main entry point for event dispatching. It handles both
-   * single-channel and multi-channel broadcasts, with optional connection
-   * exclusion for echo prevention.
-   *
-   * The method delegates to dispatchSynchronously for immediate delivery
-   * to all channel subscribers. In a distributed setup, this could be
-   * extended to publish to a pub/sub system instead.
-   *
-   * @param app - The application context
-   * @param payload - The event payload containing channel(s) and message data
-   * @param channelManager - The channel manager for finding channels
-   * @param connection - Optional connection to exclude from broadcast (for echo prevention)
-   *
-   * @example
-   * ```typescript
-   * // Basic dispatch
-   * EventDispatcher.dispatch(
-   *   app,
-   *   { channel: 'my-channel', event: 'update', data: { value: 42 } },
-   *   channelManager
-   * );
-   *
-   * // With echo prevention
-   * EventDispatcher.dispatch(
-   *   app,
-   *   { channel: 'chat', event: 'message', data: { text: 'hello' } },
-   *   channelManager,
-   *   senderConnection // This connection will not receive the message
-   * );
-   * ```
-   */
-  static dispatch(
-    app: Application,
-    payload: EventPayload,
-    channelManager: ChannelManager,
-    connection?: Connection | null,
-  ): void {
-    // For now, we always dispatch synchronously
-    // In a distributed setup, this could check if pub/sub is enabled
-    // and publish to a message broker instead
-    EventDispatcher.dispatchSynchronously(
-      app,
-      payload,
-      channelManager,
-      connection,
-    );
+
+/**
+ * Normalize channel specification to array format.
+ *
+ * Handles various channel specification formats:
+ * - undefined/null → empty array
+ * - string → single-element array
+ * - array → returns as-is
+ *
+ * This ensures consistent array-based iteration in dispatchSynchronously.
+ *
+ * @param channels - The channel specification (string, array, or undefined)
+ * @returns Array of channel names
+ */
+function normalizeChannels(channels?: string | string[]): string[] {
+  if (!channels) {
+    return [];
   }
 
-  /**
-   * Notify all connections subscribed to the given channel(s).
-   *
-   * This method performs the actual message delivery to channel subscribers.
-   * It handles both single and multiple channel specifications, normalizing
-   * them into an array for uniform processing.
-   *
-   * The method ensures proper payload structure by:
-   * 1. Extracting channel names from payload (channels or channel)
-   * 2. Normalizing to array format
-   * 3. Looking up each channel via ChannelManager
-   * 4. Broadcasting to each channel with echo prevention
-   *
-   * @param app - The application context
-   * @param payload - The event payload containing channel(s) and message data
-   * @param channelManager - The channel manager for finding channels
-   * @param connection - Optional connection to exclude from broadcast
-   *
-   * @example
-   * ```typescript
-   * // Single channel
-   * EventDispatcher.dispatchSynchronously(
-   *   app,
-   *   { channel: 'updates', event: 'data', data: { value: 1 } },
-   *   channelManager
-   * );
-   *
-   * // Multiple channels with exclusion
-   * EventDispatcher.dispatchSynchronously(
-   *   app,
-   *   { channels: ['room-1', 'room-2'], event: 'msg', data: { text: 'hi' } },
-   *   channelManager,
-   *   senderConnection
-   * );
-   * ```
-   */
-  static dispatchSynchronously(
-    app: Application,
-    payload: EventPayload,
-    channelManager: ChannelManager,
-    connection?: Connection | null,
-  ): void {
-    // Extract channel names from payload
-    // Supports both 'channels' (array) and 'channel' (single) properties
-    const channelNames = EventDispatcher.normalizeChannels(
-      payload.channels ?? payload.channel,
-    );
-
-    // Create a copy of payload to avoid mutating the original
-    const broadcastPayload = { ...payload };
-
-    // Remove 'channels' property as we'll set 'channel' individually
-    delete broadcastPayload.channels;
-
-    // Ensure channelManager is scoped to the application
-    const scopedChannelManager =
-      channelManager.app()?.id() === app.id()
-        ? channelManager
-        : channelManager.for(app);
-
-    // Broadcast to each channel
-    for (const channelName of channelNames) {
-      // Look up the channel
-      const channel = scopedChannelManager.find(channelName);
-
-      // Skip if channel doesn't exist
-      if (!channel) {
-        continue;
-      }
-
-      // Set the specific channel name in the payload
-      broadcastPayload.channel = channel.name();
-
-      // Broadcast to all subscribers, excluding the specified connection
-      channel.broadcast(broadcastPayload, connection ?? null);
-    }
+  if (Array.isArray(channels)) {
+    return channels;
   }
 
-  /**
-   * Normalize channel specification to array format.
-   *
-   * Handles various channel specification formats:
-   * - undefined/null → empty array
-   * - string → single-element array
-   * - array → returns as-is
-   *
-   * This ensures consistent array-based iteration in dispatchSynchronously.
-   *
-   * @param channels - The channel specification (string, array, or undefined)
-   * @returns Array of channel names
-   *
-   * @private
-   */
-  private static normalizeChannels(channels?: string | string[]): string[] {
-    if (!channels) {
-      return [];
+  return [channels];
+}
+
+/**
+ * Notify all connections subscribed to the given channel(s).
+ *
+ * This function performs the actual message delivery to channel subscribers.
+ * It handles both single and multiple channel specifications, normalizing
+ * them into an array for uniform processing.
+ *
+ * The function ensures proper payload structure by:
+ * 1. Extracting channel names from payload (channels or channel)
+ * 2. Normalizing to array format
+ * 3. Looking up each channel via ChannelManager
+ * 4. Broadcasting to each channel with echo prevention
+ *
+ * @param app - The application context
+ * @param payload - The event payload containing channel(s) and message data
+ * @param channelManager - The channel manager for finding channels
+ * @param connection - Optional connection to exclude from broadcast
+ *
+ * @example
+ * ```typescript
+ * // Single channel
+ * dispatchSynchronously(
+ *   app,
+ *   { channel: 'updates', event: 'data', data: { value: 1 } },
+ *   channelManager
+ * );
+ *
+ * // Multiple channels with exclusion
+ * dispatchSynchronously(
+ *   app,
+ *   { channels: ['room-1', 'room-2'], event: 'msg', data: { text: 'hi' } },
+ *   channelManager,
+ *   senderConnection
+ * );
+ * ```
+ */
+export function dispatchSynchronously(
+  app: Application,
+  payload: EventPayload,
+  channelManager: ChannelManager,
+  connection?: Connection | null,
+): void {
+  // Extract channel names from payload
+  // Supports both 'channels' (array) and 'channel' (single) properties
+  const channelNames = normalizeChannels(payload.channels ?? payload.channel);
+
+  // Create a copy of payload to avoid mutating the original
+  const broadcastPayload = { ...payload };
+
+  // Remove 'channels' property as we'll set 'channel' individually
+  delete broadcastPayload.channels;
+
+  // Ensure channelManager is scoped to the application
+  const scopedChannelManager =
+    channelManager.app()?.id() === app.id()
+      ? channelManager
+      : channelManager.for(app);
+
+  // Broadcast to each channel
+  for (const channelName of channelNames) {
+    // Look up the channel
+    const channel = scopedChannelManager.find(channelName);
+
+    // Skip if channel doesn't exist
+    if (!channel) {
+      continue;
     }
 
-    if (Array.isArray(channels)) {
-      return channels;
-    }
+    // Set the specific channel name in the payload
+    broadcastPayload.channel = channel.name();
 
-    return [channels];
+    // Broadcast to all subscribers, excluding the specified connection
+    channel.broadcast(broadcastPayload, connection ?? null);
   }
+}
+
+/**
+ * Dispatch a message to one or more channels.
+ *
+ * This is the main entry point for event dispatching. It handles both
+ * single-channel and multi-channel broadcasts, with optional connection
+ * exclusion for echo prevention.
+ *
+ * The function delegates to dispatchSynchronously for immediate delivery
+ * to all channel subscribers. In a distributed setup, this could be
+ * extended to publish to a pub/sub system instead.
+ *
+ * @param app - The application context
+ * @param payload - The event payload containing channel(s) and message data
+ * @param channelManager - The channel manager for finding channels
+ * @param connection - Optional connection to exclude from broadcast (for echo prevention)
+ *
+ * @example
+ * ```typescript
+ * // Basic dispatch
+ * dispatch(
+ *   app,
+ *   { channel: 'my-channel', event: 'update', data: { value: 42 } },
+ *   channelManager
+ * );
+ *
+ * // With echo prevention
+ * dispatch(
+ *   app,
+ *   { channel: 'chat', event: 'message', data: { text: 'hello' } },
+ *   channelManager,
+ *   senderConnection // This connection will not receive the message
+ * );
+ * ```
+ */
+export function dispatch(
+  app: Application,
+  payload: EventPayload,
+  channelManager: ChannelManager,
+  connection?: Connection | null,
+): void {
+  // For now, we always dispatch synchronously
+  // In a distributed setup, this could check if pub/sub is enabled
+  // and publish to a message broker instead
+  dispatchSynchronously(app, payload, channelManager, connection);
 }
