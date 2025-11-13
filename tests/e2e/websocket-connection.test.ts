@@ -2,6 +2,10 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import type { Server } from "bun";
 import type { ReverbConfig } from "../../src/config/types";
 import { Factory } from "../../src/servers/reverb/factory";
+import type {
+  ConnectionEstablishedData,
+  ConnectionEstablishedMessage,
+} from "../../src/types/pusher-messages";
 
 describe("WebSocket Connection E2E Tests", () => {
   let server: Server;
@@ -93,32 +97,34 @@ describe("WebSocket Connection E2E Tests", () => {
   it("should receive connection_established message", async () => {
     const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
 
-    const message = await new Promise<unknown>((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        ws.close();
-        reject(new Error("Message timeout"));
-      }, 5000);
+    const message = await new Promise<ConnectionEstablishedMessage>(
+      (resolve, reject) => {
+        const timeout = setTimeout(() => {
+          ws.close();
+          reject(new Error("Message timeout"));
+        }, 5000);
 
-      ws.onmessage = (event) => {
-        clearTimeout(timeout);
-        try {
-          const data = JSON.parse(event.data);
-          resolve(data);
-        } catch (e) {
-          reject(e);
-        }
-      };
+        ws.onmessage = (event) => {
+          clearTimeout(timeout);
+          try {
+            const data = JSON.parse(event.data) as ConnectionEstablishedMessage;
+            resolve(data);
+          } catch (e) {
+            reject(e);
+          }
+        };
 
-      ws.onerror = (error) => {
-        clearTimeout(timeout);
-        reject(error);
-      };
-    });
+        ws.onerror = (error) => {
+          clearTimeout(timeout);
+          reject(error);
+        };
+      },
+    );
 
     expect(message.event).toBe("pusher:connection_established");
     expect(message.data).toBeDefined();
 
-    const data = JSON.parse(message.data);
+    const data = JSON.parse(message.data) as ConnectionEstablishedData;
     expect(data.socket_id).toBeDefined();
     expect(data.activity_timeout).toBeDefined();
 
