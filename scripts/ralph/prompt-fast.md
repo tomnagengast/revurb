@@ -8,6 +8,8 @@ Current focus: update the `./src` directory name to lowercase (ex: src/Servers/R
 Next focus: update the `.github/workflows` actions for revurb based on `reverb/.github/workflows`
 Next focus: current focus: continue porting Laravel Reverb features to revurb-ts
 
+As always, run your test/lint:fix/format rounds before committing.
+
 The Laravel Reverb project is located in `./reverb` and you should target `./` for your port.
 
 Use Docker for running Redis integration tests where mocks fall short.
