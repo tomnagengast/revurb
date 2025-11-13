@@ -155,7 +155,7 @@ function loadReverbServerConfig(): ReverbServerConfig {
   );
 
   return {
-    host: env("REVERB_SERVER_HOST", "0.0.0.0") ?? "0.0.0.0",
+    host: env("REVERB_SERVER_HOST", "127.0.0.1") ?? "127.0.0.1",
     port: envInt("REVERB_SERVER_PORT", 8080),
     ...(path !== undefined ? { path } : {}),
     ...(hostname !== undefined ? { hostname } : {}),
@@ -255,7 +255,7 @@ function loadAppsConfig(): AppsConfig {
  *
  * Optional environment variables (with defaults):
  * - REVERB_SERVER (default: 'reverb')
- * - REVERB_SERVER_HOST (default: '0.0.0.0')
+ * - REVERB_SERVER_HOST (default: '127.0.0.1')
  * - REVERB_SERVER_PORT (default: 8080)
  * - REVERB_SERVER_PATH (default: '')
  * - REVERB_HOST (default: undefined)
