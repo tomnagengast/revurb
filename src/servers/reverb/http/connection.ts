@@ -108,7 +108,9 @@ export class Connection {
    * @returns This connection instance for method chaining
    */
   send(data: string | Uint8Array): this {
-    this.connection.write(data);
+    if (this.connection.write) {
+      this.connection.write(data);
+    }
     return this;
   }
 
@@ -118,7 +120,9 @@ export class Connection {
    * @returns This connection instance for method chaining
    */
   close(): this {
-    this.connection.end();
+    if (this.connection.end) {
+      this.connection.end();
+    }
     return this;
   }
 }

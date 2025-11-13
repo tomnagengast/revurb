@@ -486,17 +486,23 @@ export class MetricsHandler {
   protected listenForMetrics(key: string): Promise<unknown[]> {
     return new Promise((resolve) => {
       this.pubSubProvider.on("metrics-retrieved", (payload) => {
-        if (payload.key !== key) {
-          return;
-        }
-
-        this.metrics.push(payload.payload);
-
         if (
-          this.subscribers !== null &&
-          this.metrics.length === this.subscribers
+          typeof payload === "object" &&
+          payload !== null &&
+          "key" in payload &&
+          payload.key === key
         ) {
-          resolve(this.metrics);
+          const message = payload as PubSubMessage;
+          if ("payload" in message) {
+            this.metrics.push(message.payload);
+          }
+
+          if (
+            this.subscribers !== null &&
+            this.metrics.length === this.subscribers
+          ) {
+            resolve(this.metrics);
+          }
         }
       });
     });

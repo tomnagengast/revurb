@@ -1,5 +1,6 @@
+import type { ServerWebSocket } from "bun";
 import type { ILogger } from "../../../contracts/logger";
-import type { Router } from "./router";
+import type { IHttpRequest, Router } from "./router";
 
 /**
  * HTTP Server Implementation
@@ -95,20 +96,35 @@ export class Server {
    */
   start(): void {
     try {
-      const config = {
+      const config: {
+        port: number;
+        hostname: string;
+        fetch: (
+          req: Request,
+          server: ReturnType<typeof Bun.serve>,
+        ) => Promise<Response | undefined>;
+        websocket: {
+          open: (ws: ServerWebSocket<unknown>) => void;
+          message: (ws: ServerWebSocket<unknown>, message: string | Buffer) => void;
+          close: (ws: ServerWebSocket<unknown>, code: number, reason: string) => void;
+          ping: (ws: ServerWebSocket<unknown>, data: Buffer) => void;
+          pong: (ws: ServerWebSocket<unknown>, data: Buffer) => void;
+        };
+        tls?: BunTLSOptions;
+      } = {
         port: this.config.port,
         hostname: this.config.host,
-        fetch: (req: Request, server: unknown) =>
+        fetch: (req: Request, server: ReturnType<typeof Bun.serve>) =>
           this.handleRequest(req, server),
         websocket: {
-          open: (ws: unknown) => this.handleWebSocketOpen(ws),
-          message: (ws: unknown, message: string | Buffer) =>
+          open: (ws: ServerWebSocket<unknown>) => this.handleWebSocketOpen(ws),
+          message: (ws: ServerWebSocket<unknown>, message: string | Buffer) =>
             this.handleWebSocketMessage(ws, message),
-          close: (ws: unknown, code: number, reason: string) =>
+          close: (ws: ServerWebSocket<unknown>, code: number, reason: string) =>
             this.handleWebSocketClose(ws, code, reason),
-          ping: (ws: unknown, data: Buffer) =>
+          ping: (ws: ServerWebSocket<unknown>, data: Buffer) =>
             this.handleWebSocketPing(ws, data),
-          pong: (ws: unknown, data: Buffer) =>
+          pong: (ws: ServerWebSocket<unknown>, data: Buffer) =>
             this.handleWebSocketPong(ws, data),
         },
       };
@@ -126,7 +142,7 @@ export class Server {
       this.gcTimer = setInterval(() => {
         if (typeof gc !== "undefined") {
           // Note: gc.collect() may not be available in all Bun versions
-          (gc as any).collect?.();
+          (gc as { collect?: () => void }).collect?.();
         }
       }, 30_000);
 
@@ -180,22 +196,24 @@ export class Server {
    */
   private async handleRequest(
     req: Request,
-    server: any,
+    server: ReturnType<typeof Bun.serve>,
   ): Promise<Response | undefined> {
     const url = new URL(req.url);
     const pathname = url.pathname;
 
     // Attempt WebSocket upgrade for specific paths
     if (this.shouldUpgradeToWebSocket(pathname, req)) {
-      if (server.upgrade(req)) {
+      if (server.upgrade(req, { data: null })) {
         return undefined;
       }
     }
 
     // Route HTTP requests
     try {
+      // Convert Bun Request to IHttpRequest
+      const httpRequest = await this.convertToHttpRequest(req);
       // For HTTP requests, pass null as connection since we don't have a Connection object yet
-      const result = await this.config.router.dispatch(req as any, null as any);
+      const result = await this.config.router.dispatch(httpRequest, null);
 
       // If result is already a Response, return it
       if (result instanceof Response) {
@@ -259,7 +277,7 @@ export class Server {
    *
    * @private
    */
-  private handleWebSocketOpen(_ws: any): void {
+  private handleWebSocketOpen(_ws: ServerWebSocket<unknown>): void {
     // Application-level WebSocket handling would be done here
     // For now, this is a placeholder for lifecycle management
   }
@@ -275,17 +293,12 @@ export class Server {
    *
    * @private
    */
-  private handleWebSocketMessage(_ws: any, _message: string | Buffer): void {
-    try {
-      // Application-level message routing would occur here
-      // This delegates to the router or message handler
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      this.config.logger.error(
-        `WebSocket message handling error: ${errorMessage}`,
-      );
-    }
+  private handleWebSocketMessage(
+    _ws: ServerWebSocket<unknown>,
+    _message: string | Buffer,
+  ): void {
+    // Application-level message routing would occur here
+    // This delegates to the router or message handler
   }
 
   /**
@@ -300,7 +313,11 @@ export class Server {
    *
    * @private
    */
-  private handleWebSocketClose(_ws: any, _code: number, _reason: string): void {
+  private handleWebSocketClose(
+    _ws: ServerWebSocket<unknown>,
+    _code: number,
+    _reason: string,
+  ): void {
     // Application-level cleanup would occur here
     // This would handle connection state cleanup, event dispatching, etc.
   }
@@ -316,7 +333,7 @@ export class Server {
    *
    * @private
    */
-  private handleWebSocketPing(_ws: any, _data: Buffer): void {
+  private handleWebSocketPing(_ws: ServerWebSocket<unknown>, _data: Buffer): void {
     // Bun automatically sends a pong response, but we can log or monitor here
   }
 
@@ -331,9 +348,57 @@ export class Server {
    *
    * @private
    */
-  private handleWebSocketPong(_ws: any, _data: Buffer): void {
+  private handleWebSocketPong(_ws: ServerWebSocket<unknown>, _data: Buffer): void {
     // Application-level pong handling would occur here
     // This would update connection state, mark as active, etc.
+  }
+
+  /**
+   * Convert Bun Request to IHttpRequest.
+   *
+   * @param req - The Bun Request object
+   * @returns IHttpRequest interface
+   *
+   * @private
+   */
+  private async convertToHttpRequest(req: Request): Promise<IHttpRequest> {
+    const url = new URL(req.url);
+    const body =
+      req.method !== "GET" && req.method !== "HEAD" ? await req.text() : "";
+    const method = req.method;
+    const pathWithQuery = url.pathname + url.search;
+    const pathWithoutQuery = url.pathname;
+    const host = url.host;
+
+    // Convert Headers to Record<string, string>
+    const headers: Record<string, string> = {};
+    req.headers.forEach((value, key) => {
+      headers[key.toLowerCase()] = value;
+    });
+
+    return {
+      method,
+      path: pathWithQuery,
+      body,
+      getMethod(): string {
+        return method;
+      },
+      getPath(): string {
+        return pathWithoutQuery;
+      },
+      getHost(): string {
+        return host;
+      },
+      getHeader(name: string): string | undefined {
+        return headers[name.toLowerCase()];
+      },
+      getHeaders(): Record<string, string> {
+        return { ...headers };
+      },
+      getUri(): { path: string; host: string } {
+        return { path: pathWithoutQuery, host };
+      },
+    };
   }
 
   /**

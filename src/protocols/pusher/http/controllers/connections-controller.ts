@@ -50,7 +50,12 @@ export async function connectionsController(
   const connections = await metricsHandler.gather(application, "connections");
 
   // Count the connections
-  const connectionCount = Object.keys(connections).length;
+  const connectionCount =
+    typeof connections === "object" &&
+    connections !== null &&
+    !Array.isArray(connections)
+      ? Object.keys(connections).length
+      : 0;
 
   return new Response({ connections: connectionCount });
 }

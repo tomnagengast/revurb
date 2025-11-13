@@ -88,7 +88,16 @@ export class ChannelsController {
     );
 
     // Convert channels object to array format expected by Pusher API
-    return new Response({ channels: this.formatChannels(channels) });
+    if (
+      typeof channels === "object" &&
+      channels !== null &&
+      !Array.isArray(channels)
+    ) {
+      return new Response({
+        channels: this.formatChannels(channels as Record<string, unknown>),
+      });
+    }
+    return new Response({ channels: {} });
   }
 
   /**

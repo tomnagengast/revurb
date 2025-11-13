@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { Connection } from "../../../connection";
+import type { Connection } from "./connection";
 
 /**
  * HTTP Router for request dispatch and WebSocket upgrade handling
@@ -56,7 +56,7 @@ export class Router {
    */
   async dispatch(
     request: IHttpRequest,
-    connection: Connection,
+    connection: Connection | null,
   ): Promise<unknown> {
     try {
       // Set up route matcher context
@@ -72,14 +72,18 @@ export class Router {
       } catch (error) {
         if (this.isMethodNotAllowedException(error)) {
           const allowedMethods = this.getAllowedMethods(error);
-          this.close(connection, 405, "Method not allowed.", {
-            Allow: allowedMethods,
-          });
+          if (connection) {
+            this.close(connection, 405, "Method not allowed.", {
+              Allow: allowedMethods,
+            });
+          }
           return null;
         }
 
         if (this.isResourceNotFoundException(error)) {
-          this.close(connection, 404, "Not found.");
+          if (connection) {
+            this.close(connection, 404, "Not found.");
+          }
           return null;
         }
 
@@ -91,6 +95,9 @@ export class Router {
 
       // Check if this is a WebSocket upgrade request
       if (this.isWebSocketRequest(request)) {
+        if (!connection) {
+          throw new Error("Connection required for WebSocket upgrade");
+        }
         const wsConnection = this.attemptUpgrade(request, connection);
 
         // Call the controller with websocket connection and route parameters
@@ -112,11 +119,16 @@ export class Router {
       const args = this.arguments(controller, routeParameters);
       const response = await controller(...args);
 
-      // Send response and close connection
-      return this.sendResponse(connection, response);
+      // Send response and close connection if connection exists
+      if (connection) {
+        return this.sendResponse(connection, response);
+      }
+      return response;
     } catch (error) {
       // Handle unexpected errors
-      this.close(connection, 500, "Internal server error.");
+      if (connection) {
+        this.close(connection, 500, "Internal server error.");
+      }
       throw error;
     }
   }
@@ -130,7 +142,11 @@ export class Router {
    * @private
    */
   private controller(route: Record<string, unknown>): ControllerCallback {
-    return route._controller;
+    const controller = route._controller;
+    if (typeof controller === "function") {
+      return controller as ControllerCallback;
+    }
+    throw new Error("Invalid controller in route");
   }
 
   /**
@@ -385,7 +401,13 @@ export class Router {
    */
   private sendResponse(connection: Connection, response: unknown): Connection {
     if (response) {
-      connection.send(response);
+      const responseData =
+        typeof response === "string"
+          ? response
+          : response instanceof Uint8Array
+            ? response
+            : JSON.stringify(response);
+      connection.send(responseData);
     }
     connection.close();
     return connection;

@@ -143,15 +143,18 @@ export class EventsController extends Controller {
       );
 
       // Convert channel metrics to array format expected by Pusher API
-      const channelsArray = Object.entries(channelMetrics).map(
-        ([_name, info]) => {
-          // Ensure info is an object before spreading
-          if (typeof info === "object" && info !== null) {
-            return { ...info };
-          }
-          return info;
-        },
-      );
+      const channelsArray =
+        typeof channelMetrics === "object" &&
+        channelMetrics !== null &&
+        !Array.isArray(channelMetrics)
+          ? Object.entries(channelMetrics).map(([_name, info]) => {
+              // Ensure info is an object before spreading
+              if (typeof info === "object" && info !== null) {
+                return { ...info };
+              }
+              return info;
+            })
+          : [];
 
       return new Response({ channels: channelsArray });
     }
