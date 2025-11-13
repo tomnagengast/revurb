@@ -1,3 +1,4 @@
+import { resolve } from 'path';
 import type {
   ReverbConfig,
   ReverbServerConfig,
@@ -284,10 +285,34 @@ export async function loadConfig(configPath?: string): Promise<ReverbConfig> {
     apps: loadAppsConfig(),
   };
 
-  // If a config file path is provided, try to load and merge it
-  if (configPath) {
+  // Determine which config file to load
+  // Priority: 1. Explicit configPath, 2. ./reverb.config.ts, 3. Environment only
+  let fileToLoad = configPath;
+  if (!fileToLoad) {
+    // Check for default config file in current working directory
     try {
-      const fileConfig = await import(configPath);
+      // Use Bun's file system to check if file exists
+      const defaultConfigPath = './reverb.config.ts';
+      const file = Bun.file(defaultConfigPath);
+      if (await file.exists()) {
+        // Resolve to absolute path for reliable import
+        fileToLoad = resolve(process.cwd(), 'reverb.config.ts');
+      }
+    } catch {
+      // File doesn't exist, that's fine - we'll use env config only
+      fileToLoad = undefined;
+    }
+  }
+
+  // If a config file path is determined, try to load and merge it
+  if (fileToLoad) {
+    try {
+      // For absolute paths, use file:// protocol for ES module import
+      // For relative paths provided by user, use as-is
+      const importPath = fileToLoad.startsWith('/')
+        ? `file://${fileToLoad}`
+        : fileToLoad;
+      const fileConfig = await import(importPath);
       const config = fileConfig.default || fileConfig;
 
       // Merge configs - env vars take precedence
@@ -305,7 +330,7 @@ export async function loadConfig(configPath?: string): Promise<ReverbConfig> {
       };
     } catch (error) {
       // If config file doesn't exist or can't be loaded, just use env config
-      console.warn(`Warning: Could not load config file at ${configPath}, using environment variables`);
+      console.warn(`Warning: Could not load config file at ${fileToLoad}, using environment variables`);
     }
   }
 
