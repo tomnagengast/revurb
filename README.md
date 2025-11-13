@@ -50,7 +50,7 @@ bun run dev
 bun run start
 
 # Or directly
-bun run src/cli.ts --host=127.0.0.1 --port=8080
+bun run src/cli.ts start --host=127.0.0.1 --port=8080
 ```
 
 ### Configuration
@@ -58,20 +58,23 @@ bun run src/cli.ts --host=127.0.0.1 --port=8080
 Create a configuration file or use environment variables:
 
 ```typescript
-// config/reverb.ts
+// reverb.config.ts
 export default {
-  server: {
-    host: "127.0.0.1",
-    port: 8080,
-    path: "",
+  default: "reverb",
+  servers: {
+    reverb: {
+      host: "127.0.0.1",
+      port: 8080,
+      path: "",
+    },
   },
   apps: {
     provider: "config",
     apps: [
       {
+        app_id: "your-app-id",
         key: "your-app-key",
         secret: "your-app-secret",
-        app_id: "your-app-id",
         allowed_origins: ["*"],
         ping_interval: 60,
         activity_timeout: 120,
@@ -83,13 +86,13 @@ export default {
 
 ### Environment Variables
 
-- `REVERB_HOST` - Server host (default: 127.0.0.1)
-- `REVERB_PORT` - Server port (default: 8080)
-- `REVERB_PATH` - WebSocket path
+- `REVERB_SERVER_HOST` - Server host (default: 127.0.0.1)
+- `REVERB_SERVER_PORT` - Server port (default: 8080)
+- `REVERB_SERVER_PATH` - WebSocket path
 - `REVERB_APP_ID` - Application ID
 - `REVERB_APP_KEY` - Application key
 - `REVERB_APP_SECRET` - Application secret
-- `REVERB_APP_ALLOWED_ORIGINS` - Allowed origins (comma-separated)
+- `REVERB_ALLOWED_ORIGINS` - Allowed origins (comma-separated)
 
 ## Example Application
 
@@ -148,14 +151,14 @@ revurb/
 
 ## API Endpoints
 
-- `GET /health` - Health check
+- `GET /up` - Health check
 - `POST /apps/{appId}/events` - Trigger single event
 - `POST /apps/{appId}/batch_events` - Trigger batch events
 - `GET /apps/{appId}/channels` - List channels
 - `GET /apps/{appId}/channels/{channel}` - Channel info
 - `GET /apps/{appId}/channels/{channel}/users` - Channel users (presence)
 - `GET /apps/{appId}/connections` - List connections
-- `DELETE /apps/{appId}/users/{userId}` - Terminate user connections
+- `POST /apps/{appId}/users/{userId}/terminate_connections` - Terminate user connections
 
 ## WebSocket Protocol
 
