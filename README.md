@@ -96,7 +96,7 @@ export default {
 Revurb includes a complete example chat application demonstrating real-time WebSocket communication. The example shows how to:
 
 - Connect to the Revurb WebSocket server
-- Subscribe to private channels
+- Subscribe to channels
 - Send and receive client events
 - Handle ping/pong heartbeats
 - Switch between channels

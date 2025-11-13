@@ -8,7 +8,7 @@ interface Message {
 
 export function Chat() {
 	const [connected, setConnected] = useState(false);
-	const [channel, setChannel] = useState("private-chat");
+	const [channel, setChannel] = useState("chat");
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [messageInput, setMessageInput] = useState("");
 	const [username, setUsername] = useState("User");
@@ -123,7 +123,7 @@ export function Chat() {
 	const handleJoinChannel = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const formData = new FormData(e.currentTarget);
-		const channelName = (formData.get("channel") as string) || "private-chat";
+		const channelName = (formData.get("channel") as string) || "chat";
 
 		if (wsRef.current?.readyState === WebSocket.OPEN) {
 			const previousChannel = currentChannelRef.current;
@@ -201,7 +201,7 @@ export function Chat() {
 						type="text"
 						name="channel"
 						defaultValue={channel}
-						placeholder="Join channel (e.g., private-chat)..."
+						placeholder="Join channel (e.g., chat)..."
 						className="w-full flex-1 bg-transparent border-0 text-[#fbf0df] font-mono text-base py-1.5 px-2 outline-none focus:text-white placeholder-[#fbf0df]/40"
 					/>
 					<button
