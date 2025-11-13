@@ -1,0 +1,14 @@
+**Prioritized Recommendations**
+
+- Highest-priority first step: capture a translation spec before touching code. Inventory every PHP subsystem (loop lifecycle, HTTP upgrade flow, channel types, Redis message semantics, authentication hooks) and document their observable behaviors, implicit contracts, and cross-cutting concerns inside `specs/2025-11-12-1232-convert-to-typescript.md`. This prevents you from losing requirements while switching runtimes and creates a checklist for parity testing across 94 files. Without this, later decisions on Bun APIs or library swaps risk regressions you can’t easily detect.
+
+- Project setup should follow immediately after the spec (before porting interfaces). Once the spec defines the target behavior, scaffold the Bun/TypeScript workspace (package manager choice, `bunfig.toml`, `tsconfig`, lint/test harness, hot-reload scripts). With the tooling pinned, every converted module compiles and runs against the same standards, making interface migrations safe and reviewable.
+
+- Replace the PHP dependencies with Bun-native building blocks that already cover your needs:
+  * `react/socket` (TCP event loop) → Bun’s built-in TCP server/client APIs (`Bun.listen`, `Bun.connect`) which expose lifecycle hooks analogous to ReactPHP’s socket handlers and are optimized for high-throughput networking. ([bun.com](https://bun.com/docs/api/tcp?utm_source=openai))
+  * `ratchet/rfc6455` (WebSocket framing/upgrade) → `Bun.serve`’s RFC 6455-compliant WebSocket server, which natively handles upgrades, compression, subprotocol negotiation, and topic-based fanout via `ServerWebSocket`. ([bun.com](https://bun.com/blog/release-notes/bun-v1.2.22?utm_source=openai))
+  * `clue/redis-react` (async Redis pub/sub) → Bun’s built-in `redis` client/`RedisClient`, written in Zig with RESP3, auto-reconnect, pipelining, and TLS; you can call `redis.subscribe`/`send` to mirror your current pub/sub bridge. ([bun.com](https://bun.com/docs/api/redis?utm_source=openai))
+
+- Yes, build a detailed conversion plan inside the spec before converting any PHP file. Break the work into layers (network entrypoints, protocol adapter, channel registry, Redis bridge, auth middleware) with sequencing, owners, success metrics, and parity tests per layer. This keeps the effort measurable, lets you stage delivery (e.g., start with HTTP/WebSocket scaffolding, then plug channels), and prevents thrash when you encounter Bun-specific constraints later.
+
+Natural next steps: 1) Flesh out the spec with behavioral requirements and acceptance tests; 2) Initialize the Bun/TypeScript workspace (package manager, lint/test, CI) that you’ll use for all future ports.
