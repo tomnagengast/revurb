@@ -12,13 +12,27 @@ if (!existsSync(indexFile)) {
 }
 
 const results = JSON.parse(readFileSync(indexFile, "utf-8"));
+
+// Handle both array and object formats
 const firstResult = Array.isArray(results) ? results[0] : results;
 
-let hasFailures = false;
+// Find the agent results (should be under a key like "Reverb")
+const agentKey = Object.keys(firstResult).find(key => key !== "options");
+if (!agentKey) {
+	console.error("No agent results found in index.json");
+	process.exit(1);
+}
 
-for (const [name, result] of Object.entries(firstResult)) {
+const agentResults = firstResult[agentKey];
+let hasFailures = false;
+let passCount = 0;
+let failCount = 0;
+const failures: string[] = [];
+
+for (const [name, result] of Object.entries(agentResults)) {
 	const testResult = result as {
 		behavior: string;
+		behaviorClose?: string;
 	};
 
 	if (testResult.behavior === "INFORMATIONAL") {
@@ -26,10 +40,25 @@ for (const [name, result] of Object.entries(firstResult)) {
 	}
 
 	if (testResult.behavior === "OK" || testResult.behavior === "NON-STRICT") {
-		console.log(`✅ Test case ${name} passed.`);
+		passCount++;
 	} else {
 		hasFailures = true;
-		console.log(`❌ Test case ${name} failed.`);
+		failCount++;
+		failures.push(`${name}: ${testResult.behavior}`);
+	}
+}
+
+console.log(`\nTest Results Summary:`);
+console.log(`  Passed: ${passCount}`);
+console.log(`  Failed: ${failCount}`);
+
+if (hasFailures) {
+	console.log(`\nFailed Tests:`);
+	for (const failure of failures.slice(0, 20)) {
+		console.log(`  ❌ ${failure}`);
+	}
+	if (failures.length > 20) {
+		console.log(`  ... and ${failures.length - 20} more failures`);
 	}
 }
 
