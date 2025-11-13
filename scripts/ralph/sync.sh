@@ -28,14 +28,9 @@ function claude() {
 mkdir -p specs/logs _tmp/ralph
 
 git pull origin main || {
-  stash_created=false
-  if git stash -q --include-untracked 2>/dev/null; then
-    stash_created=true
-  fi
+  git stash -q --include-untracked || true
   git pull origin main
-  if [ "$stash_created" = true ]; then
-    git stash pop -q
-  fi
+  git stash pop -q || true
 }
 
 bun run .claude/hooks/discord.ts --start --message "$prompt"
