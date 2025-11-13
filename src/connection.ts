@@ -37,20 +37,6 @@ export class Connection extends ConnectionContract {
 	 */
 	private _id: string | null = null;
 
-	/**
-	 * Create a new connection instance.
-	 *
-	 * @param connection - The underlying WebSocket connection
-	 * @param application - The application this connection belongs to
-	 * @param origin - The origin of the connection (nullable)
-	 */
-	constructor(
-		connection: IWebSocketConnection,
-		application: Application,
-		origin: string | null,
-	) {
-		super(connection, application, origin);
-	}
 
 	/**
 	 * Get the raw socket connection identifier.

@@ -47,5 +47,5 @@ export interface IApplicationProvider {
 	 * @returns The Application instance matching the criteria
 	 * @throws {InvalidApplication} If no application matches the given criteria
 	 */
-	find(key: string, value: any): Application;
+	find(key: string, value: unknown): Application;
 }

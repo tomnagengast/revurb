@@ -1,4 +1,4 @@
-import { resolve } from "path";
+import { resolve } from "node:path";
 import type {
 	AppConnectionOptions,
 	AppsConfig,
@@ -59,7 +59,7 @@ export function envInt(key: string, defaultValue: number): number {
 		return defaultValue;
 	}
 	const parsed = Number.parseInt(value, 10);
-	return isNaN(parsed) ? defaultValue : parsed;
+	return Number.isNaN(parsed) ? defaultValue : parsed;
 }
 
 /**
@@ -155,7 +155,7 @@ function loadReverbServerConfig(): ReverbServerConfig {
 	);
 
 	return {
-		host: env("REVERB_SERVER_HOST", "0.0.0.0")!,
+		host: env("REVERB_SERVER_HOST", "0.0.0.0") ?? "0.0.0.0",
 		port: envInt("REVERB_SERVER_PORT", 8080),
 		...(path !== undefined ? { path } : {}),
 		...(hostname !== undefined ? { hostname } : {}),
@@ -284,7 +284,7 @@ function loadAppsConfig(): AppsConfig {
  * @returns The complete Reverb configuration
  */
 export async function loadConfig(configPath?: string): Promise<ReverbConfig> {
-	const defaultServer = env("REVERB_SERVER", "reverb")!;
+	const defaultServer = env("REVERB_SERVER", "reverb") ?? "reverb";
 
 	// Determine which config file to load
 	// Priority: 1. Explicit configPath, 2. ./reverb.config.ts, 3. Environment only

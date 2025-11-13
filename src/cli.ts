@@ -165,7 +165,7 @@ async function startServer(
 		if (hostname && hostname !== host) {
 			console.log(`  Hostname: ${hostname}`);
 		}
-		console.log(`  Protocol: pusher`);
+		console.log("  Protocol: pusher");
 		console.log("");
 
 		// Log applications
@@ -393,9 +393,6 @@ async function main(): Promise<void> {
 			displayVersion();
 			break;
 
-		case "help":
-		case "--help":
-		case "-h":
 		default:
 			displayHelp();
 			break;
