@@ -1,6 +1,9 @@
 import type { Application } from "../../../../application";
+import type { IApplicationProvider } from "../../../../contracts/application-provider";
 import { Factory } from "../../../../servers/reverb/factory";
+import type { Connection } from "../../../../servers/reverb/http/connection";
 import { Response } from "../../../../servers/reverb/http/response";
+import type { IHttpRequest } from "../../../../servers/reverb/http/router";
 import { isPresenceChannel } from "../../concerns/interacts-with-channel-information";
 import type { ChannelManager } from "../../contracts/channel-manager";
 import type { MetricsHandler } from "../../metrics-handler";
@@ -40,8 +43,8 @@ import type { MetricsHandler } from "../../metrics-handler";
  * ```
  */
 export async function channelUsersController(
-  request: any,
-  _connection: any,
+  request: IHttpRequest,
+  _connection: Connection,
   channel: string,
   appId: string,
 ): Promise<Response> {
@@ -88,8 +91,8 @@ export async function channelUsersController(
  * @throws {Error} If authentication fails or application not found
  */
 async function verify(
-  request: any,
-  _connection: any,
+  request: IHttpRequest,
+  _connection: Connection,
   appId: string,
 ): Promise<{ application: Application; channels: ChannelManager }> {
   // Parse query parameters
@@ -148,7 +151,7 @@ async function setApplication(appId: string | null): Promise<Application> {
  * @throws {Error} If signature is invalid
  */
 function verifySignature(
-  request: any,
+  request: IHttpRequest,
   query: Record<string, string>,
   body: string,
   application: Application,
@@ -234,7 +237,7 @@ function formatQueryParametersForVerification(
  *
  * @returns The application provider instance
  */
-function getApplicationProvider(): any {
+function getApplicationProvider(): IApplicationProvider {
   return Factory.getApplicationProvider();
 }
 
