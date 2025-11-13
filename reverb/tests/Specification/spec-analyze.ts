@@ -20,6 +20,8 @@ const firstResult = Array.isArray(results) ? results[0] : results;
 const agentKey = Object.keys(firstResult).find(key => key !== "options");
 if (!agentKey) {
 	console.error("No agent results found in index.json");
+	console.error(`Available keys: ${Object.keys(firstResult).join(", ")}`);
+	console.error(`Full structure: ${JSON.stringify(firstResult, null, 2).slice(0, 500)}`);
 	process.exit(1);
 }
 
