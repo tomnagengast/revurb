@@ -1,3 +1,4 @@
+
 node_modules/
 dist/
 .DS_Store
@@ -5,4 +6,8 @@ dist/
 .env
 .env.local
 bun.lockb
-reverb
+
+reverb/
+
+specs/logs/archive/
+notes/

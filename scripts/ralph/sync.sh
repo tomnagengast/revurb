@@ -2,7 +2,7 @@
 set -eo pipefail
 
 prompt="$(<scripts/ralph/prompt-fast.md)"
-out="specs/logs/codex-$(date +%Y-%m-%d-%H%M).md"
+out="specs/logs/codex-$(date +%Y-%m-%d-%H%M).json"
 
 function cursor() {
     # Thanks https://github.com/johnlindquist/cursor-alias
@@ -14,6 +14,7 @@ function cursor() {
 function codex() {
     cat scripts/ralph/prompt-smart.md | \
         command codex --yolo exec --skip-git-repo-check \
+        --output-schema scripts/ralph/review-schema.json \
         --output-last-message "$1"
 }
 
