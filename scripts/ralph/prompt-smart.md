@@ -1,6 +1,6 @@
 Your job is to review the work being done to port Laravel Reverb (PHP) to revurb-ts (Typescript).
 
-The original repository is  ./ repository and should target revurb-ts for your port.
+revurb-ts for your port.
 
 Make a commit and push your changes after every single file edit.
 

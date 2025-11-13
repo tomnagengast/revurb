@@ -994,8 +994,9 @@ export class Factory {
         const [certPath, keyPath] = certs;
         filtered.local_cert = certPath;
         filtered.local_pk = keyPath;
-        // TODO: Determine environment for verify_peer setting
-        // filtered.verify_peer = environment === 'production';
+        // Enable peer verification in production for better security
+        const isProduction = process.env.NODE_ENV === 'production';
+        filtered.verify_peer = isProduction;
       }
     }
 
