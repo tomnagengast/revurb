@@ -1,6 +1,5 @@
-last commit: d31bd9b
+last commit: 730dd6236748a050014e9d4a652dcb88fbaa6fbe
 status: not ok
 review comments:
-- example/src/Chat.tsx:11 – `getDefaultServer()` now points to whatever host serves the React UI, so the chat demo defaults to `ws://localhost:3000` (or 5173) even though the Revurb daemon still listens on 8080 (see example/reverb.config.ts:5). The first connection attempt now always fails until the user manually edits the field.
-- .github/workflows/spec-tests.yml:37 – The workflow still `cd`s into `reverb/tests/Specification`, but commit 6b5754c removed that directory and .gitignore:12 now excludes it, so CI can no longer run the Autobahn spec suite.
-- LICENSE.md – The only license file was deleted even though package.json:13 still declares MIT and its `files` list expects LICENSE.md, leaving the project effectively unlicensed.
+- .github/workflows/spec-tests.yml:1 – Removing the workflow entirely means CI no longer runs the Autobahn spec suite, so we have zero protocol coverage or regression detection. The ask was to repoint the job at revurb-ts, not delete it, so we still need a workflow that exercises the TypeScript spec harness.
+- example/src/Chat.tsx:10 – Hard-coding `getDefaultServer()` to `ws://localhost:8080` regresses the location-aware default, so HTTPS deployments now try to open an insecure localhost socket and fail before the user can interact. Keep the host/scheme detection when `window.location` exists and only fall back to localhost when rendering outside the browser.
