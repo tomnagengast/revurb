@@ -181,25 +181,28 @@ await server2.shutdown();
 
 Revurb includes a complete example chat application demonstrating real-time WebSocket communication. The example shows how to:
 
+- Programmatically embed Revurb using `createServer`
 - Connect to the Revurb WebSocket server
 - Subscribe to channels
 - Send and receive client events
 - Handle ping/pong heartbeats
 - Switch between channels
 
+The example embeds Revurb directly in the same process as the frontend dev server, demonstrating how to use the `createServer` API programmatically.
+
 To run the example:
 
 ```bash
-# Start the Revurb server
-bun run dev
-
-# In another terminal, start the example app
 cd example
 bun install
 bun run dev
 ```
 
-The example app will be available at `http://localhost:5173` (or the port configured by your dev server). Make sure the Revurb server is running on `localhost:8080` with the app key `my-app-key` (or update the WebSocket URL in the example).
+This single command starts both:
+- **Revurb WebSocket server** on `ws://0.0.0.0:8080` with app key `my-app-key`
+- **Frontend dev server** with hot module reloading
+
+The example app will be available at the URL shown in the console output (typically `http://localhost:3000`). Both servers run in the same process and shut down together gracefully.
 
 ## Testing
 
