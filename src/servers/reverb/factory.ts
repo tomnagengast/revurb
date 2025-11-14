@@ -36,6 +36,58 @@ import { Connection as WebSocketConnection } from "./connection";
 import { Connection as HttpConnection } from "./http/connection";
 import { Response as HttpResponse } from "./http/response";
 import type { IHttpRequest } from "./http/router";
+import type { ReverbServerConfig } from "../../config/types";
+import { loadConfig } from "../../config/load";
+import {
+  performGracefulShutdown,
+  setupEventListeners,
+  setupPeriodicTasks,
+  setupSignalHandlers,
+} from "./utilities";
+
+/**
+ * Options for creating a Reverb server
+ */
+export interface CreateServerOptions {
+  /** Resolved config object (takes precedence over configPath) */
+  config?: ReverbConfig;
+  /** Path to config file to load */
+  configPath?: string;
+  /** Server name to use (overrides config.default) */
+  serverName?: string;
+  /** Host override */
+  host?: string;
+  /** Port override (string or number) */
+  port?: string | number;
+  /** Path override */
+  path?: string;
+  /** Hostname override */
+  hostname?: string;
+  /** Max request size override */
+  maxRequestSize?: number;
+  /** Enable debug event logging */
+  enableEventLogging?: boolean;
+  /** Enable periodic jobs (ping/prune) */
+  enableJobs?: boolean;
+  /** Enable signal handlers for graceful shutdown */
+  enableSignals?: boolean;
+}
+
+/**
+ * Result of creating a Reverb server
+ */
+export interface CreateServerResult {
+  /** The Bun server instance */
+  server: ReturnType<typeof Bun.serve>;
+  /** The resolved configuration */
+  config: ReverbConfig;
+  /** The server configuration used */
+  serverConfig: ReverbServerConfig;
+  /** Interval timers (if jobs enabled) */
+  intervals: Timer[];
+  /** Shutdown function for cleanup */
+  shutdown: () => Promise<void>;
+}
 
 /**
  * WebSocket connection data stored in Bun's ws.data
@@ -189,6 +241,11 @@ interface HttpServerOptions {
 // biome-ignore lint/complexity/noStaticOnlyClass: Factory pattern requires static methods for singleton-like behavior
 export class Factory {
   /**
+   * Track whether Factory has been initialized
+   */
+  private static isInitialized = false;
+
+  /**
    * Application manager for app lookup and validation
    */
   private static appManager: ApplicationManager | null = null;
@@ -239,6 +296,10 @@ export class Factory {
    * @param config - The Reverb configuration
    */
   public static initialize(config: ReverbConfig): void {
+    if (Factory.isInitialized) {
+      return;
+    }
+
     Factory.logger = new CliLogger();
     // Set the logger in the Log facade so it's available globally
     Log.setLogger(Factory.logger);
@@ -303,6 +364,8 @@ export class Factory {
       Factory.serverProvider,
       undefined,
     );
+
+    Factory.isInitialized = true;
   }
 
   /**
@@ -1276,4 +1339,107 @@ export class Factory {
       },
     });
   }
+}
+
+/**
+ * Create and start a Reverb WebSocket server
+ *
+ * This is the main entry point for programmatic server creation.
+ * It handles configuration loading, factory initialization, server creation,
+ * and optional lifecycle features (event logging, periodic jobs, signal handlers).
+ *
+ * @param options - Server creation options
+ * @returns Server result with shutdown capabilities
+ *
+ * @example
+ * ```typescript
+ * const { server, shutdown } = await createServer({
+ *   configPath: './reverb.config.ts',
+ *   enableEventLogging: true,
+ *   enableJobs: true,
+ *   enableSignals: true,
+ * });
+ * ```
+ */
+export async function createServer(
+  options: CreateServerOptions = {},
+): Promise<CreateServerResult> {
+  const config =
+    options.config ?? (await loadConfig(options.configPath));
+
+  const serverName = options.serverName ?? config.default;
+  const serverConfig = config.servers[serverName];
+
+  if (!serverConfig) {
+    throw new Error(`Server configuration not found for: ${serverName}`);
+  }
+
+  const host = options.host ?? serverConfig.host;
+  const port =
+    typeof options.port === "number"
+      ? String(options.port)
+      : options.port ?? String(serverConfig.port);
+  const path = options.path ?? serverConfig.path ?? "";
+  const hostname = options.hostname ?? serverConfig.hostname;
+  const maxRequestSize = options.maxRequestSize ?? serverConfig.max_request_size ?? 10000;
+  const serverOptions = serverConfig.options ?? {};
+
+  Factory.initialize(config);
+
+  const logger = Factory.getLogger();
+  const channelManager = Factory.getChannelManager();
+  const applicationProvider = Factory.getApplicationProvider();
+
+  let removeEventListeners: (() => void) | undefined;
+  if (options.enableEventLogging === true) {
+    removeEventListeners = setupEventListeners(logger, true);
+  }
+
+  const server = Factory.make(
+    host,
+    port,
+    path,
+    hostname,
+    maxRequestSize,
+    serverOptions as HttpServerOptions,
+    "pusher",
+  );
+
+  const intervals: Timer[] = [];
+  if (options.enableJobs === true) {
+    intervals.push(...setupPeriodicTasks(applicationProvider, logger, channelManager));
+  }
+
+  let removeSignalHandlers: (() => void) | undefined;
+  if (options.enableSignals === true) {
+    removeSignalHandlers = setupSignalHandlers(
+      server,
+      channelManager,
+      applicationProvider,
+    );
+  }
+
+  const shutdown = async (): Promise<void> => {
+    for (const interval of intervals) {
+      clearInterval(interval);
+    }
+
+    if (removeEventListeners) {
+      removeEventListeners();
+    }
+
+    if (removeSignalHandlers) {
+      removeSignalHandlers();
+    }
+
+    await performGracefulShutdown(server, channelManager, applicationProvider);
+  };
+
+  return {
+    server,
+    config,
+    serverConfig,
+    intervals,
+    shutdown,
+  };
 }

@@ -14,6 +14,9 @@ export * from "./contracts/server-provider";
 export * from "./contracts/websocket-connection";
 export * from "./events";
 export * from "./jobs";
-
-// Re-export main server factory when implemented
-// export { createServer } from './servers/reverb/factory';
+export type {
+  CreateServerOptions,
+  CreateServerResult,
+} from "./servers/reverb/factory";
+// Re-export main server factory
+export { createServer } from "./servers/reverb/factory";
