@@ -159,25 +159,41 @@ export class RedisClient extends EventEmitter {
    * @returns True if connected, false otherwise
    */
   public isConnected(): boolean {
-    return this.client !== null && typeof this.client === "object";
+    if (!this.client) {
+      return false;
+    }
+    // Check for ioredis status property
+    const status = (this.client as { status?: string }).status;
+    return status === "ready" || status === "connect";
   }
 
   /**
    * Configure error handler for the Redis client
    *
-   * Sets up event listeners for connection close events to trigger reconnection
+   * Sets up event listeners for connection close events to trigger reconnection.
+   * Uses ioredis event names: 'end' for disconnection, 'error' for errors.
    */
   protected configureClientErrorHandler(): void {
     if (!this.client) {
       return;
     }
 
-    this.client.on("close", () => {
+    // ioredis uses 'end' event for disconnection
+    this.client.on("end", () => {
       this.client = null;
 
       this.logger.info("Disconnected from Redis", `<fg=red>${this.name}</>`);
 
       this.reconnect();
+    });
+
+    // Also handle 'close' for compatibility
+    this.client.on("close", () => {
+      if (this.client) {
+        this.client = null;
+        this.logger.info("Disconnected from Redis", `<fg=red>${this.name}</>`);
+        this.reconnect();
+      }
     });
 
     this.client.on("error", (error: unknown) => {
