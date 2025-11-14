@@ -43,14 +43,14 @@ export class RedisPublishClient extends RedisClient {
    * automatically when the connection is restored.
    *
    * @param payload - The event payload to publish
-   * @returns Promise that resolves when the event is published or queued
+   * @returns Promise that resolves to the number of subscribers that received the message
    */
-  public async publish(payload: EventPayload): Promise<void> {
+  public async publish(payload: EventPayload): Promise<number> {
     if (!this.isConnected() || !this.client) {
       this.queueEvent(payload);
-      return Promise.reject(new Error("Redis client not connected"));
+      return 0;
     }
-    await this.client.publish(this.channel, JSON.stringify(payload));
+    return await this.client.publish(this.channel, JSON.stringify(payload));
   }
 
   /**
