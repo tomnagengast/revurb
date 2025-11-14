@@ -24,10 +24,10 @@ const server = Bun.serve({
     message(ws, message) {
       ws.send(message);
     },
-    open(ws) {
+    open(_ws) {
       // Connection opened
     },
-    close(ws) {
+    close(_ws) {
       // Connection closed
     },
   },
