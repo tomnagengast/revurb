@@ -1,6 +1,6 @@
-last commit: 7ef3cbcbab4d16db4f16f68340ff90142112f61d
-status: ok
+last commit: f22017cd94f4f9096ff0edb06f11fe93e6a02d32
+status: not ok
 review comments:
-- .github/workflows/spec-tests.yml now calls the workflow \"specification tests\" but preserves every job/step, so CI behavior is unchanged.
-- Ralph prompts, backlog, and current-priority docs were refreshed to mark the Redis spec as complete and to point builders/reviewers at the latest Codex logs; no runtime code was touched.
-- Historical Codex review logs were removed from specs/logs (they continue to live in git history/ignored archives) which reduces repo noise without affecting the application.
+- tests/unit/create-server.test.ts:64-96 hard-codes `/Users/tom/personal/revurb/...` and rewrites the tracked fixture in-place via `Bun.write`, so the test suite only passes on the author’s machine and leaves the repo dirty after it runs. Use a relative path under the repo (e.g., `import.meta.dir`) and write to a temporary file instead of clobbering the committed fixture.
+- Factory.initialize() short-circuits after the first call (src/servers/reverb/factory.ts:241-345) and createServer()/shutdown never reset that state (src/servers/reverb/factory.ts:1364-1444), so any subsequent createServer invocation continues using the very first ApplicationManager/app config even if a caller supplies a different config. The new API therefore can’t reliably spin up multiple isolated servers in one process, which contradicts the embedding/testing goal spelled out in the spec.
+- README.md still only documents CLI usage (README.md:50-120) even though the spec explicitly requires documenting the new programmatic createServer API (`specs/2025-11-13-2057-implement-server-factory.md:96`). Without docs, consumers won’t discover how to use the exported helper.
