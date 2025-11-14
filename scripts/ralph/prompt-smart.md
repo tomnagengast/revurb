@@ -1,6 +1,10 @@
-Read `AGENTS.md`
+# Review
 
 Your job is to review the work being done to port Laravel Reverb (PHP) to revurb-ts (Typescript).
+
+## Instructions
+
+Read `AGENTS.md`
 
 Read `./scripts/ralph/current.md`
 

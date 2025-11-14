@@ -1,25 +1,22 @@
+# Build
 
 Your job is to port Laravel Reverb (PHP) to revurb-ts (Typescript) and maintain the repository.
 
 ## Instructions
-Read `AGENTS.md` and
 
 - 0a. familiarize yourself with the code in `src` and `tests`
-- 0b. familiarize yourself with the REACT_CODING_STANDARDS.md
-- 1. read @REACT_REFACTOR_PLAN.md and complete the SINGLE highest priority item using up to 50 subagents
-- 2. run the tests with `make -C humanlayer-wui check test` and fix issues until they pass
-- 3. Update REACT_REFACTOR_PLAN.md with your progress
-- 4. use `git add -A` and `git commit -m "..."` to commit your changes - do not include any claude attribution
+- 0b. familiarize yourself with `AGENTS.md` and `README.md`
 
-First, read the `./specs/review.json`
-- If the status is `not ok`, address the review feedback first
-- If the status is `ok`, address the current objectives in `./scripts/ralph/current.md`
-- Otherwise procceed with the port
+First, read the `./specs/review.md`
+- If the status is `not ok`:
+    - Address the review feedback
+- If the status is `ok`:
+    - Read `./scripts/ralph/current.md` (if it references a spec target that instead) and complete the **single** highest priority item using up to 50 subagents
+    - Update `./scripts/ralph/current.md` (or the spec if targeted) with your progress
+- 4. use `git add -A` and `git commit -m "..."` to commit your changes, then push before reporting back
 
-As always, run your test / lint:fix / format rounds before committing.
+## Notes
 
-The Laravel Reverb project is located in `~/personal/_clones/laravel/reverb` and you should target this directory for your port.
-
-Make a commit after every single file edit and push your changes before reporting back.
+The Laravel Reverb project is located in `./reverb` (gitignored, for reference only) and you should target `./` for your port.
 
 Use the `./notes/` directory as a scratchpad for your work (prefix with `YYYY-MM-DD-HHMM-<slug>` for clarity). Store long term plans and todo lists there.

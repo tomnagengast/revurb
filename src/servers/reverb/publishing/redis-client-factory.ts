@@ -113,18 +113,21 @@ export class RedisClientFactory {
       // Parse the Redis URL to extract connection parameters
       const url = new URL(redisUrl);
 
-      // Extract components from URL
+      // Parse query parameters for additional options
+      const params = new URLSearchParams(url.search);
+
+      // Extract components from URL and query parameters
+      // Query parameters take precedence over URL components for username, password, and db
       const protocol = url.protocol.replace(":", "");
       const host = url.hostname || "localhost";
       const port = url.port ? Number.parseInt(url.port, 10) : 6379;
-      const username = url.username || undefined;
-      const password = url.password || undefined;
-      const db = url.pathname
-        ? Number.parseInt(url.pathname.replace("/", ""), 10) || 0
-        : 0;
-
-      // Parse query parameters for additional options
-      const params = new URLSearchParams(url.search);
+      const username = params.get("username") || url.username || undefined;
+      const password = params.get("password") || url.password || undefined;
+      const db = params.get("db")
+        ? Number.parseInt(params.get("db") as string, 10)
+        : url.pathname
+          ? Number.parseInt(url.pathname.replace("/", ""), 10) || 0
+          : 0;
       const timeout = params.get("timeout")
         ? Number.parseInt(params.get("timeout") as string, 10)
         : undefined;
