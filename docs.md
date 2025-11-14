@@ -455,4 +455,4 @@ servers: {
 Once you have enabled Revurb's scaling option and configured a Redis server, you may simply invoke the `start` command on multiple servers that are able to communicate with your Redis server. These Revurb servers should be placed behind a load balancer that distributes incoming requests evenly among the servers.
 
 > [!NOTE]
-> The default Redis implementation in Revurb is a no-op mock. For production multi-server deployments requiring Redis, you must extend the `RedisClientFactory` and override `createClient()` to use a real Redis client library such as `ioredis` or `redis`.
+> Revurb includes production-ready Redis integration using ioredis with full support for TLS, authentication, automatic reconnection, and event queueing. The Redis client will automatically reconnect and resubscribe to channels if the connection is lost.
