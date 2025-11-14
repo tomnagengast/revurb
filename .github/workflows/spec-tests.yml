@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Autobahn spec tests
         run: |
-          docker run -it --rm \
+          docker run --rm \
             --network host \
             -v "${PWD}/tests/spec:/config" \
             -v "${PWD}/tests/spec/reports:/reports" \
