@@ -77,7 +77,7 @@ export default {
         secret: "your-app-secret",
         allowed_origins: ["*"],
         ping_interval: 60,
-        activity_timeout: 120,
+        activity_timeout: 30,
       },
     ],
   },
