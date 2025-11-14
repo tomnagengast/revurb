@@ -8,13 +8,14 @@ Prep:
 - 0a. Familiarize yourself with the code in `src` and `tests`
 - 0b. Familiarize yourself with `AGENTS.md` and `README.md`
 
-First, read the `./specs/review.md`
-- If the status is `not ok`:
-    - Address the review feedback
-- If the status is `ok`:
-    - Read `./scripts/ralph/current.md` (if it references a spec target that instead) and complete the **single** highest priority item using up to 50 subagents
-    - Update `./scripts/ralph/current.md` (or the spec if targeted) with your progress
-- 4. Use `git add -A` and `git commit -m "..."` to commit your changes, then push before reporting back
+Build:
+- First, read the `./specs/review.md`
+    - If the status is `not ok`:
+        - Address the review feedback
+    - If the status is `ok`:
+        - Read `./scripts/ralph/current.md` (if it references a spec target that instead) and complete the **single** highest priority item using up to 50 subagents
+        - Update `./scripts/ralph/current.md` (or the spec if targeted) with your progress
+- Use `git add -A` and `git commit -m "..."` to commit your changes, then push before reporting back
 
 ## Notes
 
