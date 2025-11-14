@@ -18,5 +18,4 @@ export type {
   CreateServerOptions,
   CreateServerResult,
 } from "./servers/reverb/factory";
-// Re-export main server factory
 export { createServer } from "./servers/reverb/factory";

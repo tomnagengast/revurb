@@ -294,7 +294,7 @@ This is a complete TypeScript port of Laravel Reverb. All core functionality has
 - ✅ 0 TypeScript compilation errors
 - ✅ All core features implemented
 - ✅ Production ready for multi-server deployments
-- ✅ **Redis Pub/Sub**: Full production-ready Redis integration using ioredis with TLS support, automatic reconnection, and event queueing
+- ✅ Redis Pub/Sub: Full production-ready Redis integration using ioredis with TLS support, automatic reconnection, and event queueing
 
 ### Not Ported (Laravel-Specific)
 
