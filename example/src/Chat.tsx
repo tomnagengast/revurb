@@ -7,11 +7,37 @@ interface Message {
 }
 
 export function Chat() {
+  const removeTrailingSlash = (value: string) => value.replace(/\/+$/, "");
+  const getDefaultServer = () => {
+    if (typeof location === "undefined") {
+      return "ws://localhost:8080";
+    }
+    const scheme = location.protocol === "https:" ? "wss" : "ws";
+    const host = location.host || "localhost:8080";
+    return `${scheme}://${host}`;
+  };
+  const normalizeServer = (value: string) => {
+    const trimmed = value.trim();
+    const fallback = trimmed || getDefaultServer();
+    if (/^wss?:\/\//i.test(fallback)) {
+      return removeTrailingSlash(fallback);
+    }
+    if (/^https?:\/\//i.test(fallback)) {
+      const withoutProtocol = fallback.replace(/^https?:\/\//i, "");
+      if (fallback.toLowerCase().startsWith("https")) {
+        return `wss://${removeTrailingSlash(withoutProtocol)}`;
+      }
+      return `ws://${removeTrailingSlash(withoutProtocol)}`;
+    }
+    return `ws://${removeTrailingSlash(fallback)}`;
+  };
   const [connected, setConnected] = useState(false);
   const [channel, setChannel] = useState("chat");
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageInput, setMessageInput] = useState("");
   const [username, setUsername] = useState("User");
+  const [server, setServer] = useState(() => getDefaultServer());
+  const [connectionError, setConnectionError] = useState("");
   const wsRef = useRef<WebSocket | null>(null);
   const channelRef = useRef(channel);
   const currentChannelRef = useRef(channel);
@@ -34,12 +60,14 @@ export function Chat() {
       return;
     }
 
-    const wsUrl =
-      "ws://localhost:8080/app/my-app-key?protocol=7&client=js&version=8.4.0";
-    const ws = new WebSocket(wsUrl);
+    const wsBase = normalizeServer(server);
+    const ws = new WebSocket(
+      `${wsBase}/app/my-app-key?protocol=7&client=js&version=8.4.0`,
+    );
 
     ws.onopen = () => {
       setConnected(true);
+      setConnectionError("");
     };
 
     ws.onmessage = (event) => {
@@ -80,10 +108,14 @@ export function Chat() {
 
     ws.onerror = (error) => {
       console.error("WebSocket error:", error);
+      setConnectionError(
+        `Unable to connect to ${wsBase}. Is the server running?`,
+      );
     };
 
     ws.onclose = () => {
       setConnected(false);
+      setConnectionError((prev) => prev || "Connection closed.");
     };
 
     wsRef.current = ws;
@@ -159,7 +191,40 @@ export function Chat() {
   return (
     <div className="mt-8 mx-auto w-full max-w-2xl text-left flex flex-col gap-4">
       {/* Connection controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={server}
+            onChange={(e) => setServer(e.target.value)}
+            placeholder="ws://localhost:8080"
+            className="flex-1 bg-[#1a1a1a] border-2 border-[#fbf0df] rounded-xl p-3 text-[#fbf0df] font-mono focus:border-[#f3d5a3] outline-none"
+            disabled={connected}
+          />
+          {connected && (
+            <button
+              type="button"
+              onClick={disconnect}
+              className="bg-red-600 text-white border-0 px-5 py-3 rounded-lg font-bold transition-all duration-100 hover:bg-red-700 hover:-translate-y-px cursor-pointer whitespace-nowrap"
+            >
+              Disconnect
+            </button>
+          )}
+          {!connected && (
+            <button
+              type="button"
+              onClick={connect}
+              className="bg-[#fbf0df] text-[#1a1a1a] border-0 px-5 py-3 rounded-lg font-bold transition-all duration-100 hover:bg-[#f3d5a3] hover:-translate-y-px cursor-pointer whitespace-nowrap"
+            >
+              Connect
+            </button>
+          )}
+        </div>
+        {connectionError && (
+          <div className="text-red-400 text-sm font-mono">
+            {connectionError}
+          </div>
+        )}
         <input
           type="text"
           value={username}
@@ -168,23 +233,6 @@ export function Chat() {
           className="flex-1 bg-[#1a1a1a] border-2 border-[#fbf0df] rounded-xl p-3 text-[#fbf0df] font-mono focus:border-[#f3d5a3] outline-none"
           disabled={connected}
         />
-        {connected ? (
-          <button
-            type="button"
-            onClick={disconnect}
-            className="bg-red-600 text-white border-0 px-5 py-3 rounded-lg font-bold transition-all duration-100 hover:bg-red-700 hover:-translate-y-px cursor-pointer whitespace-nowrap"
-          >
-            Disconnect
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={connect}
-            className="bg-[#fbf0df] text-[#1a1a1a] border-0 px-5 py-3 rounded-lg font-bold transition-all duration-100 hover:bg-[#f3d5a3] hover:-translate-y-px cursor-pointer whitespace-nowrap"
-          >
-            Connect
-          </button>
-        )}
       </div>
 
       {/* Channel join form */}

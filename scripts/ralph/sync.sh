@@ -1,5 +1,6 @@
 #!/bin/bash
 set -eo pipefail
+# exit 0 # Leave for manual testing
 
 prompt="$(<scripts/ralph/prompt-fast.md)"
 out="specs/logs/codex-$(date +%Y-%m-%d-%H%M).json"

@@ -1,6 +1,7 @@
 import { type FormEvent, useRef } from "react";
 
 export function APITester() {
+  const defaultServer = typeof location === "undefined" ? "" : location.origin;
   const responseInputRef = useRef<HTMLTextAreaElement>(null);
 
   const testEndpoint = async (e: FormEvent<HTMLFormElement>) => {
@@ -9,8 +10,15 @@ export function APITester() {
     try {
       const form = e.currentTarget;
       const formData = new FormData(form);
+      const serverInput = (formData.get("server") as string) || "";
+      const trimmedServer = serverInput.trim();
+      const baseServer =
+        trimmedServer || defaultServer || "http://localhost:5173";
+      const normalizedServer = /^https?:\/\//i.test(baseServer)
+        ? baseServer
+        : `http://${baseServer}`;
       const endpoint = formData.get("endpoint") as string;
-      const url = new URL(endpoint, location.href);
+      const url = new URL(endpoint, normalizedServer);
       const method = formData.get("method") as string;
       const res = await fetch(url, { method });
 
@@ -43,6 +51,13 @@ export function APITester() {
             PUT
           </option>
         </select>
+        <input
+          type="text"
+          name="server"
+          defaultValue={defaultServer || "http://localhost:5173"}
+          className="w-full flex-1 bg-transparent border-0 text-[#fbf0df] font-mono text-base py-1.5 px-2 outline-none focus:text-white placeholder-[#fbf0df]/40"
+          placeholder="http://localhost:5173"
+        />
         {/* Connect to websocket server */}
         <input
           type="text"
