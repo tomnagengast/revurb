@@ -1,6 +1,6 @@
 Your job is to port Laravel Reverb (PHP) to revurb-ts (Typescript) and maintain the repository.
 
-YThe Laravel Reverb project is located in `./reverb` and you should target `./` for your port.
+YThe Laravel Reverb project is located in `~/personal/_clones/laravel/reverb` and you should target this directory for your port.
 
 Make a commit and push your changes after every single file edit.
 
