@@ -1,4 +1,4 @@
-last commit: f675ce14c6113d0df8003a26cf47b7494e9460b4
-status: ok
+last commit: 3b7672a48bd76bed135e7bdcd394589ccd5f89a1
+status: not ok
 review comments:
-- Example integration looks good—`example/src/index.ts:1` now bootstraps Revurb via `createServer` before launching the frontend server, wiring graceful shutdown to `SIGINT/SIGTERM` as required by specs. README instructions (`README.md:181`) were updated to match the new single-process workflow. No regressions observed. Residual risk: we could not run the dev server to completion because port 3000 is already occupied on this host, so the end-to-end example wasn’t smoke-tested here.
+- `.github/workflows/example-tests.yml:52` – The WebSocket smoke-test step invokes `bun run -e`, but `bun run` expects a script name and ignores `-e/--eval`, so this command simply prints the usage text and exits successfully without ever running the connection check. As written, the workflow never exercises the WebSocket client and cannot catch regressions. Use `bun -e '...'` (or another runner such as `node -e`) so the inline script actually executes.

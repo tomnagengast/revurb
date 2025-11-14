@@ -1,0 +1,8 @@
+{
+  "commit": "3b7672a48bd76bed135e7bdcd394589ccd5f89a1",
+  "status": "not ok",
+  "review_comments": [
+    ".github/workflows/example-tests.yml:52 – The WebSocket smoke-test step uses `bun run -e`, but `bun run` requires a script name and ignores the eval flag, so the command only prints Bun's usage text and exits successfully. The inline client never runs, which means CI doesn't actually verify the WebSocket path."
+  ],
+  "additional_comments": "Re-run the workflow after fixing the WebSocket test (e.g., use `bun -e` or `node -e`) to ensure the smoke test genuinely exercises the Pusher connection."
+}
