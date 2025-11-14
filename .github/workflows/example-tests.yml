@@ -50,7 +50,7 @@ jobs:
 
       - name: Test WebSocket connection
         run: |
-          bun run -e "
+          bun -e "
           import { WebSocket } from 'ws';
           const ws = new WebSocket('ws://127.0.0.1:8080/app/my-app-key?protocol=7&client=js&version=8.4.0');
           ws.on('open', () => {

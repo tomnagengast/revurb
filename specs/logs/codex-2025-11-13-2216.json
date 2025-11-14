@@ -1,0 +1,8 @@
+{
+  "commit": "3325f9b239c0ab8af55b072f1dcdabd0c51e427e",
+  "status": "not ok",
+  "review_comments": [
+    "**Blocking:** `.github/workflows/example-tests.yml:52` – The WebSocket smoke-test step calls `bun run -e`, but `bun run` expects a script name and simply prints its usage when invoked this way (exit code 0). As a result, the client never executes and the workflow can't detect WebSocket regressions. Use `bun -e '…'`/`bun --eval '…'` or `node -e '…'` so the inline check actually runs."
+  ],
+  "additional_comments": "Documented the finding in `specs/review.md` and `specs/logs/codex-2025-11-13-2223.json`, then pushed commit 3325f9b. Hooks ran `biome check --write .` and `tsc --noEmit` during the commit. Next step: fix the workflow command (and rerun CI) so the example smoke test provides real coverage."
+}
