@@ -153,8 +153,10 @@ export class ClientEvent {
       return;
     }
 
-    // Find the channel (must scope to application first)
-    const channel = this.channels.for(connection.app()).find(channelName);
+    // Find or create the channel (must scope to application first)
+    const channel = this.channels
+      .for(connection.app())
+      .findOrCreate(channelName);
     if (!channel) {
       // Channel doesn't exist - nothing to broadcast to
       return;
