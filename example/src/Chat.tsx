@@ -9,6 +9,12 @@ interface Message {
 export function Chat() {
   const removeTrailingSlash = (value: string) => value.replace(/\/+$/, "");
   const getDefaultServer = () => {
+    if (typeof window !== "undefined" && window.location) {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const host = window.location.hostname;
+      const port = window.location.port || (protocol === "wss:" ? "443" : "80");
+      return `${protocol}//${host}:${port}`;
+    }
     return "ws://localhost:8080";
   };
   const normalizeServer = (value: string) => {
