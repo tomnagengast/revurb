@@ -1,7 +1,5 @@
-last commit: 08ed8aa8eb0bcda7ae62f1b6e6e0d3bb7e6b64f5
-status: ok
+last commit: 3253f78b4bdaa1336f1d0929cefdb4aece184141
+status: not ok
 review comments:
-- All previous issues have been resolved:
-  - Spec tests now use tracked tests/spec/ directory (fixed in 6ce94f8)
-  - Chat.tsx now correctly uses location.host for IPv6 compatibility (fixed in 6d5b986)
-  - Unused parameter warnings addressed (fixed in 118b7e2)
+- .github/workflows/spec-tests.yml:34 mounts tests/spec at /config and tests/spec/reports at /reports even though tests/spec/client-spec.json:3 writes to /mnt/autobahn/reports and tests/spec/spec-analyze.ts:6 reads tests/spec/reports/index.json, so no artifacts ever reach the analyzer.
+- README.md:134-146 adds an Autobahn docker command that omits --platform linux/amd64 even though crossbario/autobahn-testsuite ships only amd64 layers, so the instructions fail outright on Apple Silicon.

@@ -1,0 +1,9 @@
+{
+  "commit": "3253f78b4bdaa1336f1d0929cefdb4aece184141",
+  "status": "not ok",
+  "review_comments": [
+    ".github/workflows/spec-tests.yml:34 and tests/spec/client-spec.json:3 – The workflow mounts tests/spec at /config and tests/spec/reports at /reports, but client-spec.json still writes to /mnt/autobahn/reports while tests/spec/spec-analyze.ts:6 reads tests/spec/reports/index.json. Because nothing is mounted at /mnt/autobahn, the Autobahn container drops every report in its own FS and the analysis step immediately fails with \\\"No test results found.\\\" Mount the host directory at /mnt/autobahn (and /mnt/autobahn/reports) or change both the config outdir and analyzer input paths so the reports actually land in tests/spec/reports.",
+    "README.md:134-146 – The new Autobahn instructions run docker run crossbario/autobahn-testsuite without a --platform override even though that image only ships linux/amd64 layers. On Apple Silicon hosts the command exits with \\\"image ... does not provide the specified platform (linux/arm64)\\\" (reproduced by running the documented command), so the spec tests cannot be executed locally. Document the required --platform linux/amd64 flag or provide an arm64-compatible image."
+  ],
+  "additional_comments": "Spec tests still don’t exercise revurb.ts because the harness is an echo server, but I limited this review to the new commits since 08ed8aa."
+}
