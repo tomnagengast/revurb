@@ -1,6 +1,8 @@
-Read `AGENTS.md`
 
 Your job is to port Laravel Reverb (PHP) to revurb-ts (Typescript) and maintain the repository.
+
+## Instructions
+Read `AGENTS.md` and 
 
 First, read the `./specs/review.json`
 - If the status is `not ok`, address the review feedback first

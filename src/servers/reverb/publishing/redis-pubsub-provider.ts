@@ -101,18 +101,21 @@ export class RedisPubSubProvider implements IPubSubProvider {
    * Subscribe to the Redis channel
    *
    * Sets up the subscription and registers a handler for incoming messages.
+   * With ioredis, the message event handler needs to be set up before subscribing.
    */
   async subscribe(): Promise<void> {
     if (!this.subscriber) {
       throw new Error("Subscriber not initialized");
     }
 
-    this.subscriber.subscribe();
-
+    // Set up message handler before subscribing
     this.subscriber.on("message", (...args: unknown[]) => {
       const payload = args[1] as string;
       this.messageHandler.handle(payload);
     });
+
+    // Subscribe to the channel
+    await this.subscriber.subscribe();
   }
 
   /**
