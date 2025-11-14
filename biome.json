@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!!**/dist", "!!**/.claude"]
+    "includes": ["**", "!!**/dist", "!!**/.claude", "!!**/_tmp"]
   },
   "formatter": {
     "enabled": true,

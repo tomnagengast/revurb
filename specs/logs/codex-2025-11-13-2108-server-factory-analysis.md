@@ -1,0 +1,34 @@
+**Factory Behavior**
+- `Factory.initialize` wires every singleton up front: it instantiates a CLI logger, sets it on the Log facade, builds the `ApplicationManager`, `ArrayChannelManager`, `PusherServer`, metrics handler, and controller instances so HTTP handlers can run without IoC lookups (`src/servers/reverb/factory.ts:241-305`).
+- `Factory.make` is the only way to start Bun.serve: it creates the Pusher router, filters TLS options, and boots Bun with a custom `fetch` handler + websocket lifecycle callbacks that proxy traffic into the `PusherServer` (`src/servers/reverb/factory.ts:393-521`).
+- HTTP routing is handled by a bespoke in-file `Router` that does pattern matching and dispatches to handlers built from `pusherRoutes`, covering sockets, events, channels, users, termination, and `/up` (`src/servers/reverb/factory.ts:55-160` and `633-684`).
+- Each route handler normalizes Bun requests into the PHP-style interfaces expected by the controllers, e.g., `handleEvents`/`handleChannels` convert to `IHttpRequest`, run controller logic, and translate the responses back to `Response` (`src/servers/reverb/factory.ts:768-1105`).
+- TLS auto-detection mirrors Laravel’s behavior by filtering falsy fields and resolving cert/key pairs when only `hostname` is provided, toggling peer verification based on environment (`src/servers/reverb/factory.ts:1113-1154` and `1156-1165`).
+
+**CLI Bootstrap Logic**
+- `startServer` owns config discovery (path override → loadConfig → server name lookup) and CLI overrides for host/port/path/hostname/maxRequestSize/options while logging the resolved settings and available apps (`src/cli.ts:121-205`).
+- It is currently the only caller of `Factory.initialize`, immediately followed by `setupEventListeners` so any consumer outside the CLI would miss telemetry unless this gets shared (`src/cli.ts:179-200` and `235-273`).
+- The CLI directly invokes `Factory.make`, prints whether TLS is in play, and exposes the URLs; none of this metadata is returned to callers today, which complicates reuse (`src/cli.ts:186-223` and `205-219`).
+- `setupPeriodicTasks` spins two unmanaged `setInterval` loops for pinging/pruning via the jobs module, but the handles aren’t tracked for cancellation (`src/cli.ts:278-310`).
+- `setupGracefulShutdown` attaches process signal listeners, drains all channel connections, and stops the Bun server—again CLI-only behavior that needs to be optional in shared bootstrap logic (`src/cli.ts:316-375`).
+
+**Upstream Parity Gap**
+- Laravel’s PHP factory builds on React’s event loop and `Symfony\Routing`, while this port reimplements routing and relies on Bun’s server primitives, so keeping the route list/TLS behavior in sync is manual (`reverb/src/Servers/Reverb/Factory.php:35-111` vs. `src/servers/reverb/factory.ts:393-684`).
+- The PHP version binds `ChannelManager`, `ChannelConnectionManager`, and `PubSubIncomingMessageHandler` via the IoC container (`reverb/src/Servers/Reverb/Factory.php:71-88`), whereas the TypeScript factory instantiates equivalents during `initialize`. Any new upstream bindings (e.g., pub/sub handlers) must be mirrored manually.
+- TLS parity diverges slightly: the PHP factory toggles `verify_peer` via `app()->environment()`, while the TypeScript version takes an `environment` parameter defaulted from `process.env.NODE_ENV` and the CLI never overrides it, making true parity dependent on env state (`reverb/src/Servers/Reverb/Factory.php:118-132` vs. `src/servers/reverb/factory.ts:1113-1154`).
+- Upstream exposes a `make()` entrypoint that returns an HTTP server object; Revurb lacks the analogous `createServer` wrapper, forcing callers to reproduce CLI steps and risking divergence from Laravel’s contract (`reverb/src/Servers/Reverb/Factory.php:35-66` and spec guidance at `specs/2025-11-13-2057-implement-server-factory.md:16-35`).
+
+**createServer Surface**
+- Per the spec, the helper must accept either a `ReverbConfig`, a config path, or fall back to `loadConfig`, plus override flags for host/port/path/hostname/TLS/debug/jobs/signals; this lets libraries do what the CLI does without parsing argv (`specs/2025-11-13-2057-implement-server-factory.md:28-35` and `68-76`).
+- It should return a structured result—Bun server instance, resolved config/server metadata, interval handles, and cleanup helpers (`shutdown`/`stop`)—so both CLI and embedded users can tear down safely (`specs/2025-11-13-2057-implement-server-factory.md:28-35` and `80-85`).
+- Shared observability (event listeners, periodic jobs, signals) needs to be optional knobs on this API, defaulting to off for library usage but easily enabled by the CLI (`specs/2025-11-13-2057-implement-server-factory.md:49-76`).
+- Once implemented, `src/index.ts` should export `createServer`, and the CLI’s `startServer` should become a thin wrapper around it so there’s a single bootstrap path as described in Phase 3 of the plan (`specs/2025-11-13-2057-implement-server-factory.md:33-35` and `57-90`).
+
+**Issues & Edge Cases**
+- `Factory.initialize` can be called multiple times without resetting static state (controllers, event handlers, metrics), which may cause duplicate loggers or stale channel managers if `createServer` is invoked repeatedly; the helper should either guard or document one-time usage (`src/servers/reverb/factory.ts:241-306` and spec note `specs/2025-11-13-2057-implement-server-factory.md:128-130`).
+- `setupPeriodicTasks` never stores the interval IDs, so there’s currently no way to cancel pings/prunes during shutdown or reuse (critical once `createServer` exposes manual teardown) (`src/cli.ts:294-310`).
+- CLI TLS logging checks `serverOptions.tls.cert/key`, but `Factory.configureTls` expects `local_cert/local_pk`, so CLI output may wrongly claim “ws” even when auto-resolved certificates are in effect; aligning field names or using the helper’s resolved metadata will prevent confusion (`src/cli.ts:205-216` vs. `src/servers/reverb/factory.ts:1113-1154`).
+- Signal handlers are registered every time `setupGracefulShutdown` runs, with no removal on shutdown, so repeated boots within a process could lead to duplicate listeners and repeated cleanup attempts (`src/cli.ts:316-375`).
+- None of the CLI helpers return handles for event listeners or signals, so libraries currently can’t disable them; `createServer` needs to expose these toggles and ensure error handling surfaces configuration issues early (e.g., missing default server or config file) instead of calling `process.exit` as the CLI does (`src/cli.ts:131-137`).
+
+Next steps (if/when you revisit this): 1) design the `CreateServerOptions/CreateServerResult` types and lifecycle helpers per the spec, 2) move event/interval/signal wiring into reusable functions that take explicit dependencies, and 3) implement `createServer` and refactor the CLI to delegate to it.
