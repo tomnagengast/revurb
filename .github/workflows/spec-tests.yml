@@ -36,7 +36,7 @@ jobs:
           docker run --rm \
             --network host \
             -v "${PWD}/tests/spec:/config" \
-            -v "${PWD}/tests/spec/reports:/reports" \
+            -v "${PWD}/tests/spec/reports:/mnt/autobahn/reports" \
             crossbario/autobahn-testsuite \
             wstest -m fuzzingclient -s /config/client-spec.json
 
