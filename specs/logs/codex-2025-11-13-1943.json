@@ -1,1 +1,9 @@
-{"commit":"118b7e2fc0da5f8817b4a94e38f9bac4f13943f5","status":"not ok","review_comments":["tests/spec/client-spec.json:7 - The Autobahn config still dials ws://host.docker.internal:8080, but the workflow no longer adds the host alias and GitHub's Linux runners don't expose that name by default. With --network host the container can just talk to ws://127.0.0.1:8080; as-is the spec step fails with a DNS error before any tests run.","tests/spec/spec-server.ts:8 - This server just wraps Bun.serve and echoes payloads, so the suite never exercises revurb-ts's handshake/routing logic; it only verifies Bun's built-in WebSocket. Please boot the revurb server/router here (similar to the PHP spec-server.php) so we actually test the ported code."],"additional_comments":"README.md and docs.md still describe the PHP repo; once the spec harness targets revurb-ts we still need to refresh those docs."}
+{
+  "commit": "118b7e2fc0da5f8817b4a94e38f9bac4f13943f5",
+  "status": "not ok",
+  "review_comments": [
+    "tests/spec/client-spec.json:7 - The Autobahn config still dials ws://host.docker.internal:8080, but the workflow no longer adds the host alias and GitHub's Linux runners don't expose that name by default. With --network host the container can just talk to ws://127.0.0.1:8080; as-is the spec step fails with a DNS error before any tests run.",
+    "tests/spec/spec-server.ts:8 - This server just wraps Bun.serve and echoes payloads, so the suite never exercises revurb-ts's handshake/routing logic; it only verifies Bun's built-in WebSocket. Please boot the revurb server/router here (similar to the PHP spec-server.php) so we actually test the ported code."
+  ],
+  "additional_comments": "README.md and docs.md still describe the PHP repo; once the spec harness targets revurb-ts we still need to refresh those docs."
+}

@@ -131,6 +131,22 @@ bun test:watch
 bun run typecheck
 ```
 
+### WebSocket Protocol Compliance
+
+Revurb includes Autobahn WebSocket Testsuite integration to validate protocol compliance:
+
+```bash
+# Run Autobahn spec tests
+docker run -it --rm \
+  --network host \
+  -v "${PWD}/tests/spec:/config" \
+  -v "${PWD}/tests/spec/reports:/reports" \
+  crossbario/autobahn-testsuite \
+  wstest -m fuzzingclient -s /config/client-spec.json
+```
+
+The spec tests validate WebSocket protocol compliance including frame handling, UTF-8 validation, and binary message support.
+
 ## Project Structure
 
 ```
@@ -145,7 +161,9 @@ revurb/
 ├── tests/
 │   ├── e2e/                   # End-to-end tests
 │   ├── feature/               # Feature tests
+│   ├── spec/                  # WebSocket protocol spec tests (Autobahn)
 │   └── unit/                  # Unit tests
+├── example/                   # Example chat application
 └── dist/                      # Compiled output
 ```
 

@@ -1,1 +1,10 @@
-{"commit":"c784312","status":"ok","review_comments":["docs.md:192 – The default binding paragraph now states 127.0.0.1, which matches loadReverbServerConfig()'s host fallback (src/config/load.ts:157) so we no longer tell users the daemon listens on every interface by default.","docs.md:211 – The env var example now contrasts localhost-only vs 0.0.0.0 bindings, giving admins clear guidance on when to opt into wider exposure without implying that is still the default.","specs/review.md:1 – Tracker still pointed at 3636dfb; updating it alongside this review keeps the automation in sync with the latest commit."],"additional_comments":"Only documentation moved in this slice, so there are no automated checks to run; once we wire basic smoke tests for the CLI docs we can catch these mismatches sooner."}
+{
+  "commit": "c784312",
+  "status": "ok",
+  "review_comments": [
+    "docs.md:192 – The default binding paragraph now states 127.0.0.1, which matches loadReverbServerConfig()'s host fallback (src/config/load.ts:157) so we no longer tell users the daemon listens on every interface by default.",
+    "docs.md:211 – The env var example now contrasts localhost-only vs 0.0.0.0 bindings, giving admins clear guidance on when to opt into wider exposure without implying that is still the default.",
+    "specs/review.md:1 – Tracker still pointed at 3636dfb; updating it alongside this review keeps the automation in sync with the latest commit."
+  ],
+  "additional_comments": "Only documentation moved in this slice, so there are no automated checks to run; once we wire basic smoke tests for the CLI docs we can catch these mismatches sooner."
+}

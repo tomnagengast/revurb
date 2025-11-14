@@ -1,0 +1,9 @@
+{
+  "commit": "08ed8aa6f8d0471aee53e1957a4909620728d7b8",
+  "status": "not ok",
+  "review_comments": [
+    "tests/spec/spec-server.ts:8 - The Autobahn harness now spins up a plain Bun.serve echo endpoint, so the suite never exercises revurb-ts’s routing, handshake, or buffering code; it only validates Bun’s native WebSocket. Please boot the revurb server/router here (mirroring the PHP spec-server.php) so CI actually guards the ported implementation.",
+    "tests/spec/client-spec.json:7 - The config still dials ws://host.docker.internal:8080, but the workflow no longer adds the host alias and GitHub’s Linux runners don’t provide it by default. With --network host the container can just target ws://127.0.0.1:8080 (or you can add --add-host host.docker.internal:host-gateway); otherwise the spec step fails with a DNS error before any cases run."
+  ],
+  "additional_comments": "README.md/docs.md continue to reflect the PHP project; after the harness points at revurb-ts they still need an update. Review log saved at specs/logs/codex-2025-11-13-1943.json. Tests (via commit hook): biome check --write ., tsc --noEmit. Pushed as review: capture findings for 118b7e2 (08ed8aa)."
+}
