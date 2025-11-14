@@ -1,6 +1,0 @@
-{
-  "commit": "de5877358f84b894b9fd0a4afe4b4dd110de9bf3",
-  "status": "ok",
-  "review_comments": [],
-  "additional_comments": "Autobahn workflow now mounts tests/spec/reports at /mnt/autobahn/reports so spec-analyze sees index.json, and the README documents the required --platform linux/amd64 flag for Apple Silicon hosts."
-}

@@ -9,7 +9,7 @@ Prep:
 - 0b. Familiarize yourself with `AGENTS.md` and `README.md`
 
 Build:
-- First, read the `./specs/review.md`
+- First, read the `./specs/review.md` and the most recent `specs/logs/codex-*.json`
     - If the status is `not ok`:
         - Address the review feedback
     - If the status is `ok`:

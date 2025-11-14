@@ -1,9 +1,0 @@
-{
-  "commit": "7cea41ec309ffdbb84b65a16952b1cf542737273",
-  "status": "not ok",
-  "review_comments": [
-    ".github/workflows/spec-tests.yml:1 – Deleting the entire spec-tests workflow means CI no longer runs the Autobahn compliance suite, so we’ve lost protocol coverage and regression detection instead of retargeting it at revurb-ts as requested.",
-    "example/src/Chat.tsx:10 – Forcing `getDefaultServer()` to always return `ws://localhost:8080` regresses the earlier host/scheme detection, so any HTTPS deployment now attempts an insecure localhost connection and fails before the user can interact; keep the browser-aware default and only fall back to localhost when `window.location` is unavailable."
-  ],
-  "additional_comments": "Logged the review in specs/logs/codex-2025-11-13-2005.json and updated specs/review.md; committed as “review: capture findings for 730dd62” (7cea41e) after biome check --write . and tsc --noEmit passed. Next steps: 1) restore a spec workflow that exercises the TypeScript harness, 2) restore the location-aware default server logic, 3) then refresh README.md/docs.md to match the current project state."
-}

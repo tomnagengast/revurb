@@ -1,9 +1,0 @@
-{
-  "commit": "3c40dc306623208ab37427342c6b8fab726019ab",
-  "status": "not ok",
-  "review_comments": [
-    ".github/workflows/spec-tests.yml:31 – The workflow still shells into `reverb/tests/...`, but `reverb/` is gitignored, so Actions runners will not get any of those Bun scripts/configs and the job will fail immediately. The task was to rely on revurb-ts itself; move or vendor the Autobahn harness into tracked sources and drop the dependency on the external reference checkout.",
-    "example/src/Chat.tsx:12 – Replacing `location.host` with `window.location.hostname` plus manual `:${port}` breaks IPv6 defaults (e.g., produces `wss://2001:db8::1:443` without brackets). Either revert to `location.host` or wrap IPv6 hosts in `[]` before adding the port so non-IPv4 deployments keep working."
-  ],
-  "additional_comments": "README.md/docs.md still describe the PHP project; once the spec workflow is hooked into the TypeScript sources, those docs still need a pass. Tests: biome check --write ., tsc --noEmit."
-}

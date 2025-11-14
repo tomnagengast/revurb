@@ -1,9 +1,0 @@
-{
-  "commit": "5b329f5c9e5593ba58d4bde7dc1dc659787acd94",
-  "status": "ok",
-  "review_comments": [
-    "No blocking issues found; `docs.md:192` now states the server defaults to `127.0.0.1:8080`, matching the behavior in `src/config/load.ts:157` so we no longer suggest the daemon exposes every interface by default.",
-    "`docs.md:211` clarifies that operators can still opt into `0.0.0.0` while keeping `127.0.0.1` as the default, preventing confusion about how to route production traffic."
-  ],
-  "additional_comments": "Residual risk: these are documentation-only changes, so there is no automated safety net that verifies README/docs instructions against the CLI behavior. Logged the review in `specs/logs/codex-2025-11-13-1527.json` and updated `specs/review.md` to reference commit c784312; pushed as 5b329f5."
-}
