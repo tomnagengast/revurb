@@ -9,7 +9,7 @@ First, read the `./specs/review.json`
 
 As always, run your test / lint:fix / format rounds before committing.
 
-The Laravel Reverb project is located in `./reverb` and you should target `./` for your port.
+The Laravel Reverb project is located in `~/personal/_clones/laravel/reverb` and you should target this directory for your port.
 
 Make a commit after every single file edit and push your changes before reporting back.
 
