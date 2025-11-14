@@ -51,3 +51,5 @@ fi
 msg="$(<${out})\n"
 [ $done -eq 1 ] && msg="Current task complete" || msg="Current task requires more work – continuing..."
 bun run .claude/hooks/discord.ts --stop --message "$msg"
+
+[ $done -eq 1 ] && exit 0

@@ -9,11 +9,9 @@ interface Message {
 export function Chat() {
   const removeTrailingSlash = (value: string) => value.replace(/\/+$/, "");
   const getDefaultServer = () => {
-    if (typeof window !== "undefined" && window.location) {
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      return `${protocol}//${window.location.host}`;
-    }
-    return "ws://localhost:8080";
+    // Use a build-time constant or import.meta.env if configured
+    const port = 8080; // Or use import.meta.env.VITE_REVERB_PORT if using Vite
+    return `ws://localhost:${port}`;
   };
   const normalizeServer = (value: string) => {
     const trimmed = value.trim();
@@ -32,6 +30,7 @@ export function Chat() {
   };
   const [connected, setConnected] = useState(false);
   const [channel, setChannel] = useState("chat");
+  const [joinedChannel, setJoinedChannel] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageInput, setMessageInput] = useState("");
   const [username, setUsername] = useState("User");
@@ -40,7 +39,7 @@ export function Chat() {
   const wsRef = useRef<WebSocket | null>(null);
   const channelRef = useRef(channel);
   const currentChannelRef = useRef(channel);
-  const channelInputRef = useRef<HTMLInputElement>(null);
+  const usernameRef = useRef(username);
   const messageInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -48,6 +47,10 @@ export function Chat() {
     channelRef.current = channel;
     currentChannelRef.current = channel;
   }, [channel]);
+
+  useEffect(() => {
+    usernameRef.current = username;
+  }, [username]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: We need to scroll when messages change
   useEffect(() => {
@@ -71,6 +74,7 @@ export function Chat() {
 
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
+      console.log("WebSocket message received:", message);
 
       if (message.event === "pusher:connection_established") {
         const data = JSON.parse(message.data);
@@ -81,27 +85,39 @@ export function Chat() {
       if (message.event === "pusher:ping") {
         const pongMessage = {
           event: "pusher:pong",
+          data: {},
         };
         ws.send(JSON.stringify(pongMessage));
+        console.log("Sent pong response");
       }
 
       if (message.event === "pusher_internal:subscription_succeeded") {
         console.log("Subscribed to channel:", message.channel);
+        setJoinedChannel(message.channel);
       }
 
-      if (message.event?.startsWith("client-")) {
+      // Handle client messages - only from the current channel
+      if (
+        message.event === "client-message" &&
+        message.channel === channelRef.current
+      ) {
+        console.log("Client message received:", message);
         const eventData =
           typeof message.data === "string"
             ? JSON.parse(message.data)
             : message.data;
-        setMessages((prev) => [
-          ...prev,
-          {
-            text: eventData.text || "",
-            sender: eventData.sender || "Unknown",
-            timestamp: new Date(),
-          },
-        ]);
+
+        // Only add messages from other users (not our own echoed messages)
+        if (eventData.sender !== usernameRef.current) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              text: eventData.text || "",
+              sender: eventData.sender || "Unknown",
+              timestamp: new Date(),
+            },
+          ]);
+        }
       }
     };
 
@@ -125,6 +141,8 @@ export function Chat() {
       wsRef.current.close();
       wsRef.current = null;
       setConnected(false);
+      setJoinedChannel(null);
+      setMessages([]);
     }
   };
 
@@ -168,17 +186,29 @@ export function Chat() {
 
   const handleSendMessage = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!messageInput.trim() || !connected) {
+    if (!messageInput.trim() || !connected || !joinedChannel) {
       return;
     }
 
+    const messageData = {
+      text: messageInput,
+      sender: username,
+    };
+
+    // Add the message to local state immediately
+    setMessages((prev) => [
+      ...prev,
+      {
+        text: messageData.text,
+        sender: messageData.sender,
+        timestamp: new Date(),
+      },
+    ]);
+
     const clientEvent = {
       event: "client-message",
-      channel: channel,
-      data: {
-        text: messageInput,
-        sender: username,
-      },
+      channel: joinedChannel,
+      data: messageData,
     };
 
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -240,30 +270,42 @@ export function Chat() {
           onSubmit={handleJoinChannel}
           className="flex items-center gap-2 bg-[#1a1a1a] p-3 rounded-xl font-mono border-2 border-[#fbf0df] transition-colors duration-300 focus-within:border-[#f3d5a3] w-full"
         >
-          <input
-            ref={channelInputRef}
-            type="text"
+          <select
             name="channel"
             defaultValue={channel}
-            placeholder="Join channel (e.g., chat)..."
-            className="w-full flex-1 bg-transparent border-0 text-[#fbf0df] font-mono text-base py-1.5 px-2 outline-none focus:text-white placeholder-[#fbf0df]/40"
-          />
+            className="w-full flex-1 bg-[#242424] border-2 border-[#fbf0df]/40 text-[#fbf0df] font-mono text-base py-2 px-3 rounded-lg outline-none focus:border-[#f3d5a3] cursor-pointer"
+          >
+            <option value="chat">Chat</option>
+            <option value="general">General</option>
+            <option value="random">Random</option>
+            <option value="tech">Tech</option>
+            <option value="gaming">Gaming</option>
+            <option value="music">Music</option>
+            <option value="announcements">Announcements</option>
+          </select>
           <button
             type="submit"
             className="bg-[#fbf0df] text-[#1a1a1a] border-0 px-5 py-1.5 rounded-lg font-bold transition-all duration-100 hover:bg-[#f3d5a3] hover:-translate-y-px cursor-pointer whitespace-nowrap"
           >
-            Join
+            Join {joinedChannel && joinedChannel !== channel ? "New" : ""}
           </button>
         </form>
       )}
 
       {/* Messages display */}
       <div className="flex flex-col gap-2 bg-[#1a1a1a] p-4 rounded-xl font-mono border-2 border-[#fbf0df] min-h-[300px] max-h-[500px] overflow-y-auto">
+        {joinedChannel && (
+          <div className="text-[#f3d5a3] text-sm font-bold text-center pb-2 border-b border-[#fbf0df]/20 mb-2">
+            Channel: #{joinedChannel}
+          </div>
+        )}
         {messages.length === 0 ? (
           <div className="text-[#fbf0df]/40 text-center py-8">
-            {connected
-              ? "No messages yet. Start chatting!"
-              : "Connect to start chatting"}
+            {!connected
+              ? "Connect to start chatting"
+              : !joinedChannel
+                ? "Join a channel to start chatting"
+                : "No messages yet. Start chatting!"}
           </div>
         ) : (
           messages.map((msg) => (
@@ -287,7 +329,7 @@ export function Chat() {
       </div>
 
       {/* Message input form */}
-      {connected && (
+      {connected && joinedChannel && (
         <form
           onSubmit={handleSendMessage}
           className="flex items-center gap-2 bg-[#1a1a1a] p-3 rounded-xl font-mono border-2 border-[#fbf0df] transition-colors duration-300 focus-within:border-[#f3d5a3] w-full"

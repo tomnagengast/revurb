@@ -1,9 +1,7 @@
 # Current Priorities
 
-✅ Completed specs/2025-11-13-2201-update-example-create-server.md
-✅ Completed CI/CD automation (2025-11-13-2245):
-   - Added example app smoke test workflow (.github/workflows/example-tests.yml)
-   - Documented comprehensive CI/CD coverage in README.md
-   - All automated testing now in place: unit/e2e, Autobahn spec, example integration, static analysis
-
-Next: Read `./scripts/ralph/current.md` for the next priority
+Working in getting Chat.tsx perfect
+- When a user joins a channel, they should see all previous messages
+- Dropdown component is styled weird
+- We should use the server's websocket, not create a random new one (example/src/Chat.tsx:66-68)
+- Simplify UI as much as possible

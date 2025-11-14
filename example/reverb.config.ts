@@ -3,7 +3,7 @@ export default {
   servers: {
     reverb: {
       host: "0.0.0.0",
-      port: 8080,
+      port: Bun.env.REVERB_PORT ?? 8080,
     },
   },
   apps: {

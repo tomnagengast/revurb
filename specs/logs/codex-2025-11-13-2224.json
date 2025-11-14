@@ -1,0 +1,8 @@
+{
+  "commit": "19c8254e455877d5a03517e00f8132243f38c2e7",
+  "status": "ok",
+  "review_comments": [
+    "**Findings** - None; `.github/workflows/example-tests.yml:52` now invokes `bun -e`, so the inline WebSocket client actually runs and will fail on handshake errors or timeouts, addressing the earlier coverage gap.\n- Residual risk/test gap: this step depends on Bun’s built-in `ws` shim and hasn’t been re-run in GitHub Actions yet; if Bun ever stops exposing `ws`, or if CI behaves differently, the workflow will require an explicit dependency or another client runner.\n\n**Documentation** - `specs/review.md:1` records this review as ok for commit 959b211 with notes on the smoke-test fix.\n- `specs/logs/codex-2025-11-13-2237.json:1` captures the detailed review log for traceability.\n\n**Tests** - `biome check --write .`\n- `tsc --noEmit`\n\n**Next steps** - 1. Trigger the “example integration tests” workflow in GitHub Actions to ensure the updated `bun -e` command passes end-to-end."
+  ],
+  "additional_comments": null
+}
