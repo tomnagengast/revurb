@@ -1,6 +1,3 @@
-last commit: f22017cd94f4f9096ff0edb06f11fe93e6a02d32
-status: not ok
+last commit: 5b07a0b05d8cbce87b9f72c24ab2c26e6ece2c74
+status: ok
 review comments:
-- tests/unit/create-server.test.ts:64-96 hard-codes `/Users/tom/personal/revurb/...` and rewrites the tracked fixture in-place via `Bun.write`, so the test suite only passes on the author’s machine and leaves the repo dirty after it runs. Use a relative path under the repo (e.g., `import.meta.dir`) and write to a temporary file instead of clobbering the committed fixture.
-- Factory.initialize() short-circuits after the first call (src/servers/reverb/factory.ts:241-345) and createServer()/shutdown never reset that state (src/servers/reverb/factory.ts:1364-1444), so any subsequent createServer invocation continues using the very first ApplicationManager/app config even if a caller supplies a different config. The new API therefore can’t reliably spin up multiple isolated servers in one process, which contradicts the embedding/testing goal spelled out in the spec.
-- README.md still only documents CLI usage (README.md:50-120) even though the spec explicitly requires documenting the new programmatic createServer API (`specs/2025-11-13-2057-implement-server-factory.md:96`). Without docs, consumers won’t discover how to use the exported helper.
