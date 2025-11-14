@@ -12,9 +12,9 @@ export default {
     provider: "config",
     apps: [
       {
-        app_id: "my-app-id",
-        key: "my-app-key",
-        secret: "my-app-secret",
+        app_id: Bun.env.BUN_PUBLIC_REVERB_APP_ID ?? "my-app-id",
+        key: Bun.env.BUN_PUBLIC_REVERB_APP_KEY ?? "my-app-key",
+        secret: Bun.env.BUN_PUBLIC_REVERB_APP_SECRET ?? "my-app-secret",
         allowed_origins: ["*"],
       },
     ],
