@@ -8,18 +8,7 @@
  * @module cli
  */
 
-import { loadConfig } from "./config/load";
-import type { ReverbConfig } from "./config/types";
-import type { ChannelCreated } from "./events/channel-created";
-import type { ChannelRemoved } from "./events/channel-removed";
-import type { ConnectionPruned } from "./events/connection-pruned";
-import { EventDispatcher } from "./events/event-dispatcher";
-import type { MessageReceived } from "./events/message-received";
-import type { MessageSent } from "./events/message-sent";
-import { PingInactiveConnections } from "./jobs/ping-inactive-connections";
-import { PruneStaleConnections } from "./jobs/prune-stale-connections";
-import type { ChannelConnection } from "./protocols/pusher/channels/channel-connection";
-import { Factory } from "./servers/reverb/factory";
+import { createServer } from "./servers/reverb/factory";
 
 /**
  * CLI argument parsing result
@@ -121,259 +110,76 @@ function displayVersion(): void {
 async function startServer(
   options: Record<string, string | boolean>,
 ): Promise<void> {
-  try {
-    // Load configuration
-    const configPath =
-      typeof options.config === "string" ? options.config : undefined;
-    const config: ReverbConfig = await loadConfig(configPath);
+  const configPath =
+    typeof options.config === "string" ? options.config : undefined;
+  const serverName =
+    typeof options.server === "string" ? options.server : undefined;
 
-    // Get server configuration (use 'reverb' as default server name)
-    const serverName = config.default || "reverb";
-    const serverConfig = config.servers[serverName];
+  const { config, serverConfig } = await createServer({
+    ...(configPath && { configPath }),
+    ...(serverName && { serverName }),
+    ...(typeof options.host === "string" && { host: options.host }),
+    ...(typeof options.port === "string" && { port: options.port }),
+    ...(typeof options.path === "string" && { path: options.path }),
+    ...(typeof options.hostname === "string" && { hostname: options.hostname }),
+    ...(typeof options.maxRequestSize === "string" && {
+      maxRequestSize: Number.parseInt(options.maxRequestSize, 10),
+    }),
+    enableEventLogging: options.debug === true,
+    enableJobs: true,
+    enableSignals: true,
+  });
 
-    if (!serverConfig) {
-      console.error(`❌ Server configuration not found for: ${serverName}`);
-      process.exit(1);
-    }
+  const host =
+    (typeof options.host === "string" ? options.host : undefined) ??
+    serverConfig.host;
+  const port =
+    (typeof options.port === "string" ? options.port : undefined) ??
+    String(serverConfig.port);
+  const path =
+    (typeof options.path === "string" ? options.path : undefined) ??
+    serverConfig.path ??
+    "";
+  const hostname =
+    (typeof options.hostname === "string" ? options.hostname : undefined) ??
+    serverConfig.hostname;
+  const serverOptions = serverConfig.options ?? {};
 
-    // Override with CLI options
-    const host =
-      (typeof options.host === "string" ? options.host : undefined) ||
-      serverConfig.host;
-    const port =
-      (typeof options.port === "string" ? options.port : undefined) ||
-      String(serverConfig.port);
-    const path =
-      (typeof options.path === "string" ? options.path : undefined) ||
-      serverConfig.path ||
-      "";
-    const hostname =
-      (typeof options.hostname === "string" ? options.hostname : undefined) ||
-      serverConfig.hostname;
-    const maxRequestSize = serverConfig.max_request_size || 10000;
-    const serverOptions = serverConfig.options || {};
-
-    // Log configuration
-    console.log("🚀 Starting Revurb WebSocket Server");
-    console.log("");
-    console.log("Configuration:");
-    console.log(`  Host:     ${host}`);
-    console.log(`  Port:     ${port}`);
-    if (path) {
-      console.log(`  Path:     ${path}`);
-    }
-    if (hostname && hostname !== host) {
-      console.log(`  Hostname: ${hostname}`);
-    }
-    console.log("  Protocol: pusher");
-    console.log("");
-
-    // Log applications
-    const apps = config.apps.apps || [];
-    console.log(`Applications: ${apps.length}`);
-    for (const app of apps) {
-      console.log(`  - ${app.app_id} (key: ${app.key})`);
-    }
-    console.log("");
-
-    // Initialize factory with configuration
-    Factory.initialize(config);
-
-    // Setup event listeners for observability
-    setupEventListeners(options.debug === true);
-
-    // Create and start server
-    const server = Factory.make(
-      host,
-      port,
-      path,
-      hostname,
-      maxRequestSize,
-      serverOptions as {
-        tls?: Record<string, unknown>;
-        [key: string]: unknown;
-      },
-      "pusher",
-    );
-
-    // Setup periodic tasks (equivalent to Laravel's scheduled jobs)
-    setupPeriodicTasks();
-
-    // Setup graceful shutdown
-    setupGracefulShutdown(server);
-
-    // Check if TLS is actually configured (not just an empty object)
-    const hasTls =
-      serverOptions.tls && (serverOptions.tls.cert || serverOptions.tls.key);
-    const scheme = hasTls ? "wss" : "ws";
-    const httpScheme = hasTls ? "https" : "http";
-
-    console.log("✅ Server started successfully");
-    console.log("");
-    console.log(`  WebSocket: ${scheme}://${hostname || host}:${port}${path}`);
-    console.log(
-      `  HTTP API:  ${httpScheme}://${hostname || host}:${port}${path}`,
-    );
-    console.log("");
-    console.log("Press Ctrl+C to stop the server");
-    console.log("");
-
-    // Keep process alive
-    // Bun.serve() returns a server that keeps the process running
-  } catch (error) {
-    console.error("❌ Failed to start server:", error);
-    if (error instanceof Error) {
-      console.error(error.message);
-      if (options.debug) {
-        console.error(error.stack);
-      }
-    }
-    process.exit(1);
+  console.log("🚀 Starting Revurb WebSocket Server");
+  console.log("");
+  console.log("Configuration:");
+  console.log(`  Host:     ${host}`);
+  console.log(`  Port:     ${port}`);
+  if (path) {
+    console.log(`  Path:     ${path}`);
   }
-}
-
-/**
- * Setup event listeners for observability and logging
- */
-function setupEventListeners(debug = false): void {
-  const logger = Factory.getLogger();
-
-  // Channel lifecycle events
-  EventDispatcher.on("channel:created", (event: ChannelCreated) => {
-    if (debug) {
-      logger.debug(`Channel created: ${event.channel.name()}`);
-    }
-  });
-
-  EventDispatcher.on("channel:removed", (event: ChannelRemoved) => {
-    if (debug) {
-      logger.debug(`Channel removed: ${event.channel.name()}`);
-    }
-  });
-
-  // Connection lifecycle events
-  EventDispatcher.on("connection:pruned", (event: ConnectionPruned) => {
-    if (debug) {
-      logger.debug(`Connection pruned: ${event.connection.id()}`);
-    }
-  });
-
-  // Message events
-  EventDispatcher.on("message:sent", (event: MessageSent) => {
-    if (debug) {
-      logger.debug(`Message sent to connection ${event.connection.id()}`);
-    }
-  });
-
-  EventDispatcher.on("message:received", (event: MessageReceived) => {
-    if (debug) {
-      logger.debug(`Message received from connection ${event.connection.id()}`);
-    }
-  });
-}
-
-/**
- * Setup periodic tasks for connection management
- */
-function setupPeriodicTasks(): void {
-  const channelManager = Factory.getChannelManager();
-  const applicationProvider = Factory.getApplicationProvider();
-  const logger = Factory.getLogger();
-
-  const pruneJob = new PruneStaleConnections(
-    applicationProvider,
-    logger,
-    channelManager,
-  );
-  const pingJob = new PingInactiveConnections(
-    applicationProvider,
-    logger,
-    channelManager,
-  );
-
-  // Ping inactive connections every 60 seconds
-  setInterval(async () => {
-    try {
-      await pingJob.handle();
-    } catch (error) {
-      logger.error(`Error pinging inactive connections: ${error}`);
-    }
-  }, 60_000);
-
-  // Prune stale connections every 60 seconds (offset by 30 seconds from ping)
-  setInterval(async () => {
-    try {
-      await pruneJob.handle();
-    } catch (error) {
-      logger.error(`Error pruning stale connections: ${error}`);
-    }
-  }, 60_000);
-}
-
-/**
- * Setup graceful shutdown handlers
- */
-function setupGracefulShutdown(server: ReturnType<typeof Factory.make>): void {
-  const signals = ["SIGINT", "SIGTERM", "SIGQUIT"];
-
-  for (const signal of signals) {
-    process.on(signal, async () => {
-      console.log("");
-      console.log(`⏹️  Received ${signal}, shutting down gracefully...`);
-
-      try {
-        // Get all connections and disconnect them gracefully
-        const channelManager = Factory.getChannelManager();
-        const applicationProvider = Factory.getApplicationProvider();
-        const applications = applicationProvider.all();
-
-        console.log("  Disconnecting active connections...");
-
-        let totalDisconnected = 0;
-        for (const application of applications) {
-          const scopedChannels = channelManager.for(application);
-          const allConnections = scopedChannels.connections();
-
-          for (const [, channelConnection] of Object.entries(allConnections)) {
-            const channelConn = channelConnection as ChannelConnection;
-            const connection = channelConn.connection();
-
-            try {
-              // Send closing message
-              channelConn.send(
-                JSON.stringify({
-                  event: "pusher:error",
-                  data: JSON.stringify({
-                    code: 4200,
-                    message: "Server shutting down",
-                  }),
-                }),
-              );
-
-              // Unsubscribe from all channels (requires underlying Connection)
-              scopedChannels.unsubscribeFromAll(connection);
-
-              // Disconnect
-              channelConn.disconnect();
-              totalDisconnected++;
-            } catch (_error) {
-              // Ignore individual connection errors during shutdown
-            }
-          }
-        }
-
-        console.log(`  Disconnected ${totalDisconnected} connection(s)`);
-      } catch (error) {
-        console.error("  Error during graceful shutdown:", error);
-      }
-
-      // Stop the server
-      server.stop();
-
-      console.log("✅ Server stopped");
-      process.exit(0);
-    });
+  if (hostname && hostname !== host) {
+    console.log(`  Hostname: ${hostname}`);
   }
+  console.log("  Protocol: pusher");
+  console.log("");
+
+  const apps = config.apps.apps ?? [];
+  console.log(`Applications: ${apps.length}`);
+  for (const app of apps) {
+    console.log(`  - ${app.app_id} (key: ${app.key})`);
+  }
+  console.log("");
+
+  const hasTls =
+    serverOptions.tls && (serverOptions.tls.cert || serverOptions.tls.key);
+  const scheme = hasTls ? "wss" : "ws";
+  const httpScheme = hasTls ? "https" : "http";
+
+  console.log("✅ Server started successfully");
+  console.log("");
+  console.log(`  WebSocket: ${scheme}://${hostname || host}:${port}${path}`);
+  console.log(
+    `  HTTP API:  ${httpScheme}://${hostname || host}:${port}${path}`,
+  );
+  console.log("");
+  console.log("Press Ctrl+C to stop the server");
+  console.log("");
 }
 
 /**
@@ -384,7 +190,18 @@ async function main(): Promise<void> {
 
   switch (parsed.command) {
     case "start":
-      await startServer(parsed.options);
+      try {
+        await startServer(parsed.options);
+      } catch (error) {
+        console.error("❌ Failed to start server:", error);
+        if (error instanceof Error) {
+          console.error(error.message);
+          if (parsed.options.debug) {
+            console.error(error.stack);
+          }
+        }
+        process.exit(1);
+      }
       break;
 
     case "version":
