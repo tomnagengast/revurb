@@ -60,8 +60,6 @@ describe("createServer", () => {
     });
 
     it("should load config from path if provided", async () => {
-      const configPath =
-        "/Users/tom/personal/revurb/tests/fixtures/test-config.ts";
       const fixtureConfig: ReverbConfig = {
         default: "test",
         servers: {
@@ -81,6 +79,11 @@ describe("createServer", () => {
           ],
         },
       };
+
+      // Use a temporary file for this test instead of overwriting tracked fixtures
+      const tmpDir = `${import.meta.dir}/../../_tmp`;
+      await Bun.write(`${tmpDir}/.gitkeep`, "");
+      const configPath = `${tmpDir}/test-config-${Date.now()}.ts`;
 
       await Bun.write(
         configPath,

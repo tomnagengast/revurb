@@ -291,6 +291,25 @@ export class Factory {
   private static serverProvider: ServerProvider | null = null;
 
   /**
+   * Reset the factory state to allow re-initialization
+   */
+  public static reset(): void {
+    Factory.isInitialized = false;
+    Factory.appManager = null;
+    Factory.channelManager = null;
+    Factory.pusherServer = null;
+    Factory.logger = null;
+    Factory.metricsHandler = null;
+    Factory.eventsController = null;
+    Factory.eventsBatchController = null;
+    Factory.channelsController = null;
+    Factory.channelController = null;
+    Factory.usersTerminateController = null;
+    Factory.applicationProvider = null;
+    Factory.serverProvider = null;
+  }
+
+  /**
    * Initialize the factory with configuration
    *
    * @param config - The Reverb configuration
@@ -1433,6 +1452,9 @@ export async function createServer(
     }
 
     await performGracefulShutdown(server, channelManager, applicationProvider);
+
+    // Reset Factory state to allow creating new isolated servers
+    Factory.reset();
   };
 
   return {

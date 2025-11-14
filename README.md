@@ -94,6 +94,89 @@ export default {
 - `REVERB_APP_SECRET` - Application secret
 - `REVERB_ALLOWED_ORIGINS` - Allowed origins (comma-separated)
 
+### Programmatic API
+
+Revurb can be embedded in your application using the `createServer` function:
+
+```typescript
+import { createServer } from 'revurb';
+
+// Create server with inline config
+const { server, shutdown } = await createServer({
+  config: {
+    default: "reverb",
+    servers: {
+      reverb: {
+        host: "127.0.0.1",
+        port: 8080,
+      },
+    },
+    apps: {
+      provider: "config",
+      apps: [{
+        app_id: "my-app-id",
+        key: "my-app-key",
+        secret: "my-app-secret",
+      }],
+    },
+  },
+});
+
+console.log(`Server running on port ${server.port}`);
+
+// Gracefully shutdown when done
+await shutdown();
+```
+
+**Options:**
+
+- `config` - Config object (takes precedence over configPath)
+- `configPath` - Path to config file to load
+- `serverName` - Server name to use (overrides config.default)
+- `host` - Host override
+- `port` - Port override (string or number)
+- `path` - Path prefix override
+- `hostname` - Hostname override
+- `maxRequestSize` - Max request size override
+- `enableEventLogging` - Enable debug event logging (default: false)
+- `enableJobs` - Enable periodic jobs for ping/prune (default: false)
+- `enableSignals` - Enable signal handlers for graceful shutdown (default: false)
+
+**Load config from file:**
+
+```typescript
+const { server, shutdown } = await createServer({
+  configPath: './reverb.config.ts',
+  enableJobs: true,
+  enableSignals: true,
+});
+```
+
+**Override configuration:**
+
+```typescript
+const { server, shutdown } = await createServer({
+  configPath: './reverb.config.ts',
+  host: '0.0.0.0',
+  port: 9090,
+  path: '/ws',
+});
+```
+
+**Multiple isolated servers:**
+
+Each call to `createServer` followed by `shutdown` resets internal state, allowing you to create multiple isolated server instances:
+
+```typescript
+// First server
+const server1 = await createServer({ config: config1 });
+await server1.shutdown();
+
+// Second server with different config
+const server2 = await createServer({ config: config2 });
+await server2.shutdown();
+```
+
 ## Example Application
 
 Revurb includes a complete example chat application demonstrating real-time WebSocket communication. The example shows how to:
