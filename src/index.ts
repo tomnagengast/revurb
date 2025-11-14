@@ -6,6 +6,7 @@
  */
 
 export { Application } from "./application";
+export * from "./config/types";
 export { Connection } from "./connection";
 export * from "./contracts/application-provider";
 export * from "./contracts/connection";

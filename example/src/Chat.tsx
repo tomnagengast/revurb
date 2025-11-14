@@ -1,5 +1,11 @@
+import {
+  configureEcho,
+  echoIsConfigured,
+  useEcho,
+  useEchoPublic,
+} from "@laravel/echo-react";
+import type { EchoOptions } from "laravel-echo";
 import Echo from "laravel-echo";
-import type { EchoOptions } from "laravel-echo/dist/echo";
 import Pusher from "pusher-js";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 
@@ -98,8 +104,54 @@ function parseClientPayload(data: unknown) {
 }
 
 export function Chat() {
+  // const echo = new Echo({
+  configureEcho({
+    broadcaster: "reverb",
+    key: process.env.BUN_PUBLIC_REVERB_APP_KEY,
+    wsHost: process.env.BUN_PUBLIC_REVERB_HOST,
+    wsPort: Number(process.env.BUN_PUBLIC_REVERB_PORT),
+    wssPort: Number(process.env.BUN_PUBLIC_REVERB_PORT),
+    forceTLS: (process.env.BUN_PUBLIC_REVERB_SCHEME ?? "https") === "https",
+    enabledTransports: ["ws", "wss"],
+  } as EchoOptions<"reverb">);
+  console.log(echoIsConfigured());
+
+  // echo.join(`chat`).listen("client-message", (e: unknown) => {
+  //   console.log(e);
+  // });
+  const { leaveChannel, leave, stopListening, listen, channel } = useEchoPublic(
+    `orders.order-123`,
+    "OrderShipmentStatusUpdated",
+    (e) => {
+      console.log(e);
+    },
+  );
+  console.log(channel());
+  // const { leaveChannel, leave, stopListening, listen, channel } = useEcho(
+  //   `orders.order-123`,
+  //   "OrderShipmentStatusUpdated",
+  //   (e) => {
+  //     console.log(e);
+  //   },
+  // );
+  // useEchoPublic("chat", "client-message", (e) => {
+  //   console.log(e);
+  // });
+
+  // // // Stop listening without leaving channel
+  // // stopListening();
+
+  // // // Start listening again
+  // // listen();
+
+  // // // Leave channel
+  // // leaveChannel();
+
+  // // // Leave a channel and also its associated private and presence channels
+  // // leave();
+
   const [connected, setConnected] = useState(false);
-  const [channel, setChannel] = useState("chat");
+  // const [channel, setChannel] = useState("chat");
   const [joinedChannel, setJoinedChannel] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageInput, setMessageInput] = useState("");
@@ -127,16 +179,16 @@ export function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
-  const leaveChannel = () => {
-    const echo = echoRef.current;
-    const subscription = subscriptionRef.current;
-    if (!echo || !subscription) {
-      return;
-    }
-    subscription.unbind_all();
-    echo.connector.pusher.unsubscribe(subscription.name);
-    subscriptionRef.current = null;
-  };
+  // const leaveChannel = () => {
+  //   const echo = echoRef.current;
+  //   const subscription = subscriptionRef.current;
+  //   if (!echo || !subscription) {
+  //     return;
+  //   }
+  //   subscription.unbind_all();
+  //   echo.connector.pusher.unsubscribe(subscription.name);
+  //   subscriptionRef.current = null;
+  // };
 
   const connect = () => {
     if (echoRef.current) {

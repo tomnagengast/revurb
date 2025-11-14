@@ -1,3 +1,5 @@
+import type { ReverbConfig } from "../src/index";
+
 export default {
   default: "reverb",
   servers: {
@@ -17,4 +19,4 @@ export default {
       },
     ],
   },
-};
+} as ReverbConfig;
