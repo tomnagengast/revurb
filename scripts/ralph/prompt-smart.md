@@ -5,8 +5,8 @@ Your job is to review the work being done to port Laravel Reverb (PHP) to revurb
 ## Instructions
 
 Read `AGENTS.md`
-
 Read `./scripts/ralph/current.md`
+
 
 The Laravel Reverb project is located in `~/personal/_clones/laravel/reverb` and you should target this directory for your port.
 

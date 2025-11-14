@@ -42,6 +42,11 @@ export class RedisPubSubProvider implements IPubSubProvider {
   protected subscriber?: RedisSubscribeClient;
 
   /**
+   * Track if message handler has been set up to prevent duplicate listeners
+   */
+  protected messageHandlerSetup = false;
+
+  /**
    * Create a new Redis Pub/Sub provider instance
    *
    * @param logger - Logger instance for connection events
@@ -102,17 +107,21 @@ export class RedisPubSubProvider implements IPubSubProvider {
    *
    * Sets up the subscription and registers a handler for incoming messages.
    * With ioredis, the message event handler needs to be set up before subscribing.
+   * The handler is only registered once to prevent listener leaks on reconnection.
    */
   async subscribe(): Promise<void> {
     if (!this.subscriber) {
       throw new Error("Subscriber not initialized");
     }
 
-    // Set up message handler before subscribing
-    this.subscriber.on("message", (...args: unknown[]) => {
-      const payload = args[1] as string;
-      this.messageHandler.handle(payload);
-    });
+    // Set up message handler before subscribing (only once)
+    if (!this.messageHandlerSetup) {
+      this.subscriber.on("message", (...args: unknown[]) => {
+        const payload = args[1] as string;
+        this.messageHandler.handle(payload);
+      });
+      this.messageHandlerSetup = true;
+    }
 
     // Subscribe to the channel
     await this.subscriber.subscribe();

@@ -4,6 +4,7 @@ Your job is to port Laravel Reverb (PHP) to revurb-ts (Typescript) and maintain 
 
 ## Instructions
 
+Prep:
 - 0a. familiarize yourself with the code in `src` and `tests`
 - 0b. familiarize yourself with `AGENTS.md` and `README.md`
 
