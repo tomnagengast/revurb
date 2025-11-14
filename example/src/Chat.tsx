@@ -1,4 +1,13 @@
+import Echo from "laravel-echo";
+import type { EchoOptions } from "laravel-echo/dist/echo";
+import Pusher from "pusher-js";
 import { type FormEvent, useEffect, useRef, useState } from "react";
+
+type GlobalWithPusher = typeof globalThis & { Pusher?: typeof Pusher };
+const globalContext = globalThis as GlobalWithPusher;
+if (!globalContext.Pusher) {
+  globalContext.Pusher = Pusher;
+}
 
 interface Message {
   text: string;
@@ -6,28 +15,89 @@ interface Message {
   timestamp: Date;
 }
 
+interface ClientMessagePayload {
+  text?: string;
+  sender?: string;
+}
+
+interface ConnectionHandler {
+  event: string;
+  handler: (data?: unknown) => void;
+}
+
+type Subscription = ReturnType<Pusher["subscribe"]>;
+
+export const removeTrailingSlash = (value: string) => value.replace(/\/+$/, "");
+
+const getEnvPort = () => {
+  if (typeof Bun !== "undefined" && Bun.env?.REVERB_PORT) {
+    return Bun.env.REVERB_PORT;
+  }
+};
+
+const getDefaultServer = () => {
+  const envPort = getEnvPort();
+  return `ws://localhost:${envPort ?? "8080"}`;
+};
+
+export const normalizeServer = (value: string) => {
+  const trimmed = value.trim();
+  const fallback = trimmed || getDefaultServer();
+  if (/^wss?:\/\//i.test(fallback)) {
+    return removeTrailingSlash(fallback);
+  }
+  const isHttp = /^https?:\/\//i.test(fallback);
+  if (isHttp) {
+    const withoutProtocol = removeTrailingSlash(
+      fallback.replace(/^https?:\/\//i, ""),
+    );
+    const isSecure = fallback.toLowerCase().startsWith("https");
+    if (isSecure) {
+      return `wss://${withoutProtocol}`;
+    }
+    return `ws://${withoutProtocol}`;
+  }
+  return `ws://${removeTrailingSlash(fallback)}`;
+};
+
+const CLIENT_EVENT = "client-message";
+const APP_KEY = "my-app-key";
+
+export const buildEchoOptions = (value: string) => {
+  const normalized = normalizeServer(value);
+  const endpoint = new URL(normalized);
+  const secure = endpoint.protocol === "wss:";
+  const derivedPort = endpoint.port
+    ? Number.parseInt(endpoint.port, 10)
+    : secure
+      ? 443
+      : 80;
+
+  const options: EchoOptions<"reverb"> = {
+    broadcaster: "reverb",
+    key: APP_KEY,
+    wsHost: endpoint.hostname,
+    wsPort: derivedPort,
+    wssPort: derivedPort,
+    forceTLS: secure,
+    encrypted: secure,
+    disableStats: true,
+    enabledTransports: ["ws", "wss"],
+  };
+
+  return { normalized, options };
+};
+
+function parseClientPayload(data: unknown) {
+  if (typeof data === "string") {
+    return JSON.parse(data) as ClientMessagePayload;
+  }
+  if (typeof data === "object" && data) {
+    return data as ClientMessagePayload;
+  }
+}
+
 export function Chat() {
-  const removeTrailingSlash = (value: string) => value.replace(/\/+$/, "");
-  const getDefaultServer = () => {
-    // Use a build-time constant or import.meta.env if configured
-    const port = 8080; // Or use import.meta.env.VITE_REVERB_PORT if using Vite
-    return `ws://localhost:${port}`;
-  };
-  const normalizeServer = (value: string) => {
-    const trimmed = value.trim();
-    const fallback = trimmed || getDefaultServer();
-    if (/^wss?:\/\//i.test(fallback)) {
-      return removeTrailingSlash(fallback);
-    }
-    if (/^https?:\/\//i.test(fallback)) {
-      const withoutProtocol = fallback.replace(/^https?:\/\//i, "");
-      if (fallback.toLowerCase().startsWith("https")) {
-        return `wss://${removeTrailingSlash(withoutProtocol)}`;
-      }
-      return `ws://${removeTrailingSlash(withoutProtocol)}`;
-    }
-    return `ws://${removeTrailingSlash(fallback)}`;
-  };
   const [connected, setConnected] = useState(false);
   const [channel, setChannel] = useState("chat");
   const [joinedChannel, setJoinedChannel] = useState<string | null>(null);
@@ -36,16 +106,16 @@ export function Chat() {
   const [username, setUsername] = useState("User");
   const [server, setServer] = useState(() => getDefaultServer());
   const [connectionError, setConnectionError] = useState("");
-  const wsRef = useRef<WebSocket | null>(null);
   const channelRef = useRef(channel);
-  const currentChannelRef = useRef(channel);
   const usernameRef = useRef(username);
   const messageInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const echoRef = useRef<Echo<"reverb"> | null>(null);
+  const subscriptionRef = useRef<Subscription | null>(null);
+  const connectionHandlersRef = useRef<ConnectionHandler[]>([]);
 
   useEffect(() => {
     channelRef.current = channel;
-    currentChannelRef.current = channel;
   }, [channel]);
 
   useEffect(() => {
@@ -57,131 +127,141 @@ export function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
+  const leaveChannel = () => {
+    const echo = echoRef.current;
+    const subscription = subscriptionRef.current;
+    if (!echo || !subscription) {
+      return;
+    }
+    subscription.unbind_all();
+    echo.connector.pusher.unsubscribe(subscription.name);
+    subscriptionRef.current = null;
+  };
+
   const connect = () => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
+    if (echoRef.current) {
       return;
     }
 
-    const wsBase = normalizeServer(server);
-    const ws = new WebSocket(
-      `${wsBase}/app/my-app-key?protocol=7&client=js&version=8.4.0`,
-    );
+    const config = buildEchoOptions(server);
+    const echo = new Echo<"reverb">(config.options);
+    const pusher = echo.connector.pusher as Pusher;
+    echoRef.current = echo;
 
-    ws.onopen = () => {
+    const connectionHandlers: ConnectionHandler[] = [];
+
+    const handleConnected = () => {
       setConnected(true);
       setConnectionError("");
+      subscribeToChannel(channelRef.current);
     };
+    pusher.connection.bind("connected", handleConnected);
+    connectionHandlers.push({ event: "connected", handler: handleConnected });
 
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      console.log("WebSocket message received:", message);
-
-      if (message.event === "pusher:connection_established") {
-        const data = JSON.parse(message.data);
-        console.log("Connected with socket ID:", data.socket_id);
-        subscribeToChannel(ws, channelRef.current);
-      }
-
-      if (message.event === "pusher:ping") {
-        const pongMessage = {
-          event: "pusher:pong",
-          data: {},
-        };
-        ws.send(JSON.stringify(pongMessage));
-        console.log("Sent pong response");
-      }
-
-      if (message.event === "pusher_internal:subscription_succeeded") {
-        console.log("Subscribed to channel:", message.channel);
-        setJoinedChannel(message.channel);
-      }
-
-      // Handle client messages - only from the current channel
-      if (
-        message.event === "client-message" &&
-        message.channel === channelRef.current
-      ) {
-        console.log("Client message received:", message);
-        const eventData =
-          typeof message.data === "string"
-            ? JSON.parse(message.data)
-            : message.data;
-
-        // Only add messages from other users (not our own echoed messages)
-        if (eventData.sender !== usernameRef.current) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              text: eventData.text || "",
-              sender: eventData.sender || "Unknown",
-              timestamp: new Date(),
-            },
-          ]);
-        }
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
+    const handleConnectionError = (error?: {
+      error?: { message?: string };
+    }) => {
+      const detail = error?.error?.message;
+      const reason = detail ? detail : "Is the server running?";
       setConnectionError(
-        `Unable to connect to ${wsBase}. Is the server running?`,
+        `Unable to connect to ${config.normalized}. ${reason}`,
       );
     };
+    pusher.connection.bind("error", handleConnectionError);
+    connectionHandlers.push({ event: "error", handler: handleConnectionError });
 
-    ws.onclose = () => {
+    const handleFailed = () => {
       setConnected(false);
-      setConnectionError((prev) => prev || "Connection closed.");
+      setJoinedChannel(null);
     };
+    pusher.connection.bind("disconnected", handleFailed);
+    connectionHandlers.push({ event: "disconnected", handler: handleFailed });
+    pusher.connection.bind("failed", handleConnectionError);
+    connectionHandlers.push({
+      event: "failed",
+      handler: handleConnectionError,
+    });
 
-    wsRef.current = ws;
+    connectionHandlersRef.current = connectionHandlers;
   };
 
   const disconnect = () => {
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
-      setConnected(false);
-      setJoinedChannel(null);
-      setMessages([]);
+    const echo = echoRef.current;
+    if (!echo) {
+      return;
     }
+
+    leaveChannel();
+
+    const pusher = echo.connector.pusher as Pusher;
+    const connection = pusher.connection;
+    const handlers = connectionHandlersRef.current;
+    handlers.forEach(({ event, handler }) => {
+      connection.unbind(event, handler);
+    });
+    connectionHandlersRef.current = [];
+
+    echo.disconnect();
+    echoRef.current = null;
+
+    setConnected(false);
+    setJoinedChannel(null);
+    setMessages([]);
   };
 
-  const subscribeToChannel = (ws: WebSocket, channelName: string) => {
-    const subscribeMessage = {
-      event: "pusher:subscribe",
-      data: {
-        channel: channelName,
-      },
-    };
-    ws.send(JSON.stringify(subscribeMessage));
-  };
+  const subscribeToChannel = (channelName: string) => {
+    const echo = echoRef.current;
+    if (!echo) {
+      return;
+    }
 
-  const unsubscribeFromChannel = (ws: WebSocket, channelName: string) => {
-    const unsubscribeMessage = {
-      event: "pusher:unsubscribe",
-      data: {
-        channel: channelName,
-      },
-    };
-    ws.send(JSON.stringify(unsubscribeMessage));
+    leaveChannel();
+    setJoinedChannel(null);
+
+    const subscription = echo.connector.pusher.subscribe(channelName);
+    subscriptionRef.current = subscription;
+
+    subscription.bind("pusher:subscription_succeeded", () => {
+      setJoinedChannel(channelName);
+    });
+
+    subscription.bind(CLIENT_EVENT, (rawData: unknown) => {
+      const payload = parseClientPayload(rawData);
+      if (!payload) {
+        return;
+      }
+      if (payload.sender === usernameRef.current) {
+        return;
+      }
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: payload.text ?? "",
+          sender: payload.sender ?? "Unknown",
+          timestamp: new Date(),
+        },
+      ]);
+    });
   };
 
   const handleJoinChannel = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const channelName = (formData.get("channel") as string) || "chat";
+    const existing = subscriptionRef.current?.name;
+    setChannel(channelName);
+    channelRef.current = channelName;
 
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      const previousChannel = currentChannelRef.current;
-      if (previousChannel !== channelName) {
-        unsubscribeFromChannel(wsRef.current, previousChannel);
-        setMessages([]);
-      }
-      subscribeToChannel(wsRef.current, channelName);
-      setChannel(channelName);
-      currentChannelRef.current = channelName;
-      channelRef.current = channelName;
+    if (!echoRef.current) {
+      return;
     }
+
+    if (existing === channelName) {
+      return;
+    }
+
+    setMessages([]);
+    subscribeToChannel(channelName);
   };
 
   const handleSendMessage = (e: FormEvent<HTMLFormElement>) => {
@@ -205,17 +285,21 @@ export function Chat() {
       },
     ]);
 
-    const clientEvent = {
-      event: "client-message",
-      channel: joinedChannel,
-      data: messageData,
-    };
-
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(clientEvent));
-      setMessageInput("");
+    const echo = echoRef.current;
+    if (!echo) {
+      return;
     }
+
+    echo.connector.pusher.send_event(CLIENT_EVENT, messageData, joinedChannel);
+    setMessageInput("");
   };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: disconnect ref changes on every render
+  useEffect(() => {
+    return () => {
+      disconnect();
+    };
+  }, []);
 
   return (
     <div className="mt-8 mx-auto w-full max-w-2xl text-left flex flex-col gap-4">
