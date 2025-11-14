@@ -1,0 +1,51 @@
+name: Specification Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  spec-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build project
+        run: bun run build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Start spec test server
+        run: |
+          bun reverb/tests/Specification/spec-server.ts &
+          sleep 2
+
+      - name: Run Autobahn spec tests
+        run: |
+          docker run -it --rm \
+            --network host \
+            -v "${PWD}/reverb/tests/Specification:/config" \
+            -v "${PWD}/reverb/tests/Specification/reports:/reports" \
+            crossbario/autobahn-testsuite \
+            wstest -m fuzzingclient -s /config/client-spec.json
+
+      - name: Analyze test results
+        run: bun reverb/tests/Specification/spec-analyze.ts
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autobahn-reports
+          path: reverb/tests/Specification/reports/
