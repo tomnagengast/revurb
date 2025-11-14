@@ -1,5 +1,6 @@
-last commit: c784312
-status: ok
+last commit: d31bd9b
+status: not ok
 review comments:
-- docs.md:192 – Default binding paragraph now promises a localhost-only bind, matching the 127.0.0.1 fallback wired in src/config/load.ts.
-- docs.md:211 – The expanded env var example shows when to keep 127.0.0.1 vs opt into 0.0.0.0, so operators won’t misinterpret the defaults.
+- example/src/Chat.tsx:11 – `getDefaultServer()` now points to whatever host serves the React UI, so the chat demo defaults to `ws://localhost:3000` (or 5173) even though the Revurb daemon still listens on 8080 (see example/reverb.config.ts:5). The first connection attempt now always fails until the user manually edits the field.
+- .github/workflows/spec-tests.yml:37 – The workflow still `cd`s into `reverb/tests/Specification`, but commit 6b5754c removed that directory and .gitignore:12 now excludes it, so CI can no longer run the Autobahn spec suite.
+- LICENSE.md – The only license file was deleted even though package.json:13 still declares MIT and its `files` list expects LICENSE.md, leaving the project effectively unlicensed.
