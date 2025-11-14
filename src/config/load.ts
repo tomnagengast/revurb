@@ -13,12 +13,14 @@ import type {
 /**
  * Read an environment variable with an optional default value
  *
+ * Uses Bun.env for better performance and Bun-specific environment handling.
+ *
  * @param key - The environment variable key
  * @param defaultValue - The default value if the environment variable is not set
  * @returns The environment variable value or the default value
  */
 export function env(key: string, defaultValue?: string): string | undefined {
-  return process.env[key] ?? defaultValue;
+  return Bun.env[key] ?? defaultValue;
 }
 
 /**
@@ -33,7 +35,7 @@ export function env(key: string, defaultValue?: string): string | undefined {
  * @returns The parsed boolean value
  */
 export function envBool(key: string, defaultValue: boolean): boolean {
-  const value = process.env[key];
+  const value = Bun.env[key];
   if (value === undefined || value === "") {
     return defaultValue;
   }
@@ -54,7 +56,7 @@ export function envBool(key: string, defaultValue: boolean): boolean {
  * @returns The parsed integer value
  */
 export function envInt(key: string, defaultValue: number): number {
-  const value = process.env[key];
+  const value = Bun.env[key];
   if (value === undefined || value === "") {
     return defaultValue;
   }
@@ -75,7 +77,7 @@ export function envArray(
   delimiter = ",",
   defaultValue: string[] = [],
 ): string[] {
-  const value = process.env[key];
+  const value = Bun.env[key];
   if (value === undefined || value === "") {
     return defaultValue;
   }

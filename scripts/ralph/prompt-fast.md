@@ -2,7 +2,14 @@
 Your job is to port Laravel Reverb (PHP) to revurb-ts (Typescript) and maintain the repository.
 
 ## Instructions
-Read `AGENTS.md` and 
+Read `AGENTS.md` and
+
+- 0a. familiarize yourself with the code in `tests,
+- 0b. familiarize yourself with the REACT_CODING_STANDARDS.md
+- 1. read @REACT_REFACTOR_PLAN.md and complete the SINGLE highest priority item using up to 50 subagents
+- 2. run the tests with `make -C humanlayer-wui check test` and fix issues until they pass
+- 3. Update REACT_REFACTOR_PLAN.md with your progress
+- 4. use `git add -A` and `git commit -m "..."` to commit your changes - do not include any claude attribution
 
 First, read the `./specs/review.json`
 - If the status is `not ok`, address the review feedback first
