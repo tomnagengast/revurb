@@ -138,9 +138,10 @@ Revurb includes Autobahn WebSocket Testsuite integration to validate protocol co
 ```bash
 # Run Autobahn spec tests
 docker run -it --rm \
+  --platform linux/amd64 \
   --network host \
   -v "${PWD}/tests/spec:/config" \
-  -v "${PWD}/tests/spec/reports:/reports" \
+  -v "${PWD}/tests/spec/reports:/mnt/autobahn/reports" \
   crossbario/autobahn-testsuite \
   wstest -m fuzzingclient -s /config/client-spec.json
 ```
