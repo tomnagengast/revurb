@@ -1,13 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import * as crypto from "node:crypto";
-import type { Server } from "bun";
 import type { ReverbConfig } from "../../src/config/types";
-import { Factory } from "../../src/servers/reverb/factory";
+import { createServer, Factory } from "../../src/servers/reverb/factory";
 import type { PusherMessage } from "../../src/types/pusher-messages";
 
 describe("Presence Channel E2E Tests", () => {
-  let server: Server;
-  const testPort = 8087;
+  let result: Awaited<ReturnType<typeof createServer>>;
+  let testPort: number;
   const testAppKey = "presence-test-key";
   const testAppSecret = "presence-test-secret";
   const testAppId = "presence-test-id";
@@ -30,11 +29,29 @@ describe("Presence Channel E2E Tests", () => {
   }
 
   beforeAll(async () => {
+    // Reset Factory state before creating server
+    Factory.isInitialized = false;
+    Factory.appManager = null;
+    Factory.channelManager = null;
+    Factory.pusherServer = null;
+    Factory.logger = null;
+    Factory.metricsHandler = null;
+    Factory.eventsController = null;
+    Factory.eventsBatchController = null;
+    Factory.channelsController = null;
+    Factory.channelController = null;
+    Factory.usersTerminateController = null;
+    Factory.applicationProvider = null;
+    Factory.serverProvider = null;
+
     const config: ReverbConfig = {
-      server: {
-        host: "127.0.0.1",
-        port: testPort,
-        path: "",
+      default: "reverb",
+      servers: {
+        reverb: {
+          host: "127.0.0.1",
+          port: 0,
+          path: "",
+        },
       },
       apps: {
         provider: "config",
@@ -51,35 +68,14 @@ describe("Presence Channel E2E Tests", () => {
       },
     };
 
-    Factory.initialize(config);
-
-    const host = config.server?.host || "127.0.0.1";
-    const port = config.server?.port?.toString() || testPort.toString();
-    const path = config.server?.path || "";
-    const hostname = config.server?.hostname;
-    const maxRequestSize = config.server?.max_request_size || 10000;
-    const options = {
-      tls: config.server?.options?.tls || {},
-    };
-    const protocol = "pusher";
-
-    server = Factory.make(
-      host,
-      port,
-      path,
-      hostname,
-      maxRequestSize,
-      options,
-      protocol,
-    );
+    result = await createServer({ config });
+    testPort = result.server.port;
 
     await new Promise((resolve) => setTimeout(resolve, 500));
   });
 
-  afterAll(() => {
-    if (server) {
-      server.stop();
-    }
+  afterAll(async () => {
+    await result.shutdown();
   });
 
   it("should subscribe to a presence channel with valid auth and user data", async () => {
