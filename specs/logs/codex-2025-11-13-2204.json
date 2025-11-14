@@ -1,0 +1,10 @@
+{
+  "commit": "b93029b6a0f8bf19f9101b1d94c9403adfed3072",
+  "status": "ok",
+  "review_comments": [
+    "example/src/index.ts:1 – The example now boots Revurb via `createServer`, logs the running WebSocket endpoint, and hooks SIGINT/SIGTERM to `shutdown`, matching the new spec requirement. No issues surfaced here.",
+    "README.md:181 – Example instructions were updated to explain the single-process workflow so devs only need `cd example && bun run dev`; the text aligns with the new bootstrap code and looks accurate.",
+    "No regressions detected in the commits since 99c28f3. Residual risk: I couldn’t fully smoke-test `bun run dev` inside `example/` because port 3000 is already occupied on this machine, so the frontend server portion wasn’t verified end-to-end."
+  ],
+  "additional_comments": "Logged the review in specs/review.md and pushed commit b93029b. If you want extra assurance, free up port 3000 and run `cd example && bun run dev` to see both servers come up together."
+}

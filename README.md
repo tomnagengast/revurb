@@ -289,6 +289,18 @@ bun run lint:fix
 bun run clean
 ```
 
+## Continuous Integration
+
+Revurb includes comprehensive automated testing through GitHub Actions:
+
+- **Unit/Feature/E2E Tests** - Full test suite runs on every push with Redis service for integration testing
+- **WebSocket Protocol Compliance** - Autobahn Testsuite validates protocol conformance against Pusher spec
+- **Example Integration** - Smoke tests ensure `createServer` API and example app work end-to-end
+- **Static Analysis** - TypeScript checking and linting on all branches
+- **Code Formatting** - Automatic formatting fixes on main branch
+
+All workflows run on push to `main` and on pull requests, ensuring every change is validated before merge.
+
 ## Port Status
 
 This is a complete TypeScript port of Laravel Reverb. All core functionality has been ported and tested:
