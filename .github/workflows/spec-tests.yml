@@ -1,4 +1,4 @@
-name: Specification Tests
+name: specification tests
 
 on:
   push:
