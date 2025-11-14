@@ -1,0 +1,18 @@
+**Plan Validation**
+- The spec’s phased plan (foundation → implementation → polish) matches the current state of `src/servers/reverb/publishing`, where every Redis touchpoint is still a no-op mock. Nothing in the repo contradicts the plan; instead, the files confirm each required step is still outstanding.
+
+**Prioritized Tasks**
+1. Implement a real Redis client factory  
+   - `src/servers/reverb/publishing/redis-client-factory.ts:58-141` still returns a mock that never connects, unlike Laravel’s `RedisClientFactory.php` which instantiates an actual client. Replace the mock with an `ioredis` (or similar) based factory that parses TLS/auth/db options from `RedisServerConfig`, and surface hooks for dependency injection as per the spec.
+2. Rebuild the base Redis client around real connections and full config parsing  
+   - `src/servers/reverb/publishing/redis-client.ts:47-236` only checks for a truthy object to decide “connected,” constructs URLs via a minimal query string, and doesn’t support Laravel’s configuration nuances (driver aliases, TLS via `rediss`, username/password in authority, defaulting to config when server data is empty). Mirror `RedisClient.php` by adding a proper parser (or helper) that honors URL overrides, TLS, username/password/db, and implement lifecycle handlers that respond to genuine Redis events (`ready`, `end`, `error`, `reconnecting`) instead of assuming the mock API.
+3. Finish publisher/subscriber behaviors using the real client API  
+   - `src/servers/reverb/publishing/redis-publish-client.ts:39-76` still assumes the mock interface (returns `Promise.reject` on disconnect, doesn’t await flush, no instrumentation), and `redis-subscribe-client.ts:19-31` doesn’t await `subscribe` or handle automatic resubscription. Align both files with Laravel’s equivalents: queue publishes while offline and flush once connected, ensure `subscribe()` uses the promise-based Redis client, and wire reconnection callbacks so subscriptions re-register automatically.
+4. Tighten the pub/sub provider wiring to guarantee fan-out  
+   - `src/servers/reverb/publishing/redis-pubsub-provider.ts:52-132` currently instantiates the mock factory and doesn’t expose any way to supply a real client or loop akin to Laravel’s `RedisPubSubProvider.php`. Update it to accept the concrete factory, ensure `connect()` fails fast if Redis is unreachable, and verify `subscribe()` forwards channel/payload arguments exactly as `ioredis` emits them so `IPubSubIncomingMessageHandler` matches Laravel’s semantics.
+5. Align configuration loading with Bun and Laravel expectations  
+   - `src/config/types.ts:27-66` / `src/config/load.ts:1-88` lack properties for driver/scheme/SSL flags and rely on `process.env` instead of `Bun.env`, while Laravel’s config supports URL parsing, driver aliases (`tcp`, `tls`), timeout overrides, etc. Expand the config surface to match Laravel (including explicit driver/scheme/env overrides), use Bun’s env helpers, and propagate that richer config into the Redis clients.
+6. Add Redis dependency, tests, and documentation updates  
+   - Bring in `ioredis` (or chosen Bun-compatible client) via `package.json`, add integration tests under `tests/feature` or `tests/e2e` that spin up Redis and verify publish/subscribe works end-to-end, and refresh the messaging in `README.md:214` and `docs.md:458` to reflect production-ready Redis (removing “mock” caveats and adding setup/troubleshooting guidance). Include migration notes for anyone who subclassed the previous mock factory.
+
+These actions satisfy the spec’s objectives: real Redis connectivity, Laravel-parity configuration, reliable pub/sub behavior, and documentation/tests that prove it works.

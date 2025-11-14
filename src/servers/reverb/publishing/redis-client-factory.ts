@@ -2,11 +2,13 @@
  * Factory for creating Redis clients for pub/sub operations
  *
  * Handles creation and connection of Redis clients for publishing
- * and subscribing to Redis channels using a standard Redis client library
+ * and subscribing to Redis channels using ioredis, a Redis client
  * compatible with Bun runtime.
  *
  * @module Servers/Reverb/Publishing/RedisClientFactory
  */
+
+import IORedis, { type RedisOptions } from "ioredis";
 
 /**
  * Redis client interface for pub/sub operations
@@ -74,32 +76,16 @@ export interface RedisClient {
 /**
  * Factory for creating Redis clients
  *
- * Creates Redis client connections for the Reverb server.
+ * Creates Redis client connections for the Reverb server using ioredis.
  * Handles parsing of Redis URLs and establishing connections for
- * pub/sub operations using Bun's native capabilities.
- *
- * **IMPORTANT**: The default implementation returns a no-op mock client that does NOT
- * connect to Redis. Redis pub/sub will NOT work with the default implementation.
- *
- * For production use with Redis, extend this class and override the `createClient()`
- * method to provide a real Redis client implementation (e.g., node-redis, ioredis).
+ * pub/sub operations.
  *
  * @class RedisClientFactory
  * @example
  * ```typescript
- * // Default (mock - no Redis connection)
  * const factory = new RedisClientFactory();
  * const client = await factory.make('redis://localhost:6379');
- *
- * // Custom (real Redis client)
- * class MyRedisClientFactory extends RedisClientFactory {
- *   protected async createClient(config: Record<string, unknown>): Promise<RedisClient> {
- *     const redis = require('redis');
- *     const client = redis.createClient(config);
- *     await client.connect();
- *     return client;
- *   }
- * }
+ * await client.ping();
  * ```
  */
 export class RedisClientFactory {
@@ -110,13 +96,6 @@ export class RedisClientFactory {
    * The URL can be in the format:
    * - redis://[username[:password]@][host][:port][/database]
    * - rediss://[username[:password]@][host][:port][/database] (TLS)
-   *
-   * Bun's native JavaScript runtime does not provide built-in Redis client,
-   * so this factory assumes an external Redis client library will be
-   * injected or used. In production, integrate with a library like:
-   * - node-redis
-   * - ioredis
-   * - or similar compatible client
    *
    * @param redisUrl - The Redis connection URL
    * @returns Promise that resolves to a connected Redis client
@@ -136,38 +115,37 @@ export class RedisClientFactory {
 
       // Extract components from URL
       const protocol = url.protocol.replace(":", "");
-      const hostname = url.hostname || "localhost";
+      const host = url.hostname || "localhost";
       const port = url.port ? Number.parseInt(url.port, 10) : 6379;
       const username = url.username || undefined;
       const password = url.password || undefined;
-      const database = url.pathname
+      const db = url.pathname
         ? Number.parseInt(url.pathname.replace("/", ""), 10) || 0
         : 0;
-      const useTls = protocol === "rediss";
 
-      // For Bun runtime, we need to use a compatible Redis client
-      // This creates a placeholder that should be replaced with actual Redis library
-      // when integrated with a proper Redis client package
+      // Parse query parameters for additional options
+      const params = new URLSearchParams(url.search);
+      const timeout = params.get("timeout")
+        ? Number.parseInt(params.get("timeout") as string, 10)
+        : undefined;
 
-      // Connection parameters for the Redis client
-      const connectionConfig = {
-        hostname,
+      // Build ioredis connection options
+      const options: RedisOptions = {
+        host,
         port,
+        db,
         ...(username && { username }),
         ...(password && { password }),
-        ...(database && { db: database }),
-        ...(useTls && { tls: true }),
+        ...(timeout && { connectTimeout: timeout }),
       };
 
-      // Create a Redis client instance
-      // WARNING: The default implementation returns a no-op mock client that does NOT
-      // connect to Redis. This means Redis pub/sub will NOT work for multi-server deployments.
-      // For production use with Redis, you MUST override the createClient() method in a subclass
-      // to provide a real Redis client implementation (e.g., node-redis, ioredis).
-      //
-      // For single-server deployments without Redis, this mock implementation is sufficient.
-      const redisClient: RedisClient =
-        await this.createClient(connectionConfig);
+      // Enable TLS for rediss:// protocol
+      if (protocol === "rediss") {
+        options.tls = {};
+      }
+
+      // Create a Redis client instance using ioredis
+      const redisClient = await this.createClient(options);
 
       return redisClient;
     } catch (error) {
@@ -180,50 +158,24 @@ export class RedisClientFactory {
   /**
    * Create a Redis client with the given configuration
    *
-   * This method creates the actual Redis client connection.
-   * It serves as an extension point for dependency injection.
+   * This method creates the actual Redis client connection using ioredis.
+   * It can be overridden in a subclass to customize the client creation
+   * or use a different Redis client library.
    *
-   * Override this method in a subclass to provide a real Redis client implementation.
-   * For example, using node-redis or ioredis:
-   *
-   * @example
-   * ```typescript
-   * class MyRedisClientFactory extends RedisClientFactory {
-   *   protected async createClient(config: Record<string, unknown>): Promise<RedisClient> {
-   *     const redis = require('redis');
-   *     const client = redis.createClient(config);
-   *     await client.connect();
-   *     return client;
-   *   }
-   * }
-   * ```
-   *
-   * @param config - Redis connection configuration
+   * @param options - ioredis connection options
    * @returns Promise that resolves to a connected Redis client
    *
    * @protected
    */
-  protected async createClient(
-    _config: Record<string, unknown>,
-  ): Promise<RedisClient> {
-    // WARNING: This is a NO-OP mock implementation that does NOT connect to Redis.
-    // All methods (publish, subscribe, etc.) are no-ops and will NOT work for
-    // multi-server deployments requiring Redis pub/sub.
-    //
-    // This mock is only suitable for single-server deployments that don't need Redis.
-    //
-    // For production use with Redis, override this method in a subclass to use a
-    // real Redis client library (e.g., node-redis, ioredis).
-    return {
-      ping: async () => "PONG",
-      subscribe: async () => {},
-      unsubscribe: async () => {},
-      publish: async () => 0,
-      get: async () => null,
-      set: async () => {},
-      del: async () => 0,
-      quit: async () => {},
-      on: () => {},
-    };
+  protected async createClient(options: RedisOptions): Promise<RedisClient> {
+    const client = new IORedis(options);
+
+    // Wait for the client to be ready
+    await new Promise<void>((resolve, reject) => {
+      client.once("ready", () => resolve());
+      client.once("error", (err) => reject(err));
+    });
+
+    return client as unknown as RedisClient;
   }
 }
