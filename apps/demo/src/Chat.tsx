@@ -39,11 +39,13 @@ export function Chat() {
   const [error, setError] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const reverbHost = process.env.BUN_PUBLIC_REVERB_HOST ?? "localhost";
+  const reverbHost = import.meta.env.BUN_PUBLIC_REVERB_HOST ?? "localhost";
   const reverbPort =
-    Number.parseInt(process.env.BUN_PUBLIC_REVERB_PORT ?? "8080", 10) || 8080;
-  const reverbScheme = process.env.BUN_PUBLIC_REVERB_SCHEME ?? "http";
-  const reverbAppKey = process.env.BUN_PUBLIC_REVERB_APP_KEY ?? "my-app-key";
+    Number.parseInt(import.meta.env.BUN_PUBLIC_REVERB_PORT ?? "8080", 10) ||
+    8080;
+  const reverbScheme = import.meta.env.BUN_PUBLIC_REVERB_SCHEME ?? "http";
+  const reverbAppKey =
+    import.meta.env.BUN_PUBLIC_REVERB_APP_KEY ?? "my-app-key";
   const reverbUrl = `${reverbScheme === "https" ? "wss" : "ws"}://${reverbHost}:${reverbPort}`;
 
   // Configure Echo once
@@ -106,7 +108,7 @@ export function Chat() {
       connection.unbind("failed", handleError);
       connection.unbind("error", handleError);
     };
-  }, [reverbHost, reverbPort]);
+  }, [reverbPort]);
 
   // Auto-connect on mount
   useEffect(() => {
