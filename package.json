@@ -18,7 +18,8 @@
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit && bun run --cwd packages/revurb typecheck && bun run --cwd apps/demo typecheck",
     "clean": "rm -rf packages/revurb/dist",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "bun run build"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.5",

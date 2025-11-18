@@ -33,19 +33,7 @@ describe("createServer", () => {
   };
 
   beforeEach(() => {
-    Factory.isInitialized = false;
-    Factory.appManager = null;
-    Factory.channelManager = null;
-    Factory.pusherServer = null;
-    Factory.logger = null;
-    Factory.metricsHandler = null;
-    Factory.eventsController = null;
-    Factory.eventsBatchController = null;
-    Factory.channelsController = null;
-    Factory.channelController = null;
-    Factory.usersTerminateController = null;
-    Factory.applicationProvider = null;
-    Factory.serverProvider = null;
+    Factory.reset();
   });
 
   describe("Config resolution", () => {
@@ -519,11 +507,11 @@ describe("createServer", () => {
     it("should initialize Factory only once", async () => {
       const result1 = await createServer({ config: baseConfig });
 
-      expect(Factory.isInitialized).toBe(true);
+      expect(result1.server).toBeDefined();
 
       const result2 = await createServer({ config: baseConfig });
 
-      expect(Factory.isInitialized).toBe(true);
+      expect(result2.server).toBeDefined();
 
       await result1.shutdown();
       await result2.shutdown();

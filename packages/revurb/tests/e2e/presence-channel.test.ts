@@ -30,19 +30,7 @@ describe("Presence Channel E2E Tests", () => {
 
   beforeAll(async () => {
     // Reset Factory state before creating server
-    Factory.isInitialized = false;
-    Factory.appManager = null;
-    Factory.channelManager = null;
-    Factory.pusherServer = null;
-    Factory.logger = null;
-    Factory.metricsHandler = null;
-    Factory.eventsController = null;
-    Factory.eventsBatchController = null;
-    Factory.channelsController = null;
-    Factory.channelController = null;
-    Factory.usersTerminateController = null;
-    Factory.applicationProvider = null;
-    Factory.serverProvider = null;
+    Factory.reset();
 
     const config: ReverbConfig = {
       default: "reverb",
