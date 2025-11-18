@@ -30,6 +30,13 @@ const CHANNELS = [
 
 let echoConfigured = false;
 
+const getEnv = (key: string): string | undefined => {
+  if (typeof process !== "undefined" && process.env) {
+    return process.env[key];
+  }
+  return undefined;
+};
+
 export function Chat() {
   const [messageInput, setMessageInput] = useState("");
   const [username, setUsername] = useState("User");
@@ -39,11 +46,11 @@ export function Chat() {
   const [error, setError] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const reverbHost = process.env.BUN_PUBLIC_REVERB_HOST ?? "localhost";
+  const reverbHost = getEnv("BUN_PUBLIC_REVERB_HOST") ?? "localhost";
   const reverbPort =
-    Number.parseInt(process.env.BUN_PUBLIC_REVERB_PORT ?? "8080", 10) || 8080;
-  const reverbScheme = process.env.BUN_PUBLIC_REVERB_SCHEME ?? "http";
-  const reverbAppKey = process.env.BUN_PUBLIC_REVERB_APP_KEY ?? "my-app-key";
+    Number.parseInt(getEnv("BUN_PUBLIC_REVERB_PORT") ?? "8080", 10) || 8080;
+  const reverbScheme = getEnv("BUN_PUBLIC_REVERB_SCHEME") ?? "http";
+  const reverbAppKey = getEnv("BUN_PUBLIC_REVERB_APP_KEY") ?? "my-app-key";
   const reverbUrl = `${reverbScheme === "https" ? "wss" : "ws"}://${reverbHost}:${reverbPort}`;
 
   // Configure Echo once
