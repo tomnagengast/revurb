@@ -1,0 +1,59 @@
+{
+  "name": "revurb",
+  "version": "0.1.0",
+  "description": "Bun-powered real-time WebSocket server implementing the Pusher protocol - a TypeScript port of Laravel Reverb",
+  "keywords": [
+    "websocket",
+    "pusher",
+    "realtime",
+    "bun",
+    "websockets",
+    "real-time"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Tom (Reverb Port)",
+      "email": "tom@example.com"
+    }
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./src/*": "./src/*"
+  },
+  "bin": {
+    "revurb": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE.md"
+  ],
+  "scripts": {
+    "dev": "bun run --watch src/cli.ts",
+    "build": "bun build src/cli.ts --outdir=dist --target=bun --format=esm && bun build src/index.ts --outdir=dist --target=bun --format=esm",
+    "start": "bun run dist/cli.js",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ioredis": "^5.8.2"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.2",
+    "bun-types": "^1.3.2",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "bun": ">=1.3.2"
+  }
+}

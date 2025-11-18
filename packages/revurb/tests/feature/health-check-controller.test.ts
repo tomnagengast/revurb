@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import type { Server } from "bun";
-import { Factory } from "../../src/servers/reverb/factory";
+import { Factory } from "revurb/src/servers/reverb/factory";
 
 describe("Health Check Controller", () => {
   let server: Server;

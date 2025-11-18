@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import * as crypto from "node:crypto";
-import type { ReverbConfig } from "../../src/config/types";
-import { createServer, Factory } from "../../src/servers/reverb/factory";
-import type { PusherMessage } from "../../src/types/pusher-messages";
+import type { ReverbConfig } from "revurb/src/config/types";
+import { createServer, Factory } from "revurb/src/servers/reverb/factory";
+import type { PusherMessage } from "revurb/src/types/pusher-messages";
 
 describe("Private Channel E2E Tests", () => {
   let result: Awaited<ReturnType<typeof createServer>>;

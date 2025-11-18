@@ -1,4 +1,4 @@
-import type { ReverbConfig } from "../../src/index";
+import type { ReverbConfig } from "revurb";
 
 export default {
   default: "reverb",

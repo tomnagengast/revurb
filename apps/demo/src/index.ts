@@ -1,6 +1,6 @@
 import { createHash, createHmac } from "node:crypto";
 import { serve } from "bun";
-import { createServer } from "../../../src/index";
+import { createServer } from "revurb";
 import config from "../reverb.config";
 import index from "./index.html";
 

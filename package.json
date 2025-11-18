@@ -1,49 +1,24 @@
 {
-  "name": "revurb",
+  "name": "revurb-monorepo",
   "version": "0.1.0",
-  "description": "Bun-powered real-time WebSocket server implementing the Pusher protocol - a TypeScript port of Laravel Reverb",
-  "keywords": [
-    "websocket",
-    "pusher",
-    "realtime",
-    "bun",
-    "websockets",
-    "real-time"
-  ],
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "Tom (Reverb Port)",
-      "email": "tom@example.com"
-    }
-  ],
+  "private": true,
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "bin": {
-    "revurb": "./dist/cli.js"
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE.md"
+  "workspaces": [
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
-    "dev": "bun run --watch src/cli.ts",
-    "build": "bun build src/cli.ts --outdir=dist --target=bun --format=esm && bun build src/index.ts --outdir=dist --target=bun --format=esm",
-    "start": "bun run dist/cli.js",
+    "dev": "bun run --watch packages/revurb/src/cli.ts",
+    "build": "bun run --cwd packages/revurb build",
+    "start": "bun run packages/revurb/dist/cli.js",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
-    "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit && bun run --cwd packages/revurb typecheck && bun run --cwd apps/demo typecheck",
+    "clean": "rm -rf packages/revurb/dist",
     "prepare": "husky"
-  },
-  "dependencies": {
-    "ioredis": "^5.8.2"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.5",
@@ -53,7 +28,5 @@
   },
   "engines": {
     "bun": ">=1.3.2"
-  },
-  "peerDependencies": {},
-  "trustedDependencies": []
+  }
 }

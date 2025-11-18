@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import type { ReverbConfig } from "../../src/config/types";
-import { createServer, Factory } from "../../src/servers/reverb/factory";
+import type { ReverbConfig } from "revurb/src/config/types";
+import { createServer, Factory } from "revurb/src/servers/reverb/factory";
 import type {
   ConnectionEstablishedData,
   ConnectionEstablishedMessage,
-} from "../../src/types/pusher-messages";
+} from "revurb/src/types/pusher-messages";
 
 describe("WebSocket Connection E2E Tests", () => {
   let result: Awaited<ReturnType<typeof createServer>>;

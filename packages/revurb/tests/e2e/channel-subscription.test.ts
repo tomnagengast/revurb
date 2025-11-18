@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import type { ReverbConfig } from "../../src/config/types";
-import { createServer, Factory } from "../../src/servers/reverb/factory";
+import type { ReverbConfig } from "revurb/src/config/types";
+import { createServer, Factory } from "revurb/src/servers/reverb/factory";
 
 describe("Channel Subscription E2E Tests", () => {
   let result: Awaited<ReturnType<typeof createServer>>;
