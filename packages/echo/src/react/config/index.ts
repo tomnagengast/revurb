@@ -4,6 +4,13 @@ import Pusher from "pusher-js";
 let echoInstance: Echo<BroadcastDriver> | null = null;
 let echoConfig: EchoOptions<BroadcastDriver> | null = null;
 
+const getEnv = (key: string): string | undefined => {
+  if (typeof process !== "undefined" && process.env) {
+    return process.env[key];
+  }
+  return undefined;
+};
+
 const getEchoInstance = <T extends BroadcastDriver>(): Echo<T> => {
   if (echoInstance) {
     return echoInstance as Echo<T>;
@@ -28,41 +35,41 @@ export const configureEcho = <T extends BroadcastDriver>(
   const defaults: Record<string, Record<string, unknown>> = {
     reverb: {
       broadcaster: "reverb",
-      key: Bun.env.VITE_REVERB_APP_KEY,
-      wsHost: Bun.env.VITE_REVERB_HOST,
-      wsPort: Bun.env.VITE_REVERB_PORT
-        ? Number.parseInt(Bun.env.VITE_REVERB_PORT, 10)
+      key: getEnv("VITE_REVERB_APP_KEY"),
+      wsHost: getEnv("VITE_REVERB_HOST"),
+      wsPort: getEnv("VITE_REVERB_PORT")
+        ? Number.parseInt(getEnv("VITE_REVERB_PORT")!, 10)
         : undefined,
-      wssPort: Bun.env.VITE_REVERB_PORT
-        ? Number.parseInt(Bun.env.VITE_REVERB_PORT, 10)
+      wssPort: getEnv("VITE_REVERB_PORT")
+        ? Number.parseInt(getEnv("VITE_REVERB_PORT")!, 10)
         : undefined,
-      forceTLS: (Bun.env.VITE_REVERB_SCHEME ?? "https") === "https",
+      forceTLS: (getEnv("VITE_REVERB_SCHEME") ?? "https") === "https",
       enabledTransports: ["ws", "wss"],
     },
     pusher: {
       broadcaster: "pusher",
-      key: Bun.env.VITE_PUSHER_APP_KEY,
-      cluster: Bun.env.VITE_PUSHER_APP_CLUSTER,
+      key: getEnv("VITE_PUSHER_APP_KEY"),
+      cluster: getEnv("VITE_PUSHER_APP_CLUSTER"),
       forceTLS: true,
-      wsHost: Bun.env.VITE_PUSHER_HOST,
-      wsPort: Bun.env.VITE_PUSHER_PORT
-        ? Number.parseInt(Bun.env.VITE_PUSHER_PORT, 10)
+      wsHost: getEnv("VITE_PUSHER_HOST"),
+      wsPort: getEnv("VITE_PUSHER_PORT")
+        ? Number.parseInt(getEnv("VITE_PUSHER_PORT")!, 10)
         : undefined,
-      wssPort: Bun.env.VITE_PUSHER_PORT
-        ? Number.parseInt(Bun.env.VITE_PUSHER_PORT, 10)
+      wssPort: getEnv("VITE_PUSHER_PORT")
+        ? Number.parseInt(getEnv("VITE_PUSHER_PORT")!, 10)
         : undefined,
       enabledTransports: ["ws", "wss"],
     },
     "socket.io": {
       broadcaster: "socket.io",
-      host: Bun.env.VITE_SOCKET_IO_HOST,
+      host: getEnv("VITE_SOCKET_IO_HOST"),
     },
     null: {
       broadcaster: "null",
     },
     ably: {
       broadcaster: "pusher",
-      key: Bun.env.VITE_ABLY_PUBLIC_KEY,
+      key: getEnv("VITE_ABLY_PUBLIC_KEY"),
       wsHost: "realtime-pusher.ably.io",
       wsPort: 443,
       disableStats: true,
