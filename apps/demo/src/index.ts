@@ -23,6 +23,16 @@ console.log(
 // The frontend connects using @revurb/echo (see Chat.tsx)
 const frontendServer = serve({
   routes: {
+    // Serve static assets (JS/TS/CSS) with proper MIME types
+    "/:file+.:ext(tsx|ts|js|css)": async (req) => {
+      const url = new URL(req.url);
+      const file = Bun.file(`${import.meta.dir}${url.pathname}`);
+      if (await file.exists()) {
+        return new Response(file);
+      }
+      return new Response("Not found", { status: 404 });
+    },
+
     // Required for private/presence channels - authenticates subscriptions
     "/broadcasting/auth": {
       async POST(req) {
