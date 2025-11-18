@@ -50,7 +50,7 @@ bun run dev
 bun run start
 
 # Or directly
-bun run src/cli.ts start --host=127.0.0.1 --port=8080
+bun run packages/revurb/src/cli.ts start --host=127.0.0.1 --port=8080
 ```
 
 ### Configuration
@@ -238,21 +238,24 @@ The spec tests validate WebSocket protocol compliance including frame handling, 
 
 ```
 revurb/
-├── src/
-│   ├── protocols/pusher/     # Pusher protocol implementation
-│   ├── servers/reverb/        # Server factory and HTTP handling
-│   ├── events/                # Event system
-│   ├── loggers/               # Logging implementations
-│   ├── contracts/             # TypeScript interfaces
-│   └── cli.ts                 # CLI entry point
-├── tests/
-│   ├── e2e/                   # End-to-end tests
-│   ├── feature/               # Feature tests
-│   ├── spec/                  # WebSocket protocol spec tests (Autobahn)
-│   └── unit/                  # Unit tests
 ├── apps/
 │   └── demo/                  # Example chat application
-└── dist/                      # Compiled output
+├── packages/
+│   ├── echo/                  # @revurb/echo package (Pusher client)
+│   └── revurb/                # @revurb/revurb package (WebSocket server)
+│       ├── src/
+│       │   ├── protocols/     # Pusher protocol implementation
+│       │   ├── servers/       # Server factory and HTTP handling
+│       │   ├── events/        # Event system
+│       │   ├── loggers/       # Logging implementations
+│       │   ├── contracts/     # TypeScript interfaces
+│       │   └── cli.ts         # CLI entry point
+│       ├── tests/
+│       │   ├── e2e/           # End-to-end tests
+│       │   ├── feature/       # Feature tests
+│       │   ├── spec/          # WebSocket protocol spec tests
+│       │   └── unit/          # Unit tests
+│       └── dist/              # Compiled output
 ```
 
 ## API Endpoints
