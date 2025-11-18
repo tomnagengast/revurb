@@ -1,7 +1,6 @@
 import { serve } from "bun";
 import { createServer } from "revurb";
 import config from "../reverb.config";
-import index from "./index.html";
 
 // ============================================================================
 // Start Revurb WebSocket Server
@@ -75,8 +74,35 @@ const frontendServer = serve({
       },
     },
 
-    // Serve index.html for all unmatched routes
-    "/*": index,
+    // Serve index.html for all unmatched routes with injected config
+    "/*": async () => {
+      const htmlFile = Bun.file(`${import.meta.dir}/index.html`);
+      const html = await htmlFile.text();
+      const reverbHost = Bun.env.BUN_PUBLIC_REVERB_HOST ?? "localhost";
+      const reverbPort =
+        Bun.env.BUN_PUBLIC_REVERB_PORT ?? String(wsServer.port);
+      const reverbScheme = Bun.env.BUN_PUBLIC_REVERB_SCHEME ?? "http";
+      const reverbAppKey = config.apps?.apps?.[0]?.key ?? "my-app-key";
+
+      const configScript = `
+      <script>
+        window.__REVURB_CONFIG__ = {
+          host: ${JSON.stringify(reverbHost)},
+          port: ${JSON.stringify(reverbPort)},
+          scheme: ${JSON.stringify(reverbScheme)},
+          appKey: ${JSON.stringify(reverbAppKey)}
+        };
+      </script>`;
+
+      const injectedHtml = html.replace(
+        "</head>",
+        `${configScript}\n    </head>`,
+      );
+
+      return new Response(injectedHtml, {
+        headers: { "Content-Type": "text/html" },
+      });
+    },
   },
 
   development: Bun.env.NODE_ENV !== "production" && {
