@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Revurb</title>
+    <script>
+      // Polyfill must execute before any module imports
+      globalThis.global = globalThis;
+    </script>
   </head>
   <body>
     <div id="root"></div>

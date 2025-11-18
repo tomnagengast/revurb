@@ -1,7 +1,8 @@
 projects = { "/Users/tom/personal/heyo" = { trust_level = "trusted" }, "/Users/tom/personal/heyo-bun" = { trust_level = "trusted" }, "/Users/tom/personal/wino" = { trust_level = "trusted" } }
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
-model = "gpt-5.1-codex-mini"
+model = "gpt-5.1-codex"
+# model = "gpt-5.1-codex-mini"
 model_reasoning_effort = "medium"
 
 [sandbox_workspace_write]

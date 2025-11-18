@@ -5,9 +5,6 @@
  * It is included in `src/index.html`.
  */
 
-// Must import polyfill first, before any code that uses pusher-js
-import "./polyfill";
-
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
 
