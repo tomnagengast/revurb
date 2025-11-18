@@ -122,20 +122,10 @@ export function Chat() {
     }
   }, [messages.length]);
 
-  // Load message history when channel changes
+  // Clear messages when channel changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: setMessages is stable but we need to run on currentChannel change
   useEffect(() => {
     setMessages([]);
-    const loadHistory = async () => {
-      const response = await fetch(
-        `/api/messages?channel=${encodeURIComponent(currentChannel)}`,
-      ).catch(() => null);
-      if (!response?.ok) return;
-      const data = (await response.json()) as { messages?: Message[] };
-      if (Array.isArray(data.messages)) {
-        setMessages(data.messages);
-      }
-    };
-    loadHistory();
   }, [currentChannel]);
 
   const connect = useCallback(() => {
