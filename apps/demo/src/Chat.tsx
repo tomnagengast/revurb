@@ -128,8 +128,8 @@ export function Chat() {
     const loadHistory = async () => {
       const response = await fetch(
         `/api/messages?channel=${encodeURIComponent(currentChannel)}`,
-      );
-      if (!response.ok) return;
+      ).catch(() => null);
+      if (!response?.ok) return;
       const data = (await response.json()) as { messages?: Message[] };
       if (Array.isArray(data.messages)) {
         setMessages(data.messages);
