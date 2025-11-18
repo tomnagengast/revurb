@@ -1,6 +1,6 @@
 import { createHash, createHmac } from "node:crypto";
 import { serve } from "bun";
-import { createServer } from "../../src/index";
+import { createServer } from "../../../src/index";
 import config from "../reverb.config";
 import index from "./index.html";
 
@@ -129,6 +129,51 @@ async function bootstrap() {
             console.error("Failed to handle message", error);
             return Response.json(
               { error: "Failed to send message" },
+              { status: 500 },
+            );
+          }
+        },
+      },
+
+      "/broadcasting/auth": {
+        async POST(req) {
+          try {
+            const body = (await req.json()) as {
+              socket_id?: string;
+              channel_name?: string;
+              channel_data?: string;
+            };
+
+            const socketId = body.socket_id;
+            const channelName = body.channel_name;
+            const channelData = body.channel_data;
+
+            if (!socketId || !channelName) {
+              return Response.json(
+                { error: "Missing socket_id or channel_name" },
+                { status: 400 },
+              );
+            }
+
+            // Build signature string: socket_id:channel_name[:channel_data]
+            let signatureString = `${socketId}:${channelName}`;
+            if (channelData) {
+              signatureString += `:${channelData}`;
+            }
+
+            // Compute HMAC-SHA256 signature
+            const signature = createHmac("sha256", APP_SECRET)
+              .update(signatureString)
+              .digest("hex");
+
+            // Return auth token in format: app_key:signature
+            return Response.json({
+              auth: `${APP_KEY}:${signature}`,
+            });
+          } catch (error) {
+            console.error("Failed to authenticate channel", error);
+            return Response.json(
+              { error: "Failed to authenticate" },
               { status: 500 },
             );
           }

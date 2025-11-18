@@ -31,13 +31,13 @@ jobs:
         run: bun run build
 
       - name: Install example dependencies
-        run: cd example && bun install
+        run: cd apps/demo && bun install
 
       - name: Start example app in background
         run: |
-          cd example
-          timeout 30s bun run dev > ../example-output.log 2>&1 &
-          echo $! > ../example-pid.txt
+          cd apps/demo
+          timeout 30s bun run dev > ../../example-output.log 2>&1 &
+          echo $! > ../../example-pid.txt
           sleep 5
 
       - name: Check WebSocket server is running

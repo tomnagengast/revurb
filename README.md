@@ -193,7 +193,7 @@ The example embeds Revurb directly in the same process as the frontend dev serve
 To run the example:
 
 ```bash
-cd example
+cd apps/demo
 bun install
 bun run dev
 ```
@@ -250,7 +250,8 @@ revurb/
 │   ├── feature/               # Feature tests
 │   ├── spec/                  # WebSocket protocol spec tests (Autobahn)
 │   └── unit/                  # Unit tests
-├── example/                   # Example chat application
+├── apps/
+│   └── demo/                  # Example chat application
 └── dist/                      # Compiled output
 ```
 

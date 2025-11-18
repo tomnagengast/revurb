@@ -26,8 +26,8 @@ We should restrucuture the demo to the following:
 
 We've started a rough-cut of Echo in `example/src/lib/useRevurb.ts` which should be replaced by.
 We want to migrate that and improve upon it based on these influential sources:
-- https://github.com/laravel/echo
-- https://github.com/stephenjason89/bun-pulse
+- `~/personal/_clones/laravel/echo`
+- `~/personal/_clones/stephenjason89/bun-pulse`
 
 
 ## Reference

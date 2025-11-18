@@ -108,13 +108,26 @@ export function useRevurb<TPayload = Record<string, unknown>>({
 
   useEffect(() => {
     const instance = echo<"reverb">();
-    let subscription: any;
+    let subscription:
+      | {
+          subscribed?: (callback: () => void) => void;
+          error?: (callback: () => void) => void;
+          listen?: (
+            event: string,
+            callback: (payload: TPayload) => void,
+          ) => void;
+        }
+      | (() => {
+          subscribed?: (callback: () => void) => void;
+          error?: (callback: () => void) => void;
+        })
+      | undefined;
     const channelSnapshot = channelRef.current;
 
     if (isPrivateChannel) {
       // For private channels, use the echo instance directly
       subscription = instance.private(channelSnapshot);
-      subscription.listen(event as string, (e: any) => {
+      subscription?.listen?.(event as string, (e: TPayload) => {
         handleIncoming(e);
       });
     } else {
