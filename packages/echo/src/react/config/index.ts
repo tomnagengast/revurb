@@ -32,17 +32,16 @@ const getEchoInstance = <T extends BroadcastDriver>(): Echo<T> => {
 export const configureEcho = <T extends BroadcastDriver>(
   config: EchoOptions<T>,
 ): void => {
+  const reverbPort = getEnv("VITE_REVERB_PORT");
+  const pusherPort = getEnv("VITE_PUSHER_PORT");
+
   const defaults: Record<string, Record<string, unknown>> = {
     reverb: {
       broadcaster: "reverb",
       key: getEnv("VITE_REVERB_APP_KEY"),
       wsHost: getEnv("VITE_REVERB_HOST"),
-      wsPort: getEnv("VITE_REVERB_PORT")
-        ? Number.parseInt(getEnv("VITE_REVERB_PORT")!, 10)
-        : undefined,
-      wssPort: getEnv("VITE_REVERB_PORT")
-        ? Number.parseInt(getEnv("VITE_REVERB_PORT")!, 10)
-        : undefined,
+      wsPort: reverbPort ? Number.parseInt(reverbPort, 10) : undefined,
+      wssPort: reverbPort ? Number.parseInt(reverbPort, 10) : undefined,
       forceTLS: (getEnv("VITE_REVERB_SCHEME") ?? "https") === "https",
       enabledTransports: ["ws", "wss"],
     },
@@ -52,12 +51,8 @@ export const configureEcho = <T extends BroadcastDriver>(
       cluster: getEnv("VITE_PUSHER_APP_CLUSTER"),
       forceTLS: true,
       wsHost: getEnv("VITE_PUSHER_HOST"),
-      wsPort: getEnv("VITE_PUSHER_PORT")
-        ? Number.parseInt(getEnv("VITE_PUSHER_PORT")!, 10)
-        : undefined,
-      wssPort: getEnv("VITE_PUSHER_PORT")
-        ? Number.parseInt(getEnv("VITE_PUSHER_PORT")!, 10)
-        : undefined,
+      wsPort: pusherPort ? Number.parseInt(pusherPort, 10) : undefined,
+      wssPort: pusherPort ? Number.parseInt(pusherPort, 10) : undefined,
       enabledTransports: ["ws", "wss"],
     },
     "socket.io": {
