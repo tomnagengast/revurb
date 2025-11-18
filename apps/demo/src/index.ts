@@ -23,8 +23,8 @@ console.log(
 // The frontend connects using @revurb/echo (see Chat.tsx)
 const frontendServer = serve({
   routes: {
-    // Serve static assets (JS/TS/CSS) with proper MIME types
-    "/:file+.:ext(tsx|ts|js|css)": async (req) => {
+    // Serve static assets (JS/TS/CSS/SVG) with proper MIME types
+    "/:file+.:ext(tsx|ts|js|css|svg)": async (req) => {
       const url = new URL(req.url);
       const file = Bun.file(`${import.meta.dir}${url.pathname}`);
       if (await file.exists()) {
