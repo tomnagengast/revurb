@@ -142,6 +142,7 @@ async function bootstrap() {
         },
       },
 
+      // Required for private/presence channels - authenticates channel subscriptions
       "/broadcasting/auth": {
         async POST(req) {
           try {
