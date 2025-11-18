@@ -508,10 +508,14 @@ describe("createServer", () => {
       const result1 = await createServer({ config: baseConfig });
 
       expect(result1.server).toBeDefined();
+      const channelManager1 = Factory.getChannelManager();
 
       const result2 = await createServer({ config: baseConfig });
 
       expect(result2.server).toBeDefined();
+      const channelManager2 = Factory.getChannelManager();
+
+      expect(channelManager1).toBe(channelManager2);
 
       await result1.shutdown();
       await result2.shutdown();
