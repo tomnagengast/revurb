@@ -5,7 +5,13 @@
     "clientKind": "git"
   },
   "files": {
-    "includes": ["**", "!!**/dist", "!!**/.claude", "!!**/_tmp"]
+    "includes": [
+      "**",
+      "!!**/dist",
+      "!!**/.claude",
+      "!!**/_tmp",
+      "!!apps/demo/public"
+    ]
   },
   "formatter": {
     "enabled": true,

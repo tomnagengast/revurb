@@ -1,4 +1,7 @@
-import { serve } from "bun";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { build, serve } from "bun";
+import tailwind from "bun-plugin-tailwind";
 import { createServer } from "revurb";
 import config from "../reverb.config";
 
@@ -18,21 +21,47 @@ console.log(
 );
 
 // ============================================================================
-// Start Frontend Dev Server
+// Build Frontend
 // ============================================================================
-// The frontend connects using @revurb/echo (see Chat.tsx)
+const PROJECT_ROOT = import.meta.dir;
+const PUBLIC_DIR = path.resolve(PROJECT_ROOT, "../public");
+
+// Ensure public directory exists
+await fs.mkdir(PUBLIC_DIR, { recursive: true });
+
+console.log("📦 Building frontend assets...");
+const buildResult = await build({
+  entrypoints: [path.join(PROJECT_ROOT, "frontend.tsx")],
+  outdir: PUBLIC_DIR,
+  plugins: [tailwind],
+  minify: process.env.NODE_ENV === "production",
+  target: "browser",
+});
+
+if (!buildResult.success) {
+  console.error("❌ Build failed:");
+  for (const msg of buildResult.logs) {
+    console.error(msg);
+  }
+} else {
+  console.log("✅ Frontend built successfully.");
+}
+
+// Copy static assets
+const assets = ["github.svg"];
+for (const asset of assets) {
+  const src = path.join(PROJECT_ROOT, asset);
+  const dest = path.join(PUBLIC_DIR, asset);
+  if (await Bun.file(src).exists()) {
+    await Bun.write(dest, Bun.file(src));
+  }
+}
+
+// ============================================================================
+// Start Frontend Server
+// ============================================================================
 const frontendServer = serve({
   routes: {
-    // Serve static assets (JS/TS/CSS/SVG) with proper MIME types
-    "/:file+.:ext(tsx|ts|js|css|svg)": async (req) => {
-      const url = new URL(req.url);
-      const file = Bun.file(`${import.meta.dir}${url.pathname}`);
-      if (await file.exists()) {
-        return new Response(file);
-      }
-      return new Response("Not found", { status: 404 });
-    },
-
     // Required for private/presence channels - authenticates subscriptions
     "/broadcasting/auth": {
       async POST(req) {
@@ -84,44 +113,66 @@ const frontendServer = serve({
       },
     },
 
-    // Serve index.html for all unmatched routes with injected config
-    "/*": async () => {
-      const htmlFile = Bun.file(`${import.meta.dir}/index.html`);
-      const html = await htmlFile.text();
-      const reverbHost = Bun.env.BUN_PUBLIC_REVERB_HOST ?? "localhost";
-      const reverbPort =
-        Bun.env.BUN_PUBLIC_REVERB_PORT ?? String(wsServer.port);
-      const reverbScheme = Bun.env.BUN_PUBLIC_REVERB_SCHEME ?? "http";
-      const reverbAppKey = config.apps?.apps?.[0]?.key ?? "my-app-key";
+    // Serve all other requests
+    "/*": async (req) => {
+      const url = new URL(req.url);
+      const pathname = url.pathname;
 
-      const configScript = `
-      <script>
-        window.__REVURB_CONFIG__ = {
-          host: ${JSON.stringify(reverbHost)},
-          port: ${JSON.stringify(reverbPort)},
-          scheme: ${JSON.stringify(reverbScheme)},
-          appKey: ${JSON.stringify(reverbAppKey)}
-        };
-      </script>`;
+      // Default to index.html
+      if (pathname === "/" || pathname === "/index.html") {
+        const htmlFile = Bun.file(path.join(PROJECT_ROOT, "index.html"));
+        let html = await htmlFile.text();
 
-      const injectedHtml = html.replace(
-        "</head>",
-        `${configScript}\n    </head>`,
+        // Point to built JS
+        html = html.replace('src="./frontend.tsx"', 'src="/frontend.js"');
+
+        // Inject Config
+        const reverbHost = Bun.env.BUN_PUBLIC_REVERB_HOST ?? "localhost";
+        const reverbPort =
+          Bun.env.BUN_PUBLIC_REVERB_PORT ?? String(wsServer.port);
+        const reverbScheme = Bun.env.BUN_PUBLIC_REVERB_SCHEME ?? "http";
+        const reverbAppKey = config.apps?.apps?.[0]?.key ?? "my-app-key";
+
+        const configScript = `
+          <script>
+            window.__REVURB_CONFIG__ = {
+              host: ${JSON.stringify(reverbHost)},
+              port: ${JSON.stringify(reverbPort)},
+              scheme: ${JSON.stringify(reverbScheme)},
+              appKey: ${JSON.stringify(reverbAppKey)}
+            };
+          </script>`;
+
+        html = html.replace("</head>", `${configScript}\n    </head>`);
+        return new Response(html, {
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+
+      // Try to serve static file from public dir
+      // Prevent directory traversal by checking if resolved path starts with PUBLIC_DIR
+      const safePath = path.normalize(
+        path.join(PUBLIC_DIR, pathname.replace(/^\//, "")),
       );
+      if (!safePath.startsWith(PUBLIC_DIR)) {
+        return new Response("Forbidden", { status: 403 });
+      }
 
-      return new Response(injectedHtml, {
-        headers: { "Content-Type": "text/html" },
-      });
+      const file = Bun.file(safePath);
+      if (await file.exists()) {
+        return new Response(file);
+      }
+
+      return new Response("Not found", { status: 404 });
     },
   },
 
   development: Bun.env.NODE_ENV !== "production" && {
-    hmr: true,
     console: true,
   },
 });
 
-console.log(`🚀 Frontend dev server running at ${frontendServer.url}`);
+console.log(`🚀 Frontend server running at ${frontendServer.url}`);
 
 // Handle shutdown signals
 const handleShutdown = async (signal: string) => {

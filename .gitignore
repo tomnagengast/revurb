@@ -10,3 +10,4 @@ bun.lockb
 specs/logs/archive/
 notes/
 _reverb/
+apps/demo/public/
