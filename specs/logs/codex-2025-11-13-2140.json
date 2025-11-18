@@ -1,8 +1,0 @@
-{
-  "commit": "d9e1b4cf3f385f41b4b57d593ba848a8c97cde65",
-  "status": "ok",
-  "review_comments": [
-    "No findings—`specs/review.md:1` now records that the latest commit (99c28f3) only updated the review log, so there are no product code changes to evaluate. Residual risk: none of the runtime behavior was exercised because nothing new landed; await future commits for the next substantive review."
-  ],
-  "additional_comments": "Next: re-run a full review once new implementation work arrives."
-}

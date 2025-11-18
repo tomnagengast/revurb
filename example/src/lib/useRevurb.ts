@@ -35,6 +35,7 @@ type UseRevurbResult<TPayload> = {
   leave: () => void;
   whisper: (event: string, payload: unknown) => void;
   send: (payload: TPayload) => void;
+  seed: (payloads: TPayload[]) => void;
 };
 
 const STATUS_LABELS: Record<RevurbConnectionState, string> = {
@@ -47,7 +48,7 @@ const STATUS_LABELS: Record<RevurbConnectionState, string> = {
 let echoConfigured = false;
 
 export function useRevurb<TPayload = Record<string, unknown>>({
-  channel: initialChannel = "chat",
+  channel: initialChannel = "private-chat",
   event = "client-message",
   handler,
   config,
@@ -91,14 +92,36 @@ export function useRevurb<TPayload = Record<string, unknown>>({
     [channelName, handleIncoming],
   );
 
+  // Handle private channels differently from public channels
+  const isPrivateChannel = channelName.startsWith("private-");
+
   const {
     leave: leaveAllChannels,
     leaveChannel: leaveCurrentChannel,
     channel: channelApi,
-  } = useEchoPublic<TPayload>(channelName, event, handleIncoming, dependencies);
+  } = useEchoPublic<TPayload>(
+    isPrivateChannel ? "" : channelName, // Don't use public hook for private channels
+    event,
+    handleIncoming,
+    dependencies,
+  );
 
   useEffect(() => {
-    const subscription = channelApi();
+    const instance = echo<"reverb">();
+    let subscription: any;
+    const channelSnapshot = channelRef.current;
+
+    if (isPrivateChannel) {
+      // For private channels, use the echo instance directly
+      subscription = instance.private(channelSnapshot);
+      subscription.listen(event as string, (e: any) => {
+        handleIncoming(e);
+      });
+    } else {
+      // For public channels, use the channelApi
+      subscription = channelApi();
+    }
+
     const handleSubscribed = () => {
       setStatus("connected");
       setError("");
@@ -106,13 +129,17 @@ export function useRevurb<TPayload = Record<string, unknown>>({
     const handleSubscriptionError = () => {
       setError(`Unable to subscribe to ${channelRef.current}.`);
     };
-    subscription.subscribed(handleSubscribed);
-    subscription.error(handleSubscriptionError);
+
+    if (subscription) {
+      subscription.subscribed?.(handleSubscribed);
+      subscription.error?.(handleSubscriptionError);
+    }
+
     return () => {
       const instance = echo<"reverb">();
-      instance.leave(channelRef.current);
+      instance.leave(channelSnapshot);
     };
-  }, [channelApi]);
+  }, [channelApi, event, handleIncoming, isPrivateChannel]);
 
   useEffect(() => {
     const instance = echo<"reverb">();
@@ -193,6 +220,15 @@ export function useRevurb<TPayload = Record<string, unknown>>({
     pusher.send_event(`client-${whisperEvent}`, payload, channelRef.current);
   }, []);
 
+  const seed = useCallback((payloads: TPayload[]) => {
+    setMessages(
+      payloads.map((payload) => ({
+        payload,
+        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      })),
+    );
+  }, []);
+
   return useMemo(
     () => ({
       status,
@@ -206,6 +242,7 @@ export function useRevurb<TPayload = Record<string, unknown>>({
       leave,
       whisper,
       send,
+      seed,
     }),
     [
       status,
@@ -218,6 +255,7 @@ export function useRevurb<TPayload = Record<string, unknown>>({
       leave,
       whisper,
       send,
+      seed,
     ],
   );
 }

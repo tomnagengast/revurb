@@ -17,13 +17,13 @@ type Message = {
 
 const CLIENT_EVENT = "client-message";
 const CHANNELS = [
-  "chat",
-  "general",
-  "random",
-  "tech",
-  "gaming",
-  "music",
-  "announcements",
+  "private-chat",
+  "private-general",
+  "private-random",
+  "private-tech",
+  "private-gaming",
+  "private-music",
+  "private-announcements",
 ] as const;
 
 export function Chat() {
@@ -57,7 +57,9 @@ export function Chat() {
     config,
   });
 
-  useEffect(() => revurb.connect(), [revurb.connect]);
+  useEffect(() => {
+    revurb.connect();
+  }, [revurb.connect]);
 
   const lastMessageId =
     revurb.messages.length > 0
@@ -70,6 +72,26 @@ export function Chat() {
     }
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [lastMessageId]);
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const response = await fetch(
+          `/api/messages?channel=${encodeURIComponent(revurb.channel)}`,
+        );
+        if (!response.ok) {
+          return;
+        }
+        const data = (await response.json()) as { messages?: Message[] };
+        if (Array.isArray(data.messages)) {
+          revurb.seed(data.messages);
+        }
+      } catch (error) {
+        console.error("Failed to load history", error);
+      }
+    };
+    loadHistory();
+  }, [revurb.channel, revurb.seed]);
 
   const handleSendMessage = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

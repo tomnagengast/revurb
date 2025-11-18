@@ -11,7 +11,8 @@ import type { ServeOptions, ServerWebSocket, WebSocket } from "bun";
 import type { Application } from "../../application";
 import { ApplicationManager } from "../../application-manager";
 import { Certificate } from "../../certificate";
-import type { ReverbConfig } from "../../config/types";
+import { loadConfig } from "../../config/load";
+import type { ReverbConfig, ReverbServerConfig } from "../../config/types";
 import { Connection as ReverbConnection } from "../../connection";
 import type { IApplicationProvider } from "../../contracts/application-provider";
 import { ServerProvider } from "../../contracts/server-provider";
@@ -36,8 +37,6 @@ import { Connection as WebSocketConnection } from "./connection";
 import { Connection as HttpConnection } from "./http/connection";
 import { Response as HttpResponse } from "./http/response";
 import type { IHttpRequest } from "./http/router";
-import type { ReverbServerConfig } from "../../config/types";
-import { loadConfig } from "../../config/load";
 import {
   performGracefulShutdown,
   setupEventListeners,
@@ -1383,8 +1382,7 @@ export class Factory {
 export async function createServer(
   options: CreateServerOptions = {},
 ): Promise<CreateServerResult> {
-  const config =
-    options.config ?? (await loadConfig(options.configPath));
+  const config = options.config ?? (await loadConfig(options.configPath));
 
   const serverName = options.serverName ?? config.default;
   const serverConfig = config.servers[serverName];
@@ -1397,10 +1395,11 @@ export async function createServer(
   const port =
     typeof options.port === "number"
       ? String(options.port)
-      : options.port ?? String(serverConfig.port);
+      : (options.port ?? String(serverConfig.port));
   const path = options.path ?? serverConfig.path ?? "";
   const hostname = options.hostname ?? serverConfig.hostname;
-  const maxRequestSize = options.maxRequestSize ?? serverConfig.max_request_size ?? 10000;
+  const maxRequestSize =
+    options.maxRequestSize ?? serverConfig.max_request_size ?? 10000;
   const serverOptions = serverConfig.options ?? {};
 
   Factory.initialize(config);
@@ -1426,7 +1425,9 @@ export async function createServer(
 
   const intervals: Timer[] = [];
   if (options.enableJobs === true) {
-    intervals.push(...setupPeriodicTasks(applicationProvider, logger, channelManager));
+    intervals.push(
+      ...setupPeriodicTasks(applicationProvider, logger, channelManager),
+    );
   }
 
   let removeSignalHandlers: (() => void) | undefined;

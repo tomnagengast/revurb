@@ -1,8 +1,0 @@
-{
-  "commit": "959b211897caffe3d892ad93abb326e68a99eb1f",
-  "status": "ok",
-  "review_comments": [
-    ".github/workflows/example-tests.yml:52 – Replacing `bun run -e` with `bun -e` makes the inline smoke-test client actually execute, so the step now verifies the WebSocket handshake and surfaces failures."
-  ],
-  "additional_comments": "Ran `bun -e` locally to confirm Bun accepts the inline ES module without adding a `ws` dependency; no further action required."
-}

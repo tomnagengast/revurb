@@ -219,7 +219,7 @@ export async function performGracefulShutdown(
 ): Promise<void> {
   const applications = applicationProvider.all();
 
-  let totalDisconnected = 0;
+  let _totalDisconnected = 0;
   for (const application of applications) {
     const scopedChannels = channelManager.for(application);
     const allConnections = scopedChannels.connections();
@@ -241,7 +241,7 @@ export async function performGracefulShutdown(
 
         scopedChannels.unsubscribeFromAll(connection);
         channelConn.disconnect();
-        totalDisconnected++;
+        _totalDisconnected++;
       } catch (_error) {
         // Ignore individual connection errors during shutdown
       }
