@@ -1,31 +1,33 @@
 import { PusherPrivateChannel } from "./pusher-private-channel";
 
 export interface PresenceChannel {
-  here(callback: Function): this;
-  joining(callback: Function): this;
-  whisper(eventName: string, data: Record<string, any>): this;
-  leaving(callback: Function): this;
+  here(callback: (...args: unknown[]) => unknown): this;
+  joining(callback: (...args: unknown[]) => unknown): this;
+  whisper(eventName: string, data: Record<string, unknown>): this;
+  leaving(callback: (...args: unknown[]) => unknown): this;
 }
 
 export class PusherPresenceChannel
   extends PusherPrivateChannel
   implements PresenceChannel
 {
-  here(callback: Function): this {
-    this.on("pusher:subscription_succeeded", (data: Record<string, any>) => {
+  here(callback: (...args: unknown[]) => unknown): this {
+    this.on("pusher:subscription_succeeded", (...args: unknown[]) => {
+      const data = args[0] as { members: Record<string, unknown> };
       callback(Object.keys(data.members).map((k) => data.members[k]));
     });
     return this;
   }
 
-  joining(callback: Function): this {
-    this.on("pusher:member_added", (member: Record<string, any>) => {
+  joining(callback: (...args: unknown[]) => unknown): this {
+    this.on("pusher:member_added", (...args: unknown[]) => {
+      const member = args[0] as { info: unknown };
       callback(member.info);
     });
     return this;
   }
 
-  override whisper(eventName: string, data: Record<string, any>): this {
+  override whisper(eventName: string, data: Record<string, unknown>): this {
     const channel = this.pusher.channels.channels[this.name];
     if (channel) {
       channel.trigger(`client-${eventName}`, data);
@@ -33,8 +35,9 @@ export class PusherPresenceChannel
     return this;
   }
 
-  leaving(callback: Function): this {
-    this.on("pusher:member_removed", (member: Record<string, any>) => {
+  leaving(callback: (...args: unknown[]) => unknown): this {
+    this.on("pusher:member_removed", (...args: unknown[]) => {
+      const member = args[0] as { info: unknown };
       callback(member.info);
     });
     return this;

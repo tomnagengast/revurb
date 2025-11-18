@@ -1,4 +1,4 @@
-import { configureEcho, echo, useEchoPublic } from "@laravel/echo-react";
+import { configureEcho, echo, useEchoPublic } from "@revurb/echo/react";
 import type { EchoOptions } from "laravel-echo";
 import type Pusher from "pusher-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";

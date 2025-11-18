@@ -55,7 +55,11 @@ export class Echo<TBroadcaster extends BroadcastDriver = "reverb"> {
     }
   }
 
-  listen(channel: string, event: string, callback: Function): Channel {
+  listen(
+    channel: string,
+    event: string,
+    callback: (...args: unknown[]) => unknown,
+  ): Channel {
     return this.connector.listen(channel, event, callback);
   }
 

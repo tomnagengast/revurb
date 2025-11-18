@@ -54,8 +54,15 @@ export abstract class Connector<
   }
 
   protected csrfToken(): string | null {
-    if (typeof window !== "undefined" && (window as any).Laravel?.csrfToken) {
-      return (window as any).Laravel.csrfToken;
+    if (
+      typeof window !== "undefined" &&
+      (window as unknown as Record<string, unknown>).Laravel
+    ) {
+      const laravel = (window as unknown as Record<string, unknown>)
+        .Laravel as Record<string, unknown>;
+      if (laravel.csrfToken) {
+        return laravel.csrfToken as string;
+      }
     }
 
     if (this.options.csrfToken) {

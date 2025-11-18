@@ -30,8 +30,11 @@ export type EchoOptions<TBroadcaster extends BroadcastDriver = "reverb"> = {
   activityTimeout?: number;
   pongTimeout?: number;
   unavailableTimeout?: number;
+  // biome-ignore lint/suspicious/noExplicitAny: Laravel Echo compatibility
   authorizer?: (channel: any, options: any) => any;
+  // biome-ignore lint/suspicious/noExplicitAny: Laravel Echo compatibility
   client?: any;
+  // biome-ignore lint/suspicious/noExplicitAny: Laravel Echo compatibility
   [key: string]: any;
 };
 
@@ -50,5 +53,6 @@ export type EchoOptionsWithDefaults = {
   host: string | null;
   key: string;
   namespace: string | false;
+  // biome-ignore lint/suspicious/noExplicitAny: Laravel Echo compatibility
   [key: string]: any;
 };

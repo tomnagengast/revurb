@@ -27,12 +27,12 @@ export class PusherChannel extends Channel {
     this.pusher.unsubscribe(this.name);
   }
 
-  listen(event: string, callback: Function): this {
+  listen(event: string, callback: (...args: unknown[]) => unknown): this {
     this.on(this.eventFormatter.format(event), callback);
     return this;
   }
 
-  listenToAll(callback: Function): this {
+  listenToAll(callback: (...args: unknown[]) => unknown): this {
     this.subscription.bind_global((event: string, data: unknown) => {
       if (event.startsWith("pusher:")) {
         return;
@@ -49,7 +49,10 @@ export class PusherChannel extends Channel {
     return this;
   }
 
-  stopListening(event: string, callback?: Function): this {
+  stopListening(
+    event: string,
+    callback?: (...args: unknown[]) => unknown,
+  ): this {
     if (callback) {
       this.subscription.unbind(this.eventFormatter.format(event), callback);
     } else {
@@ -58,7 +61,7 @@ export class PusherChannel extends Channel {
     return this;
   }
 
-  stopListeningToAll(callback?: Function): this {
+  stopListeningToAll(callback?: (...args: unknown[]) => unknown): this {
     if (callback) {
       this.subscription.unbind_global(callback);
     } else {
@@ -67,21 +70,21 @@ export class PusherChannel extends Channel {
     return this;
   }
 
-  subscribed(callback: Function): this {
+  subscribed(callback: (...args: unknown[]) => unknown): this {
     this.on("pusher:subscription_succeeded", () => {
       callback();
     });
     return this;
   }
 
-  error(callback: Function): this {
-    this.on("pusher:subscription_error", (status: Record<string, any>) => {
-      callback(status);
+  error(callback: (...args: unknown[]) => unknown): this {
+    this.on("pusher:subscription_error", (...args: unknown[]) => {
+      callback(...args);
     });
     return this;
   }
 
-  on(event: string, callback: Function): this {
+  on(event: string, callback: (...args: unknown[]) => unknown): this {
     this.subscription.bind(event, callback);
     return this;
   }

@@ -90,6 +90,7 @@ export const useEcho = <
     visibility,
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: dependencies passed as parameter
   const callbackFunc = useCallback(callback, dependencies);
   const listening = useRef(false);
   const initialized = useRef(false);
@@ -109,6 +110,7 @@ export const useEcho = <
     });
 
     listening.current = false;
+    // biome-ignore lint/correctness/useExhaustiveDependencies: dependencies passed as parameter
   }, dependencies);
 
   const listen = useCallback(() => {
@@ -121,16 +123,19 @@ export const useEcho = <
     });
 
     listening.current = true;
+    // biome-ignore lint/correctness/useExhaustiveDependencies: dependencies passed as parameter
   }, dependencies);
 
   const tearDown = useCallback((leaveAll: boolean = false) => {
     stopListening();
 
     leaveChannel(channel, leaveAll);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: dependencies passed as parameter
   }, dependencies);
 
   const leave = useCallback(() => {
     tearDown(true);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: dependencies passed as parameter
   }, dependencies);
 
   useEffect(() => {
@@ -143,6 +148,7 @@ export const useEcho = <
     listen();
 
     return tearDown;
+    // biome-ignore lint/correctness/useExhaustiveDependencies: dependencies passed as parameter
   }, dependencies);
 
   return {
@@ -197,7 +203,10 @@ export const useEchoNotification = <
         callback(notification);
       }
     },
-    dependencies.concat(events.current).concat([callback]),
+    // biome-ignore lint/correctness/useExhaustiveDependencies: dependencies passed as parameter
+    dependencies
+      .concat(events.current)
+      .concat([callback]),
   );
 
   const listen = useCallback(() => {
@@ -227,6 +236,7 @@ export const useEchoNotification = <
     listen();
 
     return () => stopListening();
+    // biome-ignore lint/correctness/useExhaustiveDependencies: dependencies passed as parameter
   }, dependencies.concat(events.current));
 
   return {

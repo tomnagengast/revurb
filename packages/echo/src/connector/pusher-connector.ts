@@ -24,9 +24,15 @@ export class PusherConnector extends Connector {
       this.pusher = new this.options.Pusher(this.options.key, this.options);
     } else if (
       typeof window !== "undefined" &&
-      typeof (window as any).Pusher !== "undefined"
+      typeof (window as unknown as Record<string, unknown>).Pusher !==
+        "undefined"
     ) {
-      this.pusher = new (window as any).Pusher(this.options.key, this.options);
+      const globalWindow = window as unknown as Record<string, unknown>;
+      const PusherConstructor = globalWindow.Pusher as new (
+        key: string,
+        options: unknown,
+      ) => Pusher;
+      this.pusher = new PusherConstructor(this.options.key, this.options);
     } else {
       throw new Error(
         "Pusher client not found. Should be globally available or passed via options.client",
@@ -38,7 +44,11 @@ export class PusherConnector extends Connector {
     this.pusher.signin();
   }
 
-  listen(name: string, event: string, callback: Function): AnyPusherChannel {
+  listen(
+    name: string,
+    event: string,
+    callback: (...args: unknown[]) => unknown,
+  ): AnyPusherChannel {
     return this.channel(name).listen(event, callback);
   }
 

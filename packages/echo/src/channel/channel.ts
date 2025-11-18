@@ -6,27 +6,41 @@ export abstract class Channel {
   notificationCreatedEvent =
     ".Illuminate\\Notifications\\Events\\BroadcastNotificationCreated";
 
-  abstract listen(event: string, callback: Function): this;
+  abstract listen(
+    event: string,
+    callback: (...args: unknown[]) => unknown,
+  ): this;
 
-  listenForWhisper(event: string, callback: Function): this {
+  listenForWhisper(
+    event: string,
+    callback: (...args: unknown[]) => unknown,
+  ): this {
     return this.listen(`.client-${event}`, callback);
   }
 
-  notification(callback: Function): this {
+  notification(callback: (...args: unknown[]) => unknown): this {
     return this.listen(this.notificationCreatedEvent, callback);
   }
 
-  abstract stopListening(event: string, callback?: Function): this;
+  abstract stopListening(
+    event: string,
+    callback?: (...args: unknown[]) => unknown,
+  ): this;
 
-  stopListeningForNotification(callback: Function): this {
+  stopListeningForNotification(
+    callback: (...args: unknown[]) => unknown,
+  ): this {
     return this.stopListening(this.notificationCreatedEvent, callback);
   }
 
-  stopListeningForWhisper(event: string, callback?: Function): this {
+  stopListeningForWhisper(
+    event: string,
+    callback?: (...args: unknown[]) => unknown,
+  ): this {
     return this.stopListening(`.client-${event}`, callback);
   }
 
-  abstract subscribed(callback: Function): this;
+  abstract subscribed(callback: (...args: unknown[]) => unknown): this;
 
-  abstract error(callback: Function): this;
+  abstract error(callback: (...args: unknown[]) => unknown): this;
 }
