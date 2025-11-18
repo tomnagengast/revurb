@@ -1,0 +1,70 @@
+{
+  "name": "@revurb/echo",
+  "version": "0.1.0",
+  "description": "Bun-powered Echo client for Revurb - real-time WebSocket communication",
+  "keywords": [
+    "websocket",
+    "pusher",
+    "realtime",
+    "bun",
+    "echo",
+    "client",
+    "real-time"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Tom",
+      "email": "tom@example.com"
+    }
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "default": "./dist/react/index.js"
+    },
+    "./src/*": "./src/*"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE.md"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts --outdir=dist --target=bun --format=esm && bun build src/react/index.ts --outdir=dist/react --target=bun --format=esm --external react --external react-dom && tsc --project tsconfig.build.json",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "laravel-echo": "^2.2.6",
+    "pusher-js": "^8.4.0"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.2",
+    "@types/react": "^18.3.3",
+    "bun-types": "^1.3.2",
+    "react": "^18.3.1",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "bun": ">=1.3.2"
+  }
+}

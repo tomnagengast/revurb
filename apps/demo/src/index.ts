@@ -71,7 +71,11 @@ const triggerRevurbEvent = async (channel: string, message: ChatMessage) => {
 };
 
 async function bootstrap() {
-  // Start Revurb WebSocket server
+  // ============================================================================
+  // 1. Start Revurb WebSocket Server
+  // ============================================================================
+  // This is the core of the demo - starting a Revurb server programmatically
+  // using the createServer API. This shows how to embed Revurb in your app.
   const { server: wsServer, shutdown } = await createServer({
     config,
     enableEventLogging: true,
@@ -83,7 +87,10 @@ async function bootstrap() {
     `🔌 Revurb WebSocket server running on ws://${wsServer.hostname}:${wsServer.port}`,
   );
 
-  // Start frontend dev server
+  // ============================================================================
+  // 2. Start Frontend Dev Server
+  // ============================================================================
+  // The frontend connects to Revurb using Laravel Echo (see Chat.tsx)
   const frontendServer = serve({
     routes: {
       "/api/messages": {
@@ -180,30 +187,8 @@ async function bootstrap() {
         },
       },
 
-      // Serve index.html for all unmatched routes.
+      // Serve index.html for all unmatched routes
       "/*": index,
-
-      "/api/hello": {
-        async GET(_req) {
-          return Response.json({
-            message: "Hello, world!",
-            method: "GET",
-          });
-        },
-        async PUT(_req) {
-          return Response.json({
-            message: "Hello, world!",
-            method: "PUT",
-          });
-        },
-      },
-
-      "/api/hello/:name": async (req) => {
-        const name = req.params.name;
-        return Response.json({
-          message: `Hello, ${name}!`,
-        });
-      },
     },
 
     development: Bun.env.NODE_ENV !== "production" && {
