@@ -47,6 +47,7 @@ export function Chat() {
       wssPort: reverbPort,
       forceTLS: reverbScheme === "https",
       enabledTransports: ["ws", "wss"],
+      authEndpoint: "/broadcasting/auth",
     }),
     [reverbAppKey, reverbHost, reverbPort, reverbScheme],
   );
