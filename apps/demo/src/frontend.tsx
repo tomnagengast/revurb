@@ -5,6 +5,9 @@
  * It is included in `src/index.html`.
  */
 
+// Polyfill for pusher-js which expects global to be defined
+globalThis.global = globalThis;
+
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
 

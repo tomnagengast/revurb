@@ -19,13 +19,13 @@ type ConnectionStatus = "idle" | "connecting" | "connected" | "disconnected";
 
 const CLIENT_EVENT = "client-message";
 const CHANNELS = [
-  "private-chat",
-  "private-general",
-  "private-random",
-  "private-tech",
-  "private-gaming",
-  "private-music",
-  "private-announcements",
+  "chat",
+  "general",
+  "random",
+  "tech",
+  "gaming",
+  "music",
+  "announcements",
 ] as const;
 
 let echoConfigured = false;
@@ -148,7 +148,7 @@ export function Chat() {
       setMessages((prev) => [...prev, payload]);
       const instance = echo<"reverb">();
       const pusher = instance.connector.pusher as Pusher;
-      pusher.send_event(CLIENT_EVENT, payload, currentChannel);
+      pusher.send_event(CLIENT_EVENT, payload, `private-${currentChannel}`);
     },
     [currentChannel],
   );

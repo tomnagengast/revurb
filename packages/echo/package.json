@@ -40,7 +40,7 @@
     "LICENSE.md"
   ],
   "scripts": {
-    "build": "bun build src/index.ts --outdir=dist --target=bun --format=esm && bun build src/react/index.ts --outdir=dist/react --target=bun --format=esm --external react --external react-dom && tsc --project tsconfig.build.json",
+    "build": "bun build src/index.ts --outdir=dist --target=browser --format=esm && bun build src/react/index.ts --outdir=dist/react --target=browser --format=esm --external react --external react-dom && tsc --project tsconfig.build.json",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "typecheck": "tsc --noEmit"
