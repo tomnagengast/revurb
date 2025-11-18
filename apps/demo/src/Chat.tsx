@@ -1,19 +1,21 @@
-import type { EchoOptions } from "laravel-echo";
+import { configureEcho, echo, useEcho } from "@revurb/echo/react";
+import type Pusher from "pusher-js";
 import {
   type ChangeEvent,
   type FormEvent,
+  useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
-import { useRevurb } from "./lib/useRevurb";
 
 type Message = {
   text: string;
   sender: string;
   timestamp: string;
 };
+
+type ConnectionStatus = "idle" | "connecting" | "connected" | "disconnected";
 
 const CLIENT_EVENT = "client-message";
 const CHANNELS = [
@@ -26,9 +28,15 @@ const CHANNELS = [
   "private-announcements",
 ] as const;
 
+let echoConfigured = false;
+
 export function Chat() {
   const [messageInput, setMessageInput] = useState("");
   const [username, setUsername] = useState("User");
+  const [currentChannel, setCurrentChannel] = useState<string>(CHANNELS[0]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [status, setStatus] = useState<ConnectionStatus>("idle");
+  const [error, setError] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const reverbHost = process.env.BUN_PUBLIC_REVERB_HOST ?? "localhost";
@@ -38,8 +46,9 @@ export function Chat() {
   const reverbAppKey = process.env.BUN_PUBLIC_REVERB_APP_KEY ?? "my-app-key";
   const reverbUrl = `${reverbScheme === "https" ? "wss" : "ws"}://${reverbHost}:${reverbPort}`;
 
-  const config = useMemo<EchoOptions<"reverb">>(
-    () => ({
+  // Configure Echo once
+  if (!echoConfigured) {
+    configureEcho({
       broadcaster: "reverb",
       key: reverbAppKey,
       wsHost: reverbHost,
@@ -48,57 +57,115 @@ export function Chat() {
       forceTLS: reverbScheme === "https",
       enabledTransports: ["ws", "wss"],
       authEndpoint: "/broadcasting/auth",
-    }),
-    [reverbAppKey, reverbHost, reverbPort, reverbScheme],
+    });
+    echoConfigured = true;
+  }
+
+  // Handle incoming messages
+  const handleMessage = useCallback((payload: Message) => {
+    setMessages((prev) => [...prev, payload]);
+  }, []);
+
+  // Use @revurb/echo hook for channel subscription
+  const { leave: leaveChannel } = useEcho<Message, "reverb", "private">(
+    currentChannel,
+    CLIENT_EVENT,
+    handleMessage,
+    [currentChannel, handleMessage],
+    "private",
   );
 
-  const revurb = useRevurb<Message>({
-    channel: CHANNELS[0],
-    event: CLIENT_EVENT,
-    config,
-  });
-
+  // Track connection status
   useEffect(() => {
-    revurb.connect();
-  }, [revurb.connect]);
+    const instance = echo<"reverb">();
+    const connection = (instance.connector.pusher as Pusher).connection;
 
-  const lastMessageId =
-    revurb.messages.length > 0
-      ? (revurb.messages[revurb.messages.length - 1]?.id ?? "")
-      : "";
+    const handleConnecting = () => setStatus("connecting");
+    const handleConnected = () => {
+      setStatus("connected");
+      setError("");
+    };
+    const handleDisconnected = () => setStatus("disconnected");
+    const handleError = (payload?: { error?: { message?: string } }) => {
+      const detail = payload?.error?.message;
+      const reason = detail ? detail : "Is the server running?";
+      setError(`Unable to connect to ${reverbHost}:${reverbPort}. ${reason}`);
+      setStatus("disconnected");
+    };
 
+    connection.bind("connecting", handleConnecting);
+    connection.bind("connected", handleConnected);
+    connection.bind("disconnected", handleDisconnected);
+    connection.bind("failed", handleError);
+    connection.bind("error", handleError);
+
+    return () => {
+      connection.unbind("connecting", handleConnecting);
+      connection.unbind("connected", handleConnected);
+      connection.unbind("disconnected", handleDisconnected);
+      connection.unbind("failed", handleError);
+      connection.unbind("error", handleError);
+    };
+  }, [reverbHost, reverbPort]);
+
+  // Auto-connect on mount
   useEffect(() => {
-    if (!lastMessageId) {
-      return;
+    const instance = echo<"reverb">();
+    const pusher = instance.connector.pusher as Pusher;
+    pusher.connect();
+  }, []);
+
+  // Auto-scroll to latest message
+  useEffect(() => {
+    if (messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [lastMessageId]);
+  }, [messages.length]);
 
+  // Load message history when channel changes
   useEffect(() => {
+    setMessages([]);
     const loadHistory = async () => {
-      try {
-        const response = await fetch(
-          `/api/messages?channel=${encodeURIComponent(revurb.channel)}`,
-        );
-        if (!response.ok) {
-          return;
-        }
-        const data = (await response.json()) as { messages?: Message[] };
-        if (Array.isArray(data.messages)) {
-          revurb.seed(data.messages);
-        }
-      } catch (error) {
-        console.error("Failed to load history", error);
+      const response = await fetch(
+        `/api/messages?channel=${encodeURIComponent(currentChannel)}`,
+      );
+      if (!response.ok) return;
+      const data = (await response.json()) as { messages?: Message[] };
+      if (Array.isArray(data.messages)) {
+        setMessages(data.messages);
       }
     };
     loadHistory();
-  }, [revurb.channel, revurb.seed]);
+  }, [currentChannel]);
+
+  const connect = useCallback(() => {
+    const instance = echo<"reverb">();
+    const pusher = instance.connector.pusher as Pusher;
+    setError("");
+    setStatus("connecting");
+    pusher.connect();
+  }, []);
+
+  const disconnect = useCallback(() => {
+    const instance = echo<"reverb">();
+    instance.disconnect();
+    setStatus("idle");
+    setError("");
+  }, []);
+
+  const sendMessage = useCallback(
+    (payload: Message) => {
+      setMessages((prev) => [...prev, payload]);
+      const instance = echo<"reverb">();
+      const pusher = instance.connector.pusher as Pusher;
+      pusher.send_event(CLIENT_EVENT, payload, currentChannel);
+    },
+    [currentChannel],
+  );
 
   const handleSendMessage = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!messageInput.trim() || revurb.status !== "connected") {
-      return;
-    }
+    if (!messageInput.trim() || status !== "connected") return;
 
     const payload: Message = {
       text: messageInput,
@@ -106,22 +173,26 @@ export function Chat() {
       timestamp: new Date().toISOString(),
     };
 
-    revurb.send(payload);
+    sendMessage(payload);
     setMessageInput("");
   };
 
   const handleChannelChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.currentTarget.value as (typeof CHANNELS)[number];
-    revurb.join(value);
+    leaveChannel();
+    setCurrentChannel(value);
   };
 
   const emptyStateMessage = () => {
-    if (revurb.status !== "connected") {
-      return "Connecting to server";
-    }
-    if (revurb.messages.length === 0) {
-      return "No messages yet. Start chatting!";
-    }
+    if (status !== "connected") return "Connecting to server";
+    if (messages.length === 0) return "No messages yet. Start chatting!";
+  };
+
+  const statusLabels: Record<ConnectionStatus, string> = {
+    idle: "Idle",
+    connecting: "Connecting",
+    connected: "Connected",
+    disconnected: "Disconnected",
   };
 
   return (
@@ -129,28 +200,26 @@ export function Chat() {
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <div className="text-sm font-mono text-[#f3d5a3]">
-            {revurb.statusLabels[revurb.status]} to {reverbUrl}
+            {statusLabels[status]} to {reverbUrl}
           </div>
           <button
             type="button"
-            onClick={revurb.connect}
+            onClick={connect}
             className="bg-[#fbf0df] text-[#1a1a1a] border-0 px-4 py-2 rounded-lg font-bold cursor-pointer"
-            disabled={revurb.status === "connected"}
+            disabled={status === "connected"}
           >
             Connect
           </button>
           <button
             type="button"
-            onClick={revurb.disconnect}
+            onClick={disconnect}
             className="bg-red-600 text-white border-0 px-4 py-2 rounded-lg font-bold cursor-pointer"
-            disabled={revurb.status !== "connected"}
+            disabled={status !== "connected"}
           >
             Disconnect
           </button>
         </div>
-        {revurb.error && (
-          <div className="text-red-400 text-sm font-mono">{revurb.error}</div>
-        )}
+        {error && <div className="text-red-400 text-sm font-mono">{error}</div>}
         <input
           type="text"
           value={username}
@@ -162,7 +231,7 @@ export function Chat() {
 
       <div className="flex items-center gap-2 bg-[#1a1a1a] p-3 rounded-xl font-mono border-2 border-[#fbf0df] w-full">
         <select
-          value={revurb.channel}
+          value={currentChannel}
           onChange={handleChannelChange}
           className="w-full flex-1 bg-[#242424] border-2 border-[#fbf0df]/40 text-[#fbf0df] font-mono text-base py-2 px-3 rounded-lg outline-none focus:border-[#f3d5a3] cursor-pointer"
         >
@@ -175,19 +244,18 @@ export function Chat() {
       </div>
 
       <div className="flex flex-col gap-2 bg-[#1a1a1a] p-4 rounded-xl font-mono border-2 border-[#fbf0df] min-h-[300px] max-h-[500px] overflow-y-auto">
-        {revurb.messages.length === 0 ? (
+        {messages.length === 0 ? (
           <div className="text-[#fbf0df]/40 text-center py-8">
             {emptyStateMessage()}
           </div>
         ) : (
-          revurb.messages.map((entry) => {
-            const msg = entry.payload;
+          messages.map((msg, index) => {
             const timestamp = msg.timestamp
               ? new Date(msg.timestamp).toLocaleTimeString()
               : "";
             return (
               <div
-                key={entry.id}
+                key={`${msg.timestamp}-${index}`}
                 className="flex flex-col items-start gap-1 bg-[#242424] p-3 rounded-lg border border-[#fbf0df]/20"
               >
                 <div className="text-[#fbf0df]">{msg.text}</div>
@@ -214,12 +282,12 @@ export function Chat() {
           onChange={(event) => setMessageInput(event.target.value)}
           placeholder="Type a message..."
           className="w-full flex-1 bg-transparent border-0 text-[#fbf0df] font-mono text-base py-1.5 px-2 outline-none focus:text-white placeholder-[#fbf0df]/40"
-          disabled={revurb.status !== "connected"}
+          disabled={status !== "connected"}
         />
         <button
           type="submit"
           className="bg-[#fbf0df] text-[#1a1a1a] border-0 px-5 py-1.5 rounded-lg font-bold transition-all duration-100 hover:bg-[#f3d5a3] hover:-translate-y-px cursor-pointer whitespace-nowrap"
-          disabled={revurb.status !== "connected"}
+          disabled={status !== "connected"}
         >
           Send
         </button>

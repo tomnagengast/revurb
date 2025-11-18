@@ -1,218 +1,99 @@
-import { createHash, createHmac } from "node:crypto";
 import { serve } from "bun";
 import { createServer } from "revurb";
 import config from "../reverb.config";
 import index from "./index.html";
 
-type ChatMessage = {
-  text: string;
-  sender: string;
-  timestamp: string;
-};
-
-const MESSAGE_HISTORY_LIMIT = 100;
-const messageHistory = new Map<string, ChatMessage[]>();
-
-const defaultApp = config.apps?.apps?.[0];
-if (!defaultApp) {
-  throw new Error("Revurb example requires at least one configured app.");
-}
-
-const CLIENT_EVENT = "client-message";
-const APP_ID = defaultApp.app_id;
-const APP_KEY = defaultApp.key;
-const APP_SECRET = defaultApp.secret;
-const REVERB_PORT = Number.parseInt(Bun.env.REVERB_PORT ?? "8080", 10);
-const REVERB_HTTP_ORIGIN =
-  Bun.env.REVERB_HTTP_ORIGIN ?? `http://127.0.0.1:${REVERB_PORT}`;
-
-const addMessageToHistory = (channel: string, message: ChatMessage) => {
-  const key = channel || "private-chat";
-  const existing = messageHistory.get(key) ?? [];
-  const next = [...existing, message].slice(-MESSAGE_HISTORY_LIMIT);
-  messageHistory.set(key, next);
-};
-
-const getHistory = (channel: string) => {
-  const key = channel || "private-chat";
-  return messageHistory.get(key) ?? [];
-};
-
-const triggerRevurbEvent = async (channel: string, message: ChatMessage) => {
-  const body = JSON.stringify({
-    name: CLIENT_EVENT,
-    channel,
-    data: JSON.stringify(message),
-  });
-
-  const bodyMd5 = createHash("md5").update(body).digest("hex");
-  const timestamp = Math.floor(Date.now() / 1000).toString();
-  const params = new URLSearchParams({
-    auth_key: APP_KEY,
-    auth_timestamp: timestamp,
-    auth_version: "1.0",
-    body_md5: bodyMd5,
-  });
-
-  const path = `/apps/${APP_ID}/events`;
-  const signatureString = `POST\n${path}\n${params.toString()}`;
-  const authSignature = createHmac("sha256", APP_SECRET)
-    .update(signatureString)
-    .digest("hex");
-  params.set("auth_signature", authSignature);
-
-  await fetch(`${REVERB_HTTP_ORIGIN}${path}?${params.toString()}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body,
-  });
-};
-
-async function bootstrap() {
-  // ============================================================================
-  // 1. Start Revurb WebSocket Server
-  // ============================================================================
-  // This is the core of the demo - starting a Revurb server programmatically
-  // using the createServer API. This shows how to embed Revurb in your app.
-  const { server: wsServer, shutdown } = await createServer({
-    config,
-    enableEventLogging: true,
-    enableJobs: true,
-    enableSignals: false,
-  });
-
-  console.log(
-    `🔌 Revurb WebSocket server running on ws://${wsServer.hostname}:${wsServer.port}`,
-  );
-
-  // ============================================================================
-  // 2. Start Frontend Dev Server
-  // ============================================================================
-  // The frontend connects to Revurb using Laravel Echo (see Chat.tsx)
-  const frontendServer = serve({
-    routes: {
-      "/api/messages": {
-        async GET(req) {
-          const url = new URL(req.url);
-          const channel = url.searchParams.get("channel") ?? "private-chat";
-          return Response.json({
-            messages: getHistory(channel),
-          });
-        },
-        async POST(req) {
-          try {
-            const body = (await req.json()) as {
-              channel?: string;
-              message?: ChatMessage;
-            };
-            const channel = body.channel ?? "private-chat";
-            const messageBody = body.message;
-            if (
-              !messageBody ||
-              typeof messageBody.text !== "string" ||
-              typeof messageBody.sender !== "string"
-            ) {
-              return Response.json(
-                { error: "Invalid message payload" },
-                { status: 400 },
-              );
-            }
-            const message: ChatMessage = {
-              text: messageBody.text,
-              sender: messageBody.sender,
-              timestamp:
-                typeof messageBody.timestamp === "string"
-                  ? messageBody.timestamp
-                  : new Date().toISOString(),
-            };
-
-            addMessageToHistory(channel, message);
-            await triggerRevurbEvent(channel, message);
-
-            return Response.json({ ok: true });
-          } catch (error) {
-            console.error("Failed to handle message", error);
-            return Response.json(
-              { error: "Failed to send message" },
-              { status: 500 },
-            );
-          }
-        },
-      },
-
-      // Required for private/presence channels - authenticates channel subscriptions
-      "/broadcasting/auth": {
-        async POST(req) {
-          try {
-            const body = (await req.json()) as {
-              socket_id?: string;
-              channel_name?: string;
-              channel_data?: string;
-            };
-
-            const socketId = body.socket_id;
-            const channelName = body.channel_name;
-            const channelData = body.channel_data;
-
-            if (!socketId || !channelName) {
-              return Response.json(
-                { error: "Missing socket_id or channel_name" },
-                { status: 400 },
-              );
-            }
-
-            // Build signature string: socket_id:channel_name[:channel_data]
-            let signatureString = `${socketId}:${channelName}`;
-            if (channelData) {
-              signatureString += `:${channelData}`;
-            }
-
-            // Compute HMAC-SHA256 signature
-            const signature = createHmac("sha256", APP_SECRET)
-              .update(signatureString)
-              .digest("hex");
-
-            // Return auth token in format: app_key:signature
-            return Response.json({
-              auth: `${APP_KEY}:${signature}`,
-            });
-          } catch (error) {
-            console.error("Failed to authenticate channel", error);
-            return Response.json(
-              { error: "Failed to authenticate" },
-              { status: 500 },
-            );
-          }
-        },
-      },
-
-      // Serve index.html for all unmatched routes
-      "/*": index,
-    },
-
-    development: Bun.env.NODE_ENV !== "production" && {
-      hmr: true,
-      console: true,
-    },
-  });
-
-  console.log(`🚀 Frontend dev server running at ${frontendServer.url}`);
-
-  // Handle shutdown signals
-  const handleShutdown = async (signal: string) => {
-    console.log(`\n${signal} received, shutting down gracefully...`);
-    frontendServer.stop(true);
-    await shutdown();
-    process.exit(0);
-  };
-
-  process.on("SIGINT", () => handleShutdown("SIGINT"));
-  process.on("SIGTERM", () => handleShutdown("SIGTERM"));
-}
-
-bootstrap().catch((error) => {
-  console.error("Failed to start servers:", error);
-  process.exit(1);
+// ============================================================================
+// Start Revurb WebSocket Server
+// ============================================================================
+// This demonstrates the createServer API - the main way to embed Revurb
+const { server: wsServer, shutdown } = await createServer({
+  config,
+  enableEventLogging: true,
+  enableJobs: true,
+  enableSignals: false,
 });
+
+console.log(
+  `🔌 Revurb WebSocket server running on ws://${wsServer.hostname}:${wsServer.port}`,
+);
+
+// ============================================================================
+// Start Frontend Dev Server
+// ============================================================================
+// The frontend connects using @revurb/echo (see Chat.tsx)
+const frontendServer = serve({
+  routes: {
+    // Required for private/presence channels - authenticates subscriptions
+    "/broadcasting/auth": {
+      async POST(req) {
+        const body = (await req.json()) as {
+          socket_id?: string;
+          channel_name?: string;
+        };
+
+        const socketId = body.socket_id;
+        const channelName = body.channel_name;
+
+        if (!socketId || !channelName) {
+          return Response.json(
+            { error: "Missing socket_id or channel_name" },
+            { status: 400 },
+          );
+        }
+
+        const appKey = config.apps?.apps?.[0]?.key ?? "";
+        const appSecret = config.apps?.apps?.[0]?.secret ?? "";
+
+        // Build signature: socket_id:channel_name
+        const signatureString = `${socketId}:${channelName}`;
+        const signature = await crypto.subtle
+          .importKey(
+            "raw",
+            new TextEncoder().encode(appSecret),
+            { name: "HMAC", hash: "SHA-256" },
+            false,
+            ["sign"],
+          )
+          .then((key) =>
+            crypto.subtle.sign(
+              "HMAC",
+              key,
+              new TextEncoder().encode(signatureString),
+            ),
+          )
+          .then((sig) =>
+            Array.from(new Uint8Array(sig))
+              .map((b) => b.toString(16).padStart(2, "0"))
+              .join(""),
+          );
+
+        // Return auth token: app_key:signature
+        return Response.json({
+          auth: `${appKey}:${signature}`,
+        });
+      },
+    },
+
+    // Serve index.html for all unmatched routes
+    "/*": index,
+  },
+
+  development: Bun.env.NODE_ENV !== "production" && {
+    hmr: true,
+    console: true,
+  },
+});
+
+console.log(`🚀 Frontend dev server running at ${frontendServer.url}`);
+
+// Handle shutdown signals
+const handleShutdown = async (signal: string) => {
+  console.log(`\n${signal} received, shutting down gracefully...`);
+  frontendServer.stop(true);
+  await shutdown();
+  process.exit(0);
+};
+
+process.on("SIGINT", () => handleShutdown("SIGINT"));
+process.on("SIGTERM", () => handleShutdown("SIGTERM"));
