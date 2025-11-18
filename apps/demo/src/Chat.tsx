@@ -1,4 +1,9 @@
-import { configureEcho, echo, useEcho } from "@revurb/echo/react";
+import {
+  configureEcho,
+  echo,
+  echoIsConfigured,
+  useEcho,
+} from "@revurb/echo/react";
 import type Pusher from "pusher-js";
 import {
   type ChangeEvent,
@@ -27,8 +32,6 @@ const CHANNELS = [
   "music",
   "announcements",
 ] as const;
-
-let echoConfigured = false;
 
 export function Chat() {
   const [messageInput, setMessageInput] = useState("");
@@ -63,7 +66,7 @@ export function Chat() {
   const reverbUrl = `${reverbScheme === "https" ? "wss" : "ws"}://${reverbHost}:${reverbPort}`;
 
   // Configure Echo once
-  if (!echoConfigured) {
+  if (!echoIsConfigured()) {
     configureEcho({
       broadcaster: "reverb",
       key: reverbAppKey,
@@ -74,7 +77,6 @@ export function Chat() {
       enabledTransports: ["ws", "wss"],
       authEndpoint: "/broadcasting/auth",
     });
-    echoConfigured = true;
   }
 
   // Handle incoming messages
