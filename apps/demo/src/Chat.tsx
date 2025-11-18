@@ -34,7 +34,7 @@ export function Chat() {
   const reverbHost = process.env.BUN_PUBLIC_REVERB_HOST ?? "localhost";
   const reverbPort =
     Number.parseInt(process.env.BUN_PUBLIC_REVERB_PORT ?? "8080", 10) || 8080;
-  const reverbScheme = process.env.BUN_PUBLIC_REVERB_SCHEME ?? "https";
+  const reverbScheme = process.env.BUN_PUBLIC_REVERB_SCHEME ?? "http";
   const reverbAppKey = process.env.BUN_PUBLIC_REVERB_APP_KEY ?? "my-app-key";
   const reverbUrl = `${reverbScheme === "https" ? "wss" : "ws"}://${reverbHost}:${reverbPort}`;
 
