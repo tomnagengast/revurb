@@ -3,11 +3,19 @@ import { NullPresenceChannel } from "../channel/null-presence-channel";
 import { NullPrivateChannel } from "../channel/null-private-channel";
 import { Connector } from "./connector";
 
-export class NullConnector extends Connector {
+export class NullConnector extends Connector<"null"> {
   channels: Record<string, NullChannel> = {};
 
   connect(): void {
     //
+  }
+
+  override listen(
+    name: string,
+    event: string,
+    callback: (...args: unknown[]) => unknown,
+  ): NullChannel {
+    return this.channel(name).listen(event, callback);
   }
 
   channel(name: string): NullChannel {
@@ -40,6 +48,13 @@ export class NullConnector extends Connector {
 
   leaveChannel(_name: string): void {
     //
+  }
+
+  override encryptedPrivateChannel(name: string): NullPrivateChannel {
+    if (!this.channels[`private-encrypted-${name}`]) {
+      this.channels[`private-encrypted-${name}`] = new NullPrivateChannel();
+    }
+    return this.channels[`private-encrypted-${name}`] as NullPrivateChannel;
   }
 
   socketId(): string {

@@ -44,7 +44,7 @@ export class PusherConnector extends Connector {
     this.pusher.signin();
   }
 
-  listen(
+  override listen(
     name: string,
     event: string,
     callback: (...args: unknown[]) => unknown,
@@ -70,7 +70,9 @@ export class PusherConnector extends Connector {
     return this.channels[`private-${name}`] as PusherPrivateChannel;
   }
 
-  encryptedPrivateChannel(name: string): PusherEncryptedPrivateChannel {
+  override encryptedPrivateChannel(
+    name: string,
+  ): PusherEncryptedPrivateChannel {
     if (!this.channels[`private-encrypted-${name}`]) {
       this.channels[`private-encrypted-${name}`] =
         new PusherEncryptedPrivateChannel(

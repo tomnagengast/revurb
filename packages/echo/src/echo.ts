@@ -1,9 +1,10 @@
 import type { Channel, PresenceChannel } from "./channel";
-import { PusherConnector } from "./connector";
+import { NullConnector, PusherConnector } from "./connector";
+import type { Connector } from "./connector/connector";
 import type { BroadcastDriver, EchoOptions } from "./types";
 
 export class Echo<TBroadcaster extends BroadcastDriver = "reverb"> {
-  connector!: PusherConnector;
+  connector!: Connector<BroadcastDriver>;
   options: EchoOptions<TBroadcaster>;
 
   constructor(options: EchoOptions<TBroadcaster>) {
@@ -26,6 +27,8 @@ export class Echo<TBroadcaster extends BroadcastDriver = "reverb"> {
       this.connector = new PusherConnector(
         this.options as EchoOptions<"reverb">,
       );
+    } else if (this.options.broadcaster === "null") {
+      this.connector = new NullConnector(this.options as EchoOptions<"null">);
     } else {
       throw new Error(
         `Broadcaster ${this.options.broadcaster} is not supported.`,
@@ -50,8 +53,11 @@ export class Echo<TBroadcaster extends BroadcastDriver = "reverb"> {
   }
 
   leaveAllChannels(): void {
-    for (const channel in this.connector.channels) {
-      this.leaveChannel(channel);
+    const connector = this.connector as { channels?: Record<string, unknown> };
+    if (connector.channels) {
+      for (const channel in connector.channels) {
+        this.leaveChannel(channel);
+      }
     }
   }
 

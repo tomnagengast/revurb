@@ -98,4 +98,16 @@ export abstract class Connector<
   abstract socketId(): string | undefined;
 
   abstract disconnect(): void;
+
+  listen(
+    _name: string,
+    _event: string,
+    _callback: (...args: unknown[]) => unknown,
+  ): Channel {
+    throw new Error("listen method not implemented");
+  }
+
+  encryptedPrivateChannel(_name: string): Channel {
+    throw new Error("encryptedPrivateChannel method not implemented");
+  }
 }

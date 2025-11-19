@@ -1,4 +1,4 @@
-export type BroadcastDriver = "pusher" | "reverb";
+export type BroadcastDriver = "pusher" | "reverb" | "null";
 
 export type EchoOptions<TBroadcaster extends BroadcastDriver = "reverb"> = {
   broadcaster: TBroadcaster;
