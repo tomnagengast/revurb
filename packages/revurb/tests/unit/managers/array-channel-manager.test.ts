@@ -268,9 +268,9 @@ describe("ArrayChannelManager", () => {
       const channels = scoped.all();
 
       expect(Object.keys(channels)).toHaveLength(3);
-      expect(channels["channel-1"].name()).toBe("channel-1");
-      expect(channels["channel-2"].name()).toBe("channel-2");
-      expect(channels["channel-3"].name()).toBe("channel-3");
+      expect(channels["channel-1"]?.name()).toBe("channel-1");
+      expect(channels["channel-2"]?.name()).toBe("channel-2");
+      expect(channels["channel-3"]?.name()).toBe("channel-3");
     });
 
     it("returns empty object when no channels", () => {

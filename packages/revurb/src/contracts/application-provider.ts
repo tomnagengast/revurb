@@ -1,17 +1,13 @@
-/**
- * ApplicationProvider contract - Configuration provider interface
- *
- * Provides methods to access and retrieve application configurations.
- * All find methods throw InvalidApplication if the application is not found.
- */
-
 import type { Application } from "../application";
 
 /**
- * ApplicationProvider interface.
+ * ApplicationProvider Interface
  *
  * Defines the contract for application configuration providers.
- * Implementations must provide methods to retrieve applications by various criteria.
+ * Implementations must provide methods to access and retrieve application
+ * configurations by various criteria (ID, key, or generic property).
+ *
+ * All find methods throw InvalidApplication if the application is not found.
  */
 export interface IApplicationProvider {
   /**

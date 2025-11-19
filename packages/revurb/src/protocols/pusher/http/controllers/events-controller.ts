@@ -1,4 +1,5 @@
 import type { Application } from "../../../../application";
+import type { ServerProvider } from "../../../../contracts/server-provider";
 import type { Connection } from "../../../../servers/reverb/http/connection";
 import { Response } from "../../../../servers/reverb/http/response";
 import type { IHttpRequest } from "../../../../servers/reverb/http/router";
@@ -46,8 +47,8 @@ interface EventsPayload {
  * //   "channels": ["my-channel"]
  * // }
  *
- * const controller = new EventsController(channelManager, metricsHandler);
- * const response = await controller.__invoke(request, connection, application, channelManager);
+ * const controller = new EventsController(channelManager, metricsHandler, serverProvider);
+ * const response = await controller.handle(request, connection, application, channelManager);
  * ```
  */
 export class EventsController extends Controller {
@@ -56,10 +57,12 @@ export class EventsController extends Controller {
    *
    * @param channelManager - The channel manager for accessing channels
    * @param metricsHandler - The metrics handler for gathering channel info
+   * @param serverProvider - The server provider for scaling support
    */
   constructor(
     protected override readonly channelManager: ChannelManager,
     protected readonly metricsHandler: MetricsHandler,
+    protected readonly serverProvider: ServerProvider,
   ) {
     // EventsController uses a simplified constructor since it doesn't need applicationProvider
     // The channelManager is already scoped to the app by the router
@@ -81,7 +84,7 @@ export class EventsController extends Controller {
    * @param channelManager - The channel manager scoped to the application
    * @returns Response with empty object or channel metrics
    */
-  async __invoke(
+  async handle(
     request: IHttpRequest,
     _connection: Connection,
     application: Application,
@@ -128,6 +131,7 @@ export class EventsController extends Controller {
         data: payload.data,
       },
       channelManager,
+      this.serverProvider,
       except?.connection() ?? null,
     );
 

@@ -1,5 +1,9 @@
+
+Read @docs/contributing.md
+
 ## IMPORTANT
 
+- All files should end with a single new line
 - Try to keep things in one function unless composable or reusable
 - DO NOT do unnecessary destructuring of variables
 - DO NOT use `else` statements unless necessary
@@ -11,3 +15,4 @@
 - PREFER single word variable names where possible
 - Use as many Bun APIs as possible like Bun.file() and Bun.env (see https://bun.com/reference/bun)
 - ALWAYS USE PARALLEL TOOLS WHEN APPLICABLE.
+

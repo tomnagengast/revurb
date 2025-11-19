@@ -1,11 +1,10 @@
-import type { Application } from "../../../../application";
 import type { IApplicationProvider } from "../../../../contracts/application-provider";
-import { InvalidApplication } from "../../../../exceptions/invalid-application";
 import type { Connection } from "../../../../servers/reverb/http/connection";
 import type { IHttpRequest } from "../../../../servers/reverb/http/request";
 import { Response } from "../../../../servers/reverb/http/response";
 import type { ChannelManager } from "../../contracts/channel-manager";
 import type { MetricsHandler } from "../../metrics-handler";
+import { Controller } from "./controller";
 
 /**
  * ChannelsController
@@ -20,27 +19,7 @@ import type { MetricsHandler } from "../../metrics-handler";
  * - Supports optional info query parameter for channel metadata
  * - Returns channels in Pusher-compatible format
  */
-export class ChannelsController {
-  /**
-   * Current application instance.
-   */
-  protected application: Application | null = null;
-
-  /**
-   * Active channels for the application.
-   */
-  protected channels: ChannelManager | null = null;
-
-  /**
-   * The incoming request's body.
-   */
-  protected body: string | null = null;
-
-  /**
-   * The incoming request's query parameters.
-   */
-  protected query: Record<string, string> = {};
-
+export class ChannelsController extends Controller {
   /**
    * Create a new ChannelsController instance.
    *
@@ -50,9 +29,11 @@ export class ChannelsController {
    */
   constructor(
     protected metricsHandler: MetricsHandler,
-    protected applicationProvider: IApplicationProvider,
-    protected channelManager: ChannelManager,
-  ) {}
+    protected override applicationProvider: IApplicationProvider,
+    protected override channelManager: ChannelManager,
+  ) {
+    super(applicationProvider, channelManager);
+  }
 
   /**
    * Handle the request.
@@ -62,7 +43,7 @@ export class ChannelsController {
    * @param appId - The application ID from the route
    * @returns Promise resolving to the HTTP response
    */
-  async __invoke(
+  async handle(
     request: IHttpRequest,
     _connection: Connection,
     appId: string,
@@ -121,197 +102,5 @@ export class ChannelsController {
     }
 
     return formatted;
-  }
-
-  /**
-   * Verify that the incoming request is valid.
-   *
-   * @param request - The HTTP request
-   * @param connection - The HTTP connection
-   * @param appId - The application ID
-   * @throws {Error} Throws if verification fails
-   */
-  verify(request: IHttpRequest, _connection: Connection, appId: string): void {
-    this.body = request.body;
-    this.query = this.parseQuery(request.path);
-
-    this.setApplication(appId);
-    this.setChannels();
-    this.verifySignature(request);
-  }
-
-  /**
-   * Parse query parameters from the request path.
-   *
-   * @param path - The request path including query string
-   * @returns Parsed query parameters
-   */
-  protected parseQuery(path: string): Record<string, string> {
-    const queryIndex = path.indexOf("?");
-    if (queryIndex === -1) {
-      return {};
-    }
-
-    const queryString = path.substring(queryIndex + 1);
-    const params: Record<string, string> = {};
-
-    if (!queryString) {
-      return params;
-    }
-
-    const pairs = queryString.split("&");
-    for (const pair of pairs) {
-      const [key, value] = pair.split("=");
-      if (key) {
-        params[decodeURIComponent(key)] = value
-          ? decodeURIComponent(value)
-          : "";
-      }
-    }
-
-    return params;
-  }
-
-  /**
-   * Set the Reverb application instance for the incoming request's application ID.
-   *
-   * @param appId - The application ID
-   * @returns The application instance
-   * @throws {Error} Throws 400 if no appId provided, 404 if application not found
-   */
-  protected setApplication(appId: string | null): Application {
-    if (!appId) {
-      throw new Error("Application ID not provided.");
-    }
-
-    try {
-      this.application = this.applicationProvider.findById(appId);
-      return this.application;
-    } catch (e) {
-      if (e instanceof InvalidApplication) {
-        throw new Error(`No matching application for ID [${appId}].`);
-      }
-      throw e;
-    }
-  }
-
-  /**
-   * Set the Reverb channel manager instance for the application.
-   */
-  protected setChannels(): void {
-    if (!this.application) {
-      throw new Error("Application not set.");
-    }
-    this.channels = this.channelManager.for(this.application);
-  }
-
-  /**
-   * Verify the Pusher authentication signature.
-   *
-   * @param request - The HTTP request
-   * @throws {Error} Throws 401 if signature is invalid
-   */
-  protected verifySignature(request: IHttpRequest): void {
-    const paramsToExclude = [
-      "auth_signature",
-      "body_md5",
-      "appId",
-      "appKey",
-      "channelName",
-    ];
-    const params: Record<string, string> = {};
-
-    // Copy query params except excluded ones
-    for (const [key, value] of Object.entries(this.query)) {
-      if (!paramsToExclude.includes(key)) {
-        params[key] = value;
-      }
-    }
-
-    // Add body_md5 if body is not empty
-    if (this.body && this.body !== "") {
-      params.body_md5 = this.md5(this.body);
-    }
-
-    // Sort params by key
-    const sortedKeys = Object.keys(params).sort();
-    const sortedParams: Record<string, string> = {};
-    for (const key of sortedKeys) {
-      sortedParams[key] = params[key] ?? "";
-    }
-
-    // Build signature string
-    const signatureString = [
-      request.method,
-      this.getPathWithoutQuery(request.path),
-      this.formatQueryParametersForVerification(sortedParams),
-    ].join("\n");
-
-    // Calculate signature
-    const secret = this.application?.secret();
-    if (!secret) {
-      throw new Error("Application secret not available.");
-    }
-    const signature = this.hmacSha256(signatureString, secret);
-    const authSignature = this.query.auth_signature ?? "";
-
-    if (signature !== authSignature) {
-      throw new Error("Authentication signature invalid.");
-    }
-  }
-
-  /**
-   * Get the path without query string.
-   *
-   * @param path - The full path with query string
-   * @returns The path without query string
-   */
-  protected getPathWithoutQuery(path: string): string {
-    const queryIndex = path.indexOf("?");
-    return queryIndex === -1 ? path : path.substring(0, queryIndex);
-  }
-
-  /**
-   * Format the given parameters into the correct format for signature verification.
-   *
-   * @param params - The parameters to format
-   * @returns Formatted query string
-   */
-  protected formatQueryParametersForVerification(
-    params: Record<string, string | string[]>,
-  ): string {
-    const parts: string[] = [];
-
-    for (const [key, value] of Object.entries(params)) {
-      const formattedValue = Array.isArray(value)
-        ? value.join(",")
-        : String(value);
-      parts.push(`${key}=${formattedValue}`);
-    }
-
-    return parts.join("&");
-  }
-
-  /**
-   * Calculate MD5 hash of a string.
-   *
-   * @param data - The data to hash
-   * @returns The MD5 hash as a hex string
-   */
-  protected md5(data: string): string {
-    const crypto = require("node:crypto");
-    return crypto.createHash("md5").update(data).digest("hex");
-  }
-
-  /**
-   * Calculate HMAC-SHA256 signature.
-   *
-   * @param data - The data to sign
-   * @param secret - The secret key
-   * @returns The signature as a hex string
-   */
-  protected hmacSha256(data: string, secret: string): string {
-    const crypto = require("node:crypto");
-    return crypto.createHmac("sha256", secret).update(data).digest("hex");
   }
 }

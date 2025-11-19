@@ -2,40 +2,16 @@ import type { Application } from "../application";
 import type { FrameOpcode, IWebSocketConnection } from "./websocket-connection";
 
 /**
- * Connection State Machine
- *
- * The Connection class tracks connection state using a timestamp-based state machine:
- *
- * State Transitions:
- * 1. ACTIVE: Connection is actively communicating (lastSeenAt within pingInterval)
- * 2. INACTIVE: Connection has not been seen recently (lastSeenAt exceeds pingInterval)
- * 3. STALE: Connection is INACTIVE and has been pinged but not responded (hasBeenPinged = true)
- *
- * State Determination:
- * - isActive(): time() < lastSeenAt + app.pingInterval()
- * - isInactive(): !isActive()
- * - isStale(): isInactive() && hasBeenPinged
- *
- * Lifecycle:
- * 1. Connection created → lastSeenAt = time(), hasBeenPinged = false
- * 2. Activity detected → touch() → lastSeenAt = time(), hasBeenPinged = false
- * 3. No activity for pingInterval → isInactive() = true
- * 4. Ping sent → ping() → hasBeenPinged = true
- * 5. Pong received → pong() → hasBeenPinged = false
- * 6. No response after ping → isStale() = true → connection pruned
- *
- * Timestamps:
- * - All timestamps use SECONDS (not milliseconds)
- * - Use Math.floor(Date.now() / 1000) to get current time in seconds
- * - This matches PHP's time() function behavior
- */
-
-/**
  * Connection Abstract Class
  *
  * Application-aware connection wrapper that manages WebSocket connection state,
  * tracking, and lifecycle. Extends raw WebSocketConnection with application context,
  * activity tracking, and state management.
+ *
+ * State Machine:
+ * 1. ACTIVE: Connection is actively communicating (lastSeenAt within pingInterval)
+ * 2. INACTIVE: Connection has not been seen recently (lastSeenAt exceeds pingInterval)
+ * 3. STALE: Connection is INACTIVE and has been pinged but not responded (hasBeenPinged = true)
  *
  * Key Responsibilities:
  * - Wrap WebSocketConnection with application context
@@ -45,36 +21,9 @@ import type { FrameOpcode, IWebSocketConnection } from "./websocket-connection";
  * - Generate normalized socket IDs
  * - Provide connection lifecycle methods
  *
+ * Timestamps use SECONDS (not milliseconds) to align with Pusher protocol expectations.
+ *
  * @abstract
- *
- * @example
- * ```typescript
- * class ReverbConnection extends Connection {
- *   identifier(): string {
- *     return String(this.connection.id());
- *   }
- *
- *   id(): string {
- *     if (!this._id) {
- *       this._id = this.generateId();
- *     }
- *     return this._id;
- *   }
- *
- *   send(message: string): void {
- *     this.connection.send(message);
- *     // Dispatch MessageSent event
- *   }
- *
- *   control(type: FrameOpcode = FrameOpcode.PING): void {
- *     this.connection.send({ payload: '', opcode: type, getContents: () => '' });
- *   }
- *
- *   terminate(): void {
- *     this.connection.close();
- *   }
- * }
- * ```
  */
 export abstract class Connection {
   /**

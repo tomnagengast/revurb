@@ -1,5 +1,5 @@
 /**
- * Logger Contract
+ * Logger Interface
  *
  * Provides a unified interface for logging throughout the Revurb server.
  * Implementations include StandardLogger (file-based), CliLogger (console output),

@@ -28,15 +28,6 @@ import { CacheChannel } from "./cache-channel.js";
  * 2. If user is new → broadcast "pusher_internal:member_added"
  * 3. User receives subscription success with member list
  * 4. User unsubscribes → broadcast "pusher_internal:member_removed" (if last connection for that user)
- *
- * Trait Implementation:
- * This class implements the functionality from PHP's InteractsWithPresenceChannels trait.
- * In TypeScript, traits are implemented as methods directly in the class rather than
- * using mixins or inheritance patterns.
- *
- * @see Laravel\Reverb\Protocols\Pusher\Channels\PresenceCacheChannel (PHP)
- * @see Laravel\Reverb\Protocols\Pusher\Channels\CacheChannel (PHP)
- * @see Laravel\Reverb\Protocols\Pusher\Channels\Concerns\InteractsWithPresenceChannels (PHP)
  */
 export class PresenceCacheChannel extends CacheChannel {
   /**

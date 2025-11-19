@@ -1,9 +1,11 @@
 /**
- * ServerProvider abstract class - Server lifecycle hooks
+ * ServerProvider Abstract Class
  *
  * Provides the foundation for server provider implementations with lifecycle
  * and event subscription management. Subclasses override boot() and/or register()
  * to customize initialization behavior.
+ *
+ * Defines the contract for ServerProviders.
  *
  * @abstract
  */
@@ -82,5 +84,14 @@ export abstract class ServerProvider {
    */
   doesNotSubscribeToEvents(): boolean {
     return !this.subscribesToEvents();
+  }
+
+  /**
+   * Publish a payload to the PubSub provider.
+   *
+   * @param _payload - The payload to publish
+   */
+  publish(_payload: Record<string, unknown>): void {
+    // Override in subclass to publish events
   }
 }

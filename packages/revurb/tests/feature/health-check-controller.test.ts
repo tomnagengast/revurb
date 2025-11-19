@@ -1,9 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import type { Server } from "bun";
-import { Factory } from "revurb/src/servers/reverb/factory";
+import type { ReverbConfig } from "../../src/config/types";
+import { Factory } from "../../src/servers/reverb/factory";
 
 describe("Health Check Controller", () => {
-  let server: Server;
+  let server: Server<unknown>;
   let port: number;
 
   beforeAll(() => {
@@ -12,21 +13,40 @@ describe("Health Check Controller", () => {
     process.env.REVERB_APP_SECRET = "test-secret";
     process.env.REVERB_APP_ID = "test-id";
 
-    // Initialize factory
-    Factory.initialize({
-      apps: [
-        {
-          key: "test-key",
-          secret: "test-secret",
-          id: "test-id",
-          name: "Test App",
-          options: {},
+    const config: ReverbConfig = {
+      default: "reverb",
+      servers: {
+        reverb: {
+          host: "0.0.0.0",
+          port: 8080,
+          scaling: { enabled: false },
         },
-      ],
-    });
+      },
+      apps: {
+        provider: "config",
+        apps: [
+          {
+            key: "test-key",
+            secret: "test-secret",
+            app_id: "test-id",
+            options: {},
+            allowed_origins: ["*"],
+            ping_interval: 60,
+            activity_timeout: 30,
+            max_message_size: 10000,
+          },
+        ],
+      },
+    };
+
+    // Initialize factory
+    Factory.initialize(config);
 
     // Create server with port 0 (let Bun pick a random available port)
-    server = Factory.make("0.0.0.0", "0", "");
+    server = Factory.make("0.0.0.0", "0", "") as unknown as Server<unknown>;
+    if (!server.port) {
+      throw new Error("Server port is undefined");
+    }
     port = server.port;
   });
 
@@ -34,6 +54,7 @@ describe("Health Check Controller", () => {
     if (server) {
       server.stop();
     }
+    Factory.reset();
   });
 
   it("can respond to a health check request", async () => {

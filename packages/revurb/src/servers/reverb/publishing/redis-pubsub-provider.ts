@@ -159,12 +159,13 @@ export class RedisPubSubProvider implements IPubSubProvider {
    * Publish a message to the Redis channel
    *
    * @param payload - The data to publish
+   * @returns Promise that resolves to the number of subscribers that received the message
    */
-  async publish(payload: Record<string, unknown>): Promise<void> {
+  async publish(payload: Record<string, unknown>): Promise<number> {
     if (!this.publisher) {
       throw new Error("Publisher not initialized");
     }
 
-    await this.publisher.publish(payload);
+    return await this.publisher.publish(payload);
   }
 }

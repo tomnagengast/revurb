@@ -15,7 +15,7 @@ import { loadConfig } from "../../config/load";
 import type { ReverbConfig, ReverbServerConfig } from "../../config/types";
 import { Connection as ReverbConnection } from "../../connection";
 import type { IApplicationProvider } from "../../contracts/application-provider";
-import { ServerProvider } from "../../contracts/server-provider";
+import type { ServerProvider } from "../../contracts/server-provider";
 import { FrameOpcode } from "../../contracts/websocket-connection";
 import { CliLogger } from "../../loggers/cli-logger";
 import { Log } from "../../loggers/log";
@@ -32,11 +32,16 @@ import { UsersTerminateController } from "../../protocols/pusher/http/controller
 import { ArrayChannelConnectionManager } from "../../protocols/pusher/managers/array-channel-connection-manager";
 import { ArrayChannelManager } from "../../protocols/pusher/managers/array-channel-manager";
 import { MetricsHandler } from "../../protocols/pusher/metrics-handler";
+import { PusherPubSubIncomingMessageHandler } from "../../protocols/pusher/pubsub-incoming-message-handler";
 import { Server as PusherServer } from "../../protocols/pusher/server";
 import { Connection as WebSocketConnection } from "./connection";
+import type { IPubSubProvider } from "./contracts/pubsub-provider";
 import { Connection as HttpConnection } from "./http/connection";
 import { Response as HttpResponse } from "./http/response";
 import type { IHttpRequest } from "./http/router";
+import type { RedisServerConfig } from "./publishing/redis-client";
+import { RedisPubSubProvider } from "./publishing/redis-pubsub-provider";
+import { ReverbServerProvider } from "./reverb-server-provider";
 import {
   performGracefulShutdown,
   setupEventListeners,
@@ -290,6 +295,11 @@ export class Factory {
   private static serverProvider: ServerProvider | null = null;
 
   /**
+   * PubSub provider instance (used by controllers)
+   */
+  private static pubSubProvider: IPubSubProvider | null = null;
+
+  /**
    * Reset the factory state to allow re-initialization
    */
   public static reset(): void {
@@ -306,6 +316,10 @@ export class Factory {
     Factory.usersTerminateController = null;
     Factory.applicationProvider = null;
     Factory.serverProvider = null;
+    if (Factory.pubSubProvider) {
+      Factory.pubSubProvider.disconnect().catch(console.error);
+      Factory.pubSubProvider = null;
+    }
   }
 
   /**
@@ -323,10 +337,15 @@ export class Factory {
     Log.setLogger(Factory.logger);
     Factory.appManager = new ApplicationManager(config);
 
-    // Create application provider and channel connection manager
+    // Create application provider
     Factory.applicationProvider = Factory.appManager.driver();
-    const channelConnectionManager = new ArrayChannelConnectionManager();
 
+    // Create ReverbServerProvider early so we can pass it to ClientEvent
+    const reverbServerProvider = new ReverbServerProvider();
+    Factory.serverProvider = reverbServerProvider;
+
+    // Create channel manager
+    const channelConnectionManager = new ArrayChannelConnectionManager();
     Factory.channelManager = new ArrayChannelManager(
       Factory.applicationProvider,
       channelConnectionManager,
@@ -334,7 +353,10 @@ export class Factory {
     );
 
     const eventHandler = new EventHandler(Factory.channelManager);
-    const clientEvent = new ClientEvent(Factory.channelManager);
+    const clientEvent = new ClientEvent(
+      Factory.channelManager,
+      Factory.serverProvider,
+    );
 
     Factory.pusherServer = new PusherServer(
       Factory.channelManager,
@@ -343,14 +365,6 @@ export class Factory {
       Factory.logger,
     );
 
-    // Create a minimal server provider
-    // By default, server does not subscribe to events (standalone mode)
-    Factory.serverProvider = new (class extends ServerProvider {
-      override subscribesToEvents(): boolean {
-        return false;
-      }
-    })();
-
     // Initialize metrics handler with all required dependencies
     Factory.metricsHandler = new MetricsHandler(
       Factory.serverProvider,
@@ -358,10 +372,57 @@ export class Factory {
       null,
     );
 
+    // Handle Scaling
+    const serverConfig = config.servers[config.default];
+    if (serverConfig?.scaling?.enabled) {
+      const incomingHandler = new PusherPubSubIncomingMessageHandler(
+        Factory.channelManager,
+        Factory.metricsHandler,
+      );
+
+      // Map generic config to strict RedisServerConfig
+      const redisConfig: RedisServerConfig = {};
+      if (serverConfig.scaling.server) {
+        const raw = serverConfig.scaling.server;
+        if (raw.url) redisConfig.url = raw.url;
+        if (raw.host) redisConfig.host = raw.host;
+        if (raw.port)
+          redisConfig.port =
+            typeof raw.port === "string"
+              ? Number.parseInt(raw.port, 10)
+              : raw.port;
+        if (raw.username) redisConfig.username = raw.username;
+        if (raw.password) redisConfig.password = raw.password;
+        if (raw.database)
+          redisConfig.database =
+            typeof raw.database === "string"
+              ? Number.parseInt(raw.database, 10)
+              : raw.database;
+        if (raw.timeout) redisConfig.timeout = raw.timeout;
+      }
+
+      Factory.pubSubProvider = new RedisPubSubProvider(
+        Factory.logger,
+        incomingHandler,
+        serverConfig.scaling.channel || "reverb",
+        redisConfig,
+      );
+
+      // Wire up the cycle
+      reverbServerProvider.setPubSubProvider(Factory.pubSubProvider);
+      Factory.metricsHandler.setPubSubProvider(Factory.pubSubProvider);
+
+      // Connect
+      Factory.pubSubProvider.connect().catch((e) => {
+        Factory.logger?.error(`Failed to connect to Redis Pub/Sub: ${e}`);
+      });
+    }
+
     // Initialize class-based controllers with proper dependencies
     Factory.eventsController = new EventsController(
       Factory.channelManager,
       Factory.metricsHandler,
+      Factory.serverProvider,
     );
     Factory.eventsBatchController = new EventsBatchController(
       Factory.metricsHandler,
@@ -380,7 +441,7 @@ export class Factory {
       Factory.applicationProvider,
       Factory.channelManager,
       Factory.serverProvider,
-      undefined,
+      Factory.pubSubProvider ?? undefined,
     );
 
     Factory.isInitialized = true;
@@ -447,20 +508,16 @@ export class Factory {
   }
 
   /**
-   * Create a new WebSocket server instance
+   * Create a new WebSocket server instance.
    *
-   * Creates and configures an HTTP server with WebSocket support using Bun.
-   * Handles TLS/SSL configuration and protocol routing.
-   *
-   * @param host - Server host address (default: '0.0.0.0')
-   * @param port - Server port (default: '8080')
-   * @param path - URL path prefix for all routes (default: '')
-   * @param hostname - Hostname for TLS certificate resolution (optional)
-   * @param maxRequestSize - Maximum request size in bytes (default: 10000)
-   * @param options - Additional server options (default: {})
-   * @param protocol - Protocol to use ('pusher' only for now) (default: 'pusher')
-   * @param environment - The environment name (default: NODE_ENV or 'development')
-   *                      Used to determine TLS peer verification settings
+   * @param host - Server host address
+   * @param port - Server port
+   * @param path - URL path prefix for all routes
+   * @param hostname - Hostname for TLS certificate resolution
+   * @param maxRequestSize - Maximum request size in bytes
+   * @param options - Additional server options
+   * @param protocol - Protocol to use
+   * @param environment - The environment name
    * @returns The configured Bun server instance
    *
    * @throws {Error} If protocol is unsupported
@@ -872,7 +929,7 @@ export class Factory {
       const channelManager = Factory.channelManager.for(app);
 
       // Call the controller
-      const response = await Factory.eventsController.__invoke(
+      const response = await Factory.eventsController.handle(
         httpRequest,
         httpConnection,
         app,
@@ -1011,7 +1068,7 @@ export class Factory {
     try {
       const httpRequest = await Factory.convertToHttpRequest(req);
       const httpConnection = Factory.createHttpConnection();
-      const response = await Factory.channelsController.__invoke(
+      const response = await Factory.channelsController.handle(
         httpRequest,
         httpConnection,
         params.appId,

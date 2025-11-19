@@ -194,7 +194,7 @@ describe("PruneStaleConnections", () => {
     await job.handle();
 
     const sendCall = (staleChannelConnection.send as ReturnType<typeof mock>)
-      .mock.calls[0][0];
+      .mock.calls[0]?.[0];
     const message = JSON.parse(sendCall);
 
     expect(message.event).toBe("pusher:error");

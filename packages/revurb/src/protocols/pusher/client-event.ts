@@ -1,7 +1,9 @@
 import type { Connection } from "../../contracts/connection";
+import type { ServerProvider } from "../../contracts/server-provider";
 import type { PusherMessage } from "../../types/pusher-messages";
 import { isClientEvent } from "../../types/pusher-messages";
 import type { ChannelManager } from "./contracts/channel-manager";
+import { dispatch } from "./event-dispatcher";
 
 /**
  * Client Event Handler
@@ -27,7 +29,7 @@ import type { ChannelManager } from "./contracts/channel-manager";
  *   data: { user: 'Alice', typing: true }
  * };
  *
- * const clientEvent = new ClientEvent(channelManager);
+ * const clientEvent = new ClientEvent(channelManager, serverProvider);
  * const result = clientEvent.handle(connection, event);
  * if (result) {
  *   // Event was valid and dispatched
@@ -39,8 +41,12 @@ export class ClientEvent {
    * Create a new ClientEvent handler
    *
    * @param channels - The channel manager for finding channels to broadcast to
+   * @param serverProvider - The server provider for scaling support
    */
-  constructor(protected readonly channels?: ChannelManager) {}
+  constructor(
+    protected readonly channels?: ChannelManager,
+    protected readonly serverProvider?: ServerProvider,
+  ) {}
   /**
    * Handle a Pusher client event (instance method).
    *
@@ -67,8 +73,8 @@ export class ClientEvent {
       return;
     }
 
-    // Whisper (broadcast) the event to other connections
-    this.whisper(connection, event);
+    // Dispatch the event
+    this.dispatch(connection, event);
   }
 
   /**
@@ -83,7 +89,7 @@ export class ClientEvent {
    * 3. Channel field must be present and a string
    * 4. Data field is optional but must be an object or array if present
    *
-   * Note: This static method doesn't perform the actual whisper operation
+   * Note: This static method doesn't perform the actual dispatch operation
    * since it has no access to the ChannelManager. The caller is responsible
    * for broadcasting the event using an instance method.
    *
@@ -125,43 +131,43 @@ export class ClientEvent {
       return null;
     }
 
-    // Return a new ClientEvent instance (whisper operation must be done by caller)
+    // Return a new ClientEvent instance (dispatch operation must be done by caller)
     return new ClientEvent();
   }
 
   /**
-   * Whisper a message to all connections on the channel associated with the event.
+   * Dispatch the event to the channel.
    *
-   * This broadcasts the client event to all other connections subscribed to
-   * the same channel, excluding the sender.
+   * Uses the event dispatcher to broadcast the event, ensuring proper
+   * scaling support if enabled.
    *
    * @param connection - The connection that sent the event
    * @param payload - The event payload to broadcast
    *
    * @private
    */
-  private whisper(connection: Connection, payload: PusherMessage): void {
+  private dispatch(connection: Connection, payload: PusherMessage): void {
     // Check if channels manager is available
-    if (!this.channels) {
-      console.warn("ClientEvent.whisper: ChannelManager not available");
+    if (!this.channels || !this.serverProvider) {
+      console.warn(
+        "ClientEvent.dispatch: ChannelManager or ServerProvider not available",
+      );
       return;
     }
 
-    // Get the channel name from the payload
-    const channelName = payload.channel;
-    if (!channelName) {
-      return;
+    if (payload.channel) {
+      dispatch(
+        connection.app(),
+        {
+          event: payload.event,
+          channel: payload.channel,
+          data: payload.data,
+        },
+        this.channels,
+        this.serverProvider,
+        connection,
+      );
     }
-
-    // Find the channel (must scope to application first)
-    const channel = this.channels.for(connection.app()).find(channelName);
-    if (!channel) {
-      // Channel doesn't exist - nothing to broadcast to
-      return;
-    }
-
-    // Broadcast the client event to all connections on the channel except the sender
-    channel.broadcast(payload, connection);
   }
 
   /**

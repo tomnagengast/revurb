@@ -46,7 +46,6 @@ import { CacheChannel } from "./cache-channel";
  * });
  * ```
  *
- * @see Laravel\Reverb\Protocols\Pusher\Channels\PrivateCacheChannel (PHP)
  * @see PrivateChannel for authentication details
  * @see CacheChannel for caching details
  */
@@ -56,8 +55,6 @@ export class PrivateCacheChannel extends CacheChannel {
    *
    * Verifies authentication before allowing subscription.
    * Delegates to parent CacheChannel.subscribe() after verification.
-   *
-   * Implements the InteractsWithPrivateChannels trait behavior from PHP.
    *
    * @param connection - The connection to subscribe
    * @param auth - The authentication signature (required)
@@ -88,9 +85,6 @@ export class PrivateCacheChannel extends CacheChannel {
    * Validates that the provided auth signature matches the expected HMAC-SHA256
    * signature for the connection and channel.
    *
-   * This implements the verify() method from the InteractsWithPrivateChannels
-   * trait in the PHP implementation.
-   *
    * Signature String Format:
    * - Without data: "{socket_id}:{channel_name}"
    * - With data: "{socket_id}:{channel_name}:{data}"
@@ -98,21 +92,6 @@ export class PrivateCacheChannel extends CacheChannel {
    * Auth Token Format:
    * - "{app_key}:{signature}"
    * - Only the signature portion (after ':') is validated
-   *
-   * Algorithm (from PHP):
-   * ```php
-   * $signature = "{$connection->id()}:{$this->name()}";
-   * if ($data) {
-   *     $signature .= ":{$data}";
-   * }
-   *
-   * if (! hash_equals(
-   *     hash_hmac('sha256', $signature, $connection->app()->secret()),
-   *     Str::after($auth, ':')
-   * )) {
-   *     throw new ConnectionUnauthorized;
-   * }
-   * ```
    *
    * @param connection - The connection attempting to subscribe
    * @param auth - The authentication token
@@ -134,11 +113,9 @@ export class PrivateCacheChannel extends CacheChannel {
     }
 
     // Extract the signature from auth token (format: "app_key:signature")
-    // PHP equivalent: Str::after($auth, ':')
     const providedSignature = auth ? auth.split(":").slice(1).join(":") : "";
 
     // Compute expected signature using HMAC-SHA256
-    // PHP equivalent: hash_hmac('sha256', $signature, $connection->app()->secret())
     const secret = connection.app().secret();
     const expectedSignature = crypto
       .createHmac("sha256", secret)
@@ -146,7 +123,6 @@ export class PrivateCacheChannel extends CacheChannel {
       .digest("hex");
 
     // Constant-time comparison to prevent timing attacks
-    // PHP equivalent: hash_equals($expected, $provided)
     if (!this.timingSafeEqual(expectedSignature, providedSignature)) {
       throw new ConnectionUnauthorized();
     }
@@ -158,7 +134,7 @@ export class PrivateCacheChannel extends CacheChannel {
    * Timing-safe string comparison.
    *
    * Compares two strings in constant time to prevent timing attacks.
-   * Uses crypto.timingSafeEqual which is equivalent to PHP's hash_equals().
+   * Uses crypto.timingSafeEqual.
    *
    * Implementation notes:
    * - Handles length mismatches safely

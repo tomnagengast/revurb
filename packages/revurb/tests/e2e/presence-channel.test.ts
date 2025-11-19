@@ -57,6 +57,9 @@ describe("Presence Channel E2E Tests", () => {
     };
 
     result = await createServer({ config });
+    if (!result.server.port) {
+      throw new Error("Server port is undefined");
+    }
     testPort = result.server.port;
 
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -69,7 +72,7 @@ describe("Presence Channel E2E Tests", () => {
   it("should subscribe to a presence channel with valid auth and user data", async () => {
     const messages: PusherMessage[] = [];
 
-    const result = await new Promise((resolve) => {
+    const res = await new Promise<{ socketId: string }>((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
       let socketId = "";
 
@@ -122,20 +125,20 @@ describe("Presence Channel E2E Tests", () => {
         if (message.event === "pusher_internal:subscription_succeeded") {
           setTimeout(() => {
             ws.close();
-            resolve({ messages, socketId });
+            resolve({ socketId });
           }, 100);
         }
       };
 
       ws.onerror = (error) => {
         console.error("WebSocket error:", error);
-        resolve({ messages, socketId, error });
+        resolve({ socketId });
       };
 
       // Timeout after 5 seconds
       setTimeout(() => {
         ws.close();
-        resolve({ messages, socketId });
+        resolve({ socketId });
       }, 5000);
     });
 
@@ -145,14 +148,14 @@ describe("Presence Channel E2E Tests", () => {
     const events = messages.map((m) => m.event);
     expect(events).toContain("pusher:connection_established");
     expect(events).toContain("pusher_internal:subscription_succeeded");
-    expect(result.socketId).toBeTruthy();
+    expect(res.socketId).toBeTruthy();
 
     // Check that subscription_succeeded includes presence hash and count
     const subscriptionSucceeded = messages.find(
       (m) => m.event === "pusher_internal:subscription_succeeded",
     );
     expect(subscriptionSucceeded).toBeTruthy();
-    if (subscriptionSucceeded.data) {
+    if (subscriptionSucceeded?.data) {
       const subData =
         typeof subscriptionSucceeded.data === "string"
           ? JSON.parse(subscriptionSucceeded.data)
@@ -165,7 +168,7 @@ describe("Presence Channel E2E Tests", () => {
   it("should reject presence channel subscription without channel_data", async () => {
     const messages: PusherMessage[] = [];
 
-    const result = await new Promise((resolve) => {
+    const res = await new Promise<{ errorReceived: boolean }>((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
       let socketId = "";
       let errorReceived = false;
@@ -213,20 +216,20 @@ describe("Presence Channel E2E Tests", () => {
           errorReceived = true;
           setTimeout(() => {
             ws.close();
-            resolve({ messages, socketId, errorReceived });
+            resolve({ errorReceived });
           }, 100);
         }
       };
 
       ws.onerror = (error) => {
         console.error("WebSocket error:", error);
-        resolve({ messages, socketId, errorReceived, error });
+        resolve({ errorReceived });
       };
 
       // Timeout after 5 seconds
       setTimeout(() => {
         ws.close();
-        resolve({ messages, socketId, errorReceived });
+        resolve({ errorReceived });
       }, 5000);
     });
 
@@ -234,7 +237,7 @@ describe("Presence Channel E2E Tests", () => {
     const events = messages.map((m) => m.event);
     expect(events).toContain("pusher:connection_established");
     expect(events).not.toContain("pusher_internal:subscription_succeeded");
-    expect(result.errorReceived).toBe(true);
+    expect(res.errorReceived).toBe(true);
   }, 10000);
 
   it("should receive member_added event when another user joins", async () => {

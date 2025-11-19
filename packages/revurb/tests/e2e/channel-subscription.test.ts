@@ -38,6 +38,9 @@ describe("Channel Subscription E2E Tests", () => {
     };
 
     result = await createServer({ config });
+    if (!result.server.port) {
+      throw new Error("Server port is undefined");
+    }
     testPort = result.server.port;
 
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -48,9 +51,9 @@ describe("Channel Subscription E2E Tests", () => {
   });
 
   it("should subscribe to a public channel", async () => {
-    const messages: unknown[] = [];
+    const messages: { event: string; data?: unknown }[] = [];
 
-    const _result = await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
 
       ws.onopen = () => {
@@ -75,20 +78,20 @@ describe("Channel Subscription E2E Tests", () => {
         if (message.event === "pusher_internal:subscription_succeeded") {
           setTimeout(() => {
             ws.close();
-            resolve({ messages });
+            resolve();
           }, 100);
         }
       };
 
       ws.onerror = (error) => {
         console.error("WebSocket error:", error);
-        resolve({ messages, error });
+        resolve();
       };
 
       // Timeout after 5 seconds
       setTimeout(() => {
         ws.close();
-        resolve({ messages });
+        resolve();
       }, 5000);
     });
 
@@ -101,9 +104,9 @@ describe("Channel Subscription E2E Tests", () => {
   }, 10000);
 
   it("should handle ping/pong", async () => {
-    const messages: unknown[] = [];
+    const messages: { event: string; data?: unknown }[] = [];
 
-    const result = await new Promise((resolve) => {
+    const res = await new Promise<{ connected: boolean }>((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
       let connected = false;
 
@@ -130,24 +133,24 @@ describe("Channel Subscription E2E Tests", () => {
         if (message.event === "pusher:pong") {
           setTimeout(() => {
             ws.close();
-            resolve({ connected, messages });
+            resolve({ connected });
           }, 100);
         }
       };
 
       ws.onerror = (error) => {
         console.error("WebSocket error:", error);
-        resolve({ connected, messages, error });
+        resolve({ connected });
       };
 
       // Timeout after 5 seconds
       setTimeout(() => {
         ws.close();
-        resolve({ connected, messages });
+        resolve({ connected });
       }, 5000);
     });
 
-    expect(result.connected).toBe(true);
+    expect(res.connected).toBe(true);
     expect(messages.length).toBeGreaterThanOrEqual(2);
 
     const events = messages.map((m) => m.event);
@@ -156,9 +159,9 @@ describe("Channel Subscription E2E Tests", () => {
   }, 10000);
 
   it("should unsubscribe from a channel", async () => {
-    const messages: unknown[] = [];
+    const messages: { event: string; data?: unknown }[] = [];
 
-    const result = await new Promise((resolve) => {
+    const res = await new Promise<{ subscribed: boolean }>((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
       let subscribed = false;
 
@@ -196,7 +199,7 @@ describe("Channel Subscription E2E Tests", () => {
             // Close after unsubscribe
             setTimeout(() => {
               ws.close();
-              resolve({ subscribed, messages });
+              resolve({ subscribed });
             }, 200);
           }, 100);
         }
@@ -204,17 +207,17 @@ describe("Channel Subscription E2E Tests", () => {
 
       ws.onerror = (error) => {
         console.error("WebSocket error:", error);
-        resolve({ subscribed, messages, error });
+        resolve({ subscribed });
       };
 
       // Timeout after 5 seconds
       setTimeout(() => {
         ws.close();
-        resolve({ subscribed, messages });
+        resolve({ subscribed });
       }, 5000);
     });
 
-    expect(result.subscribed).toBe(true);
+    expect(res.subscribed).toBe(true);
     expect(messages.length).toBeGreaterThanOrEqual(2);
 
     const events = messages.map((m) => m.event);

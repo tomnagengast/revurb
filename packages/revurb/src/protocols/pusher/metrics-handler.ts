@@ -1,4 +1,5 @@
 import type { Application } from "../../application";
+import type { IPubSubProvider } from "../../servers/reverb/contracts/pubsub-provider";
 import type { ChannelConnection } from "./channels/channel-connection";
 
 /**
@@ -86,25 +87,9 @@ export interface ServerProviderManager {
 }
 
 /**
- * PubSub provider interface for distributed metrics.
- */
-export interface PubSubProvider {
-  /**
-   * Publish a message to all subscribers.
-   * @returns Promise resolving to the number of subscribers
-   */
-  publish(message: PubSubMessage): Promise<number>;
-
-  /**
-   * Subscribe to events from other servers.
-   */
-  on(event: string, handler: (payload: unknown) => void): void;
-}
-
-/**
  * PubSub message structure.
  */
-export interface PubSubMessage {
+export interface PubSubMessage extends Record<string, unknown> {
   /** Message type */
   type: string;
   /** Unique key for correlating requests/responses */
@@ -132,12 +117,12 @@ export interface PubSubMessage {
  */
 export class MetricsHandler {
   /**
-   * The metrics being gathered from subscribers.
+   * The metrics being gathered.
    */
   protected metrics: unknown[] = [];
 
   /**
-   * The total number of subscribers gathering metrics.
+   * The total subscribers gathering metrics.
    */
   protected subscribers: number | null = null;
 
@@ -147,16 +132,20 @@ export class MetricsHandler {
   constructor(
     protected serverProviderManager: ServerProviderManager,
     protected channels: ChannelManager,
-    protected pubSubProvider: PubSubProvider | null,
+    protected pubSubProvider: IPubSubProvider | null,
   ) {}
 
   /**
-   * Gather the metrics for the given type.
+   * Set the PubSub provider.
    *
-   * @param application - The application to gather metrics for
-   * @param type - The type of metrics to gather
-   * @param options - Additional options for the metrics request
-   * @returns Promise resolving to the metrics data
+   * @param provider - The PubSub provider to set
+   */
+  public setPubSubProvider(provider: IPubSubProvider): void {
+    this.pubSubProvider = provider;
+  }
+
+  /**
+   * Gather the metrics for the given type.
    */
   async gather(
     application: Application,
@@ -170,11 +159,6 @@ export class MetricsHandler {
 
   /**
    * Get the metrics for the given type.
-   *
-   * @param application - The application to get metrics for
-   * @param type - The type of metrics to get
-   * @param options - Additional options for the metrics request
-   * @returns The metrics data
    */
   get(
     application: Application,
@@ -196,11 +180,7 @@ export class MetricsHandler {
   }
 
   /**
-   * Get the channel information for the given application.
-   *
-   * @param application - The application
-   * @param options - Options including channel name and info fields
-   * @returns Channel information
+   * Get the channel for the given application.
    */
   protected channel(
     application: Application,
@@ -213,11 +193,7 @@ export class MetricsHandler {
   }
 
   /**
-   * Get the channels information for the given application.
-   *
-   * @param application - The application
-   * @param options - Options including channels array, filter, and info fields
-   * @returns Channels information map
+   * Get the channels for the given application.
    */
   protected channels_(
     application: Application,
@@ -253,10 +229,6 @@ export class MetricsHandler {
 
   /**
    * Get the channel users for the given application.
-   *
-   * @param application - The application
-   * @param options - Options including channel name
-   * @returns Array of channel users
    */
   protected channelUsers(
     application: Application,
@@ -292,9 +264,6 @@ export class MetricsHandler {
 
   /**
    * Get the connections for the given application.
-   *
-   * @param application - The application
-   * @returns Connection information
    */
   protected connections(application: Application): Record<string, unknown> {
     return this.channels.for(application).connections();
@@ -302,11 +271,6 @@ export class MetricsHandler {
 
   /**
    * Gather metrics from all subscribers for the given type.
-   *
-   * @param application - The application to gather metrics for
-   * @param type - The type of metrics to gather
-   * @param options - Additional options for the metrics request
-   * @returns Promise resolving to the aggregated metrics
    */
   protected async gatherMetricsFromSubscribers(
     application: Application,
@@ -333,11 +297,6 @@ export class MetricsHandler {
 
   /**
    * Request metrics from all subscribers.
-   *
-   * @param application - The application to request metrics for
-   * @param key - Unique key for correlating responses
-   * @param type - The type of metrics to request
-   * @param options - Additional options for the metrics request
    */
   protected requestMetricsFromSubscribers(
     application: Application,
@@ -362,10 +321,6 @@ export class MetricsHandler {
 
   /**
    * Merge the given metrics into a single result set.
-   *
-   * @param metrics - Array of metrics from different subscribers
-   * @param type - The type of metrics being merged
-   * @returns Merged metrics
    */
   protected mergeSubscriberMetrics(metrics: unknown[], type: string): unknown {
     switch (type) {
@@ -413,9 +368,6 @@ export class MetricsHandler {
 
   /**
    * Merge multiple channel instances into a single set.
-   *
-   * @param metrics - Array of channel info objects
-   * @returns Merged channel info
    */
   protected mergeChannel(metrics: ChannelInfo[]): ChannelInfo {
     const result: ChannelInfo = {};
@@ -445,9 +397,6 @@ export class MetricsHandler {
 
   /**
    * Merge multiple sets of channel instances into a single result set.
-   *
-   * @param metrics - Array of channel maps
-   * @returns Merged channel maps
    */
   protected mergeChannels(
     metrics: Record<string, ChannelInfo>[],
@@ -475,9 +424,6 @@ export class MetricsHandler {
 
   /**
    * Listen for metrics from subscribers.
-   *
-   * @param key - Unique key for correlating responses
-   * @returns Promise that resolves when all metrics are collected
    */
   protected listenForMetrics(key: string): Promise<unknown[]> {
     if (!this.pubSubProvider) {
@@ -510,11 +456,6 @@ export class MetricsHandler {
 
   /**
    * Publish the metrics for the given type.
-   *
-   * @param application - The application to publish metrics for
-   * @param key - Unique key for correlating requests/responses
-   * @param type - The type of metrics to publish
-   * @param options - Additional options for the metrics
    */
   publish(
     application: Application,
@@ -535,11 +476,6 @@ export class MetricsHandler {
 
   /**
    * Get meta/status information for the given channels.
-   *
-   * @param application - The application
-   * @param channels - Array of channel names or Channel objects
-   * @param info - Info fields to include
-   * @returns Map of channel names to channel info
    */
   protected infoForChannels(
     application: Application,
@@ -558,11 +494,6 @@ export class MetricsHandler {
 
   /**
    * Get meta/status information for the given channel.
-   *
-   * @param application - The application
-   * @param channelName - The channel name
-   * @param info - Info fields to include (comma-separated string or array)
-   * @returns Channel information
    */
   protected info(
     application: Application,
@@ -587,10 +518,6 @@ export class MetricsHandler {
 
   /**
    * Get channel information for the given occupied channel.
-   *
-   * @param channel - The channel
-   * @param info - Info fields to include
-   * @returns Channel information
    */
   protected occupiedInfo(channel: Channel, info: string[]): ChannelInfo {
     // channel.connections() returns Record<string, ChannelConnection>, get count via Object.keys()
@@ -613,9 +540,6 @@ export class MetricsHandler {
 
   /**
    * Get channel information for the given unoccupied channel.
-   *
-   * @param info - Info fields to include
-   * @returns Channel information
    */
   protected unoccupiedInfo(info: string[]): ChannelInfo {
     return {
@@ -625,9 +549,6 @@ export class MetricsHandler {
 
   /**
    * Determine if the given channel is a presence channel.
-   *
-   * @param channel - The channel to check
-   * @returns True if it's a presence channel
    */
   protected isPresenceChannel(channel: Channel): boolean {
     return channel.name().startsWith("presence-");
@@ -635,9 +556,6 @@ export class MetricsHandler {
 
   /**
    * Determine if the given channel is a cache channel.
-   *
-   * @param channel - The channel to check
-   * @returns True if it's a cache channel
    */
   protected isCacheChannel(channel: Channel): boolean {
     return "cachedPayload" in channel;
@@ -645,9 +563,6 @@ export class MetricsHandler {
 
   /**
    * Get the cached payload from a cache channel.
-   *
-   * @param channel - The channel (must be a cache channel)
-   * @returns The cached payload or null
    */
   protected getCachedPayload(channel: Channel): Record<string, unknown> | null {
     if (
@@ -661,9 +576,6 @@ export class MetricsHandler {
 
   /**
    * Get the number of unique users subscribed to the presence channel.
-   *
-   * @param channel - The presence channel
-   * @returns Number of unique users
    */
   protected userCount(channel: Channel): number {
     const seenUserIds = new Set<string>();
@@ -684,9 +596,6 @@ export class MetricsHandler {
 
   /**
    * Generate a random alphanumeric key.
-   *
-   * @param length - Length of the key to generate
-   * @returns Random key string
    */
   protected generateRandomKey(length: number): string {
     const chars =
@@ -700,9 +609,6 @@ export class MetricsHandler {
 
   /**
    * Serialize an application instance.
-   *
-   * @param application - The application to serialize
-   * @returns Serialized application string
    */
   protected serializeApplication(application: Application): string {
     return JSON.stringify(application.toArray());
@@ -710,10 +616,6 @@ export class MetricsHandler {
 
   /**
    * Wrap a promise with a timeout.
-   *
-   * @param promise - The promise to wrap
-   * @param timeoutMs - Timeout in milliseconds
-   * @returns Promise that rejects if timeout is reached
    */
   protected timeoutPromise<T>(
     promise: Promise<T>,

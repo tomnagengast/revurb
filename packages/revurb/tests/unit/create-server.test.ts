@@ -42,7 +42,10 @@ describe("createServer", () => {
 
       expect(result.config).toBe(baseConfig);
       expect(result.server).toBeDefined();
-      expect(result.serverConfig).toBe(baseConfig.servers.reverb);
+
+      const reverbConfig = baseConfig.servers.reverb;
+      if (!reverbConfig) throw new Error("Reverb config undefined");
+      expect(result.serverConfig).toBe(reverbConfig);
 
       await result.shutdown();
     });
@@ -81,7 +84,7 @@ describe("createServer", () => {
       const result = await createServer({ configPath });
 
       expect(result.config.servers.test).toBeDefined();
-      expect(result.config.apps.apps[0].key).toBe("fixture-key");
+      expect(result.config.apps.apps?.[0]?.key).toBe("fixture-key");
 
       await result.shutdown();
     });
@@ -95,7 +98,7 @@ describe("createServer", () => {
       const result = await createServer();
 
       expect(result.config).toBeDefined();
-      expect(result.config.apps.apps[0].key).toBe("env-key");
+      expect(result.config.apps.apps?.[0]?.key).toBe("env-key");
 
       await result.shutdown();
 
@@ -122,7 +125,9 @@ describe("createServer", () => {
         serverName: "custom",
       });
 
-      expect(result.serverConfig).toBe(baseConfig.servers.custom);
+      const customConfig = baseConfig.servers.custom;
+      if (!customConfig) throw new Error("Custom config undefined");
+      expect(result.serverConfig).toBe(customConfig);
 
       await result.shutdown();
     });
@@ -130,7 +135,9 @@ describe("createServer", () => {
     it("should use config.default when no serverName provided", async () => {
       const result = await createServer({ config: baseConfig });
 
-      expect(result.serverConfig).toBe(baseConfig.servers.reverb);
+      const reverbConfig = baseConfig.servers.reverb;
+      if (!reverbConfig) throw new Error("Reverb config undefined");
+      expect(result.serverConfig).toBe(reverbConfig);
 
       await result.shutdown();
     });
@@ -290,9 +297,9 @@ describe("createServer", () => {
     });
 
     it("should have enableSignals off by default", async () => {
-      const mockProcessOn = mock(() => {});
+      const mockProcessOn = mock(() => process);
       const originalProcessOn = process.on;
-      process.on = mockProcessOn as typeof process.on;
+      process.on = mockProcessOn as unknown as typeof process.on;
 
       const result = await createServer({ config: baseConfig });
 
@@ -304,9 +311,9 @@ describe("createServer", () => {
     });
 
     it("should enable signal handlers when requested", async () => {
-      const mockProcessOn = mock(() => {});
+      const mockProcessOn = mock(() => process);
       const originalProcessOn = process.on;
-      process.on = mockProcessOn as typeof process.on;
+      process.on = mockProcessOn as unknown as typeof process.on;
 
       const result = await createServer({
         config: baseConfig,
@@ -366,9 +373,9 @@ describe("createServer", () => {
     });
 
     it("should remove signal handlers", async () => {
-      const mockProcessOff = mock(() => {});
+      const mockProcessOff = mock(() => process);
       const originalProcessOff = process.off;
-      process.off = mockProcessOff as typeof process.off;
+      process.off = mockProcessOff as unknown as typeof process.off;
 
       const result = await createServer({
         config: baseConfig,
@@ -543,7 +550,7 @@ describe("createServer", () => {
 
       expect(response.status).toBe(200);
 
-      const body = await response.json();
+      const body = (await response.json()) as { health: string };
       expect(body.health).toBe("OK");
 
       await result.shutdown();
@@ -622,7 +629,7 @@ describe("createServer", () => {
 
       expect(result.serverConfig.path).toBe("/dynamic");
       expect(result.serverConfig.max_request_size).toBe(15000);
-      expect(result.config.apps.apps[0].allowed_origins).toContain(
+      expect(result.config.apps.apps?.[0]?.allowed_origins).toContain(
         "https://example.com",
       );
 

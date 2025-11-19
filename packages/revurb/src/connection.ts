@@ -8,26 +8,10 @@ import { MessageSent } from "./events/message-sent";
  *
  * Concrete implementation of the Connection contract that wraps a WebSocket
  * connection with application context and state management.
- *
- * This class implements the Pusher-compatible connection wrapper, handling:
- * - Connection identification and normalization
- * - Message sending with event dispatching
- * - Control frame management (PING/PONG)
- * - Connection lifecycle and termination
- *
- * The connection maintains state through the abstract base class:
- * - lastSeenAt: Timestamp tracking for activity monitoring
- * - hasBeenPinged: Ping state for stale connection detection
- * - usesControlFrames: Whether the connection uses control frames
- *
- * @see Connection contract for state machine documentation
  */
 export class Connection extends ConnectionContract {
   /**
    * The normalized socket ID.
-   *
-   * Cached socket ID in Pusher format ("number.number").
-   * Generated once on first access and reused for connection lifetime.
    *
    * @private
    */
@@ -36,10 +20,7 @@ export class Connection extends ConnectionContract {
   /**
    * Get the raw socket connection identifier.
    *
-   * Returns the underlying WebSocket connection's identifier as a string.
-   * This is the raw transport-level identifier, not the normalized socket ID.
-   *
-   * @returns The raw connection identifier as a string
+   * @returns The raw connection identifier
    */
   identifier(): string {
     return String(this.connection.id());
@@ -48,10 +29,7 @@ export class Connection extends ConnectionContract {
   /**
    * Get the normalized socket ID.
    *
-   * Returns a Pusher-compatible socket ID in the format "number.number".
-   * The ID is generated once and cached for the lifetime of the connection.
-   *
-   * @returns The normalized socket ID (e.g., "123456789.987654321")
+   * @returns The normalized socket ID
    */
   id(): string {
     if (!this._id) {
@@ -64,9 +42,6 @@ export class Connection extends ConnectionContract {
   /**
    * Send a message to the connection.
    *
-   * Sends a message over the WebSocket connection and dispatches
-   * a MessageSent event for monitoring and metrics collection.
-   *
    * @param message - The message to send
    */
   send(message: string): void {
@@ -77,9 +52,6 @@ export class Connection extends ConnectionContract {
 
   /**
    * Send a control frame to the connection.
-   *
-   * Sends a WebSocket control frame (PING, PONG, or CLOSE).
-   * Control frames are used for connection health checks and lifecycle management.
    *
    * @param type - The frame opcode (default: PING)
    */
@@ -93,9 +65,6 @@ export class Connection extends ConnectionContract {
 
   /**
    * Terminate a connection.
-   *
-   * Closes the underlying WebSocket connection gracefully.
-   * This is the final operation on a connection and cannot be undone.
    */
   terminate(): void {
     this.connection.close();

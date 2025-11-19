@@ -51,7 +51,7 @@ interface TerminatePayload {
  *
  * Architecture Notes:
  * - Implements IPubSubIncomingMessageHandler interface
- * - Uses JSON.parse for payload parsing (NOT PHP unserialize)
+ * - Uses JSON.parse for payload parsing
  * - Application field is parsed as JSON string
  * - Delegates to EventDispatcher for message broadcasting
  * - Delegates to MetricsHandler for metrics publishing

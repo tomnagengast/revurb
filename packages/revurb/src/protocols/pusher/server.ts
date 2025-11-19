@@ -14,41 +14,16 @@ import { PusherException } from "./exceptions/pusher-exception";
 /**
  * Pusher Protocol Server
  *
- * Handles the WebSocket server lifecycle for the Pusher protocol, including:
- * - Connection establishment and authentication
- * - Message routing and validation
- * - Control frame handling (PING/PONG)
- * - Error handling and connection cleanup
- * - Origin verification and connection limits
- *
- * This class serves as the main entry point for Pusher protocol operations,
- * delegating specific functionality to EventHandler and ClientEvent handlers.
- *
- * @example
- * ```typescript
- * const server = new Server(channelManager, eventHandler, clientEvent, logger);
- *
- * // Handle new connection
- * server.open(connection);
- *
- * // Handle incoming message
- * server.message(connection, '{"event":"pusher:subscribe","data":{"channel":"my-channel"}}');
- *
- * // Handle control frame
- * server.control(connection, pingFrame);
- *
- * // Handle connection close
- * server.close(connection);
- * ```
+ * Handles the WebSocket server lifecycle for the Pusher protocol.
  */
 export class Server {
   /**
    * Create a new server instance.
    *
-   * @param channels - The channel manager for managing channel subscriptions
-   * @param handler - The event handler for Pusher protocol events
-   * @param clientEvent - The client event handler for client-to-client messages
-   * @param logger - The logger instance for logging server operations
+   * @param channels - The channel manager
+   * @param handler - The event handler
+   * @param clientEvent - The client event handler
+   * @param logger - The logger instance
    */
   constructor(
     protected readonly channels: ChannelManager,
@@ -59,13 +34,6 @@ export class Server {
 
   /**
    * Handle a client connection.
-   *
-   * Validates the connection against connection limits and origin restrictions,
-   * then sends a connection_established event to the client with the socket ID
-   * and activity timeout.
-   *
-   * If any errors occur during connection establishment, they are caught and
-   * passed to the error handler.
    *
    * @param connection - The connection to open
    */
@@ -87,15 +55,8 @@ export class Server {
   /**
    * Handle a new message received by the connected client.
    *
-   * Parses the incoming JSON message, validates its structure, and routes it
-   * to either the EventHandler (for pusher: events) or ClientEvent handler
-   * (for client- events).
-   *
-   * Message data fields that contain JSON strings are automatically parsed
-   * into objects for easier handling by downstream handlers.
-   *
    * @param from - The connection that sent the message
-   * @param message - The raw message string (must be valid JSON)
+   * @param message - The raw message string
    */
   message(from: Connection, message: string): void {
     this.logger.info("Message Received", from.id());
@@ -142,15 +103,8 @@ export class Server {
   /**
    * Handle a low-level WebSocket control frame.
    *
-   * Processes control frames (PING, PONG, CLOSE) according to RFC 6455.
-   * When a control frame is received, marks the connection as using control
-   * frames for activity tracking.
-   *
-   * PING and PONG frames update the connection's lastSeenAt timestamp to
-   * keep the connection alive.
-   *
    * @param from - The connection that sent the control frame
-   * @param frame - The control frame (PING, PONG, or CLOSE)
+   * @param frame - The control frame
    */
   control(from: Connection, frame: Frame): void {
     this.logger.info("Control Frame Received", from.id());
@@ -170,9 +124,6 @@ export class Server {
   /**
    * Handle a client disconnection.
    *
-   * Unsubscribes the connection from all channels and cleanly terminates
-   * the WebSocket connection.
-   *
    * @param connection - The connection to close
    */
   close(connection: Connection): void {
@@ -185,12 +136,6 @@ export class Server {
 
   /**
    * Handle an error.
-   *
-   * Processes errors that occur during message handling or connection lifecycle.
-   * PusherException instances are sent back to the client with their formatted
-   * payload. Other exceptions result in a generic "Invalid message format" error.
-   *
-   * All errors are logged for debugging and monitoring.
    *
    * @param connection - The connection that experienced the error
    * @param exception - The error that occurred
@@ -227,11 +172,8 @@ export class Server {
   /**
    * Ensure the server is within the connection limit.
    *
-   * Checks if the application has a maximum connection limit configured,
-   * and if so, verifies that the current connection count is below that limit.
-   *
    * @param connection - The connection to validate
-   * @throws ConnectionLimitExceeded if the connection limit has been reached
+   * @throws ConnectionLimitExceeded
    */
   protected ensureWithinConnectionLimit(connection: Connection): void {
     if (!connection.app().hasMaxConnectionLimit()) {
@@ -253,13 +195,8 @@ export class Server {
   /**
    * Verify the origin of the connection.
    *
-   * Checks if the connection's origin is in the application's allowed origins list.
-   * If '*' is in the allowed origins, all origins are permitted.
-   *
-   * Uses wildcard pattern matching to support patterns like '*.example.com'.
-   *
    * @param connection - The connection to verify
-   * @throws InvalidOrigin if the connection origin is not allowed
+   * @throws InvalidOrigin
    */
   protected verifyOrigin(connection: Connection): void {
     const allowedOrigins = connection.app().allowedOrigins();
@@ -298,13 +235,7 @@ export class Server {
   /**
    * Check if a value matches a wildcard pattern.
    *
-   * Supports simple wildcard patterns using '*' as a wildcard character.
-   * Examples:
-   * - '*.example.com' matches 'foo.example.com' and 'bar.example.com'
-   * - 'example.*' matches 'example.com' and 'example.org'
-   * - '*' matches anything
-   *
-   * @param pattern - The pattern to match against (may contain '*' wildcards)
+   * @param pattern - The pattern to match against
    * @param value - The value to test
    * @returns true if the value matches the pattern
    */
@@ -315,7 +246,7 @@ export class Server {
 
     // Convert wildcard pattern to regex
     const regexPattern = pattern
-      .replace(/[.+?^${}()|[\]\\]/g, "\\$&") // Escape regex special chars
+      .replace(/[.+?^${}()|[\\]/g, "\\$&") // Escape regex special chars
       .replace(/\*/g, ".*"); // Convert * to .*
 
     const regex = new RegExp(`^${regexPattern}$`, "i");

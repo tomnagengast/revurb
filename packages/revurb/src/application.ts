@@ -8,15 +8,15 @@ export class Application {
   /**
    * Create a new application instance.
    *
-   * @param id - The unique application identifier
-   * @param key - The application key for authentication
-   * @param secret - The application secret for authentication
-   * @param pingInterval - The client ping interval in seconds
-   * @param activityTimeout - The activity timeout in seconds
-   * @param allowedOrigins - Array of allowed CORS origins
-   * @param maxMessageSize - The maximum message size allowed from the client
-   * @param maxConnections - The maximum connections allowed (null for unlimited)
-   * @param options - Additional application-specific options
+   * @param _id - The application ID
+   * @param _key - The application key
+   * @param _secret - The application secret
+   * @param _pingInterval - The client ping interval in seconds
+   * @param _activityTimeout - The activity timeout in seconds
+   * @param _allowedOrigins - The allowed origins
+   * @param _maxMessageSize - The maximum message size allowed from the client
+   * @param _maxConnections - The maximum connections allowed for the application
+   * @param _options - The application options
    */
   constructor(
     private readonly _id: string,
@@ -33,7 +33,7 @@ export class Application {
   /**
    * Get the application ID.
    *
-   * @returns The application identifier
+   * @returns The application ID
    */
   id(): string {
     return this._id;
@@ -60,7 +60,7 @@ export class Application {
   /**
    * Get the allowed origins.
    *
-   * @returns Array of allowed CORS origins
+   * @returns The allowed origins
    */
   allowedOrigins(): string[] {
     return this._allowedOrigins;
@@ -87,7 +87,7 @@ export class Application {
   /**
    * Get the maximum connections allowed for the application.
    *
-   * @returns The maximum connections limit, or null for unlimited
+   * @returns The maximum connections
    */
   maxConnections(): number | null {
     return this._maxConnections;
@@ -96,7 +96,7 @@ export class Application {
   /**
    * Determine if the application has a maximum connection limit.
    *
-   * @returns True if a connection limit is set, false otherwise
+   * @returns True if the application has a maximum connection limit
    */
   hasMaxConnectionLimit(): boolean {
     return this._maxConnections !== null;
@@ -105,7 +105,7 @@ export class Application {
   /**
    * Get the maximum message size allowed from the client.
    *
-   * @returns The maximum message size in bytes
+   * @returns The maximum message size
    */
   maxMessageSize(): number {
     return this._maxMessageSize;
@@ -114,7 +114,7 @@ export class Application {
   /**
    * Get the application options.
    *
-   * @returns The application-specific options
+   * @returns The application options
    */
   options(): Record<string, unknown> {
     return this._options;

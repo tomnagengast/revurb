@@ -39,6 +39,9 @@ describe("WebSocket Simple Test", () => {
     };
 
     result = await createServer({ config });
+    if (!result.server.port) {
+      throw new Error("Server port is undefined");
+    }
     testPort = result.server.port;
 
     // Give server time to start
@@ -56,7 +59,12 @@ describe("WebSocket Simple Test", () => {
     let connectionOpened = false;
     let connectionClosed = false;
 
-    const result = await new Promise((resolve) => {
+    const res = await new Promise<{
+      connectionOpened: boolean;
+      messages: string[];
+      connectionClosed: boolean;
+      error?: Event;
+    }>((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${testPort}/app/${testAppKey}`);
 
       ws.onopen = () => {
@@ -66,7 +74,7 @@ describe("WebSocket Simple Test", () => {
 
       ws.onmessage = (event) => {
         console.log("Client: Received message:", event.data);
-        messages.push(event.data);
+        messages.push(String(event.data));
 
         // Once we receive a message, close and resolve
         setTimeout(() => {
@@ -98,12 +106,12 @@ describe("WebSocket Simple Test", () => {
       }, 3000);
     });
 
-    console.log("Test result:", result);
+    console.log("Test result:", res);
 
-    expect(result.connectionOpened).toBe(true);
+    expect(res.connectionOpened).toBe(true);
     expect(messages.length).toBeGreaterThan(0);
 
-    if (messages.length > 0) {
+    if (messages.length > 0 && messages[0]) {
       const firstMessage = JSON.parse(messages[0]);
       expect(firstMessage.event).toBe("pusher:connection_established");
     }

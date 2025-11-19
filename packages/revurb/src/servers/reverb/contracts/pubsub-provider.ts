@@ -61,7 +61,7 @@ export interface IPubSubProvider {
    * Sends a message/payload to the pub/sub system for distribution.
    *
    * @param payload - The data object to publish
-   * @returns Promise that resolves when the message is published
+   * @returns Promise that resolves to the number of subscribers that received the message
    */
-  publish(payload: Record<string, unknown>): Promise<void>;
+  publish(payload: Record<string, unknown>): Promise<number>;
 }

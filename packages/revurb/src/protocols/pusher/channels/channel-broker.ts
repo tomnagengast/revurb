@@ -12,8 +12,6 @@
  * 4. private-* → PrivateChannel
  * 5. presence-* → PresenceChannel
  * 6. * (default) → Channel
- *
- * @see Laravel\Reverb\Protocols\Pusher\Channels\ChannelBroker (PHP)
  */
 
 import type { ILogger } from "../../../contracts/logger.js";

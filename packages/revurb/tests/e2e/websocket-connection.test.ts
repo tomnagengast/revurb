@@ -43,6 +43,9 @@ describe("WebSocket Connection E2E Tests", () => {
     };
 
     result = await createServer({ config });
+    if (!result.server.port) {
+      throw new Error("Server port is undefined");
+    }
     testPort = result.server.port;
 
     // Give server a moment to start

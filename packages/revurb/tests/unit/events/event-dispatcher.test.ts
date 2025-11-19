@@ -31,9 +31,15 @@ describe("EventDispatcher", () => {
 
     it("should call multiple listeners for same event", () => {
       let count = 0;
-      EventDispatcher.on("test:multi", () => count++);
-      EventDispatcher.on("test:multi", () => count++);
-      EventDispatcher.on("test:multi", () => count++);
+      EventDispatcher.on("test:multi", () => {
+        count++;
+      });
+      EventDispatcher.on("test:multi", () => {
+        count++;
+      });
+      EventDispatcher.on("test:multi", () => {
+        count++;
+      });
 
       EventDispatcher.emit("test:multi", {});
       expect(count).toBe(3);
@@ -62,7 +68,9 @@ describe("EventDispatcher", () => {
   describe("once()", () => {
     it("should call listener only once", () => {
       let count = 0;
-      EventDispatcher.once("test:once", () => count++);
+      EventDispatcher.once("test:once", () => {
+        count++;
+      });
 
       EventDispatcher.emit("test:once", {});
       EventDispatcher.emit("test:once", {});
@@ -102,8 +110,12 @@ describe("EventDispatcher", () => {
       let count1 = 0;
       let count2 = 0;
 
-      const listener1 = () => count1++;
-      const listener2 = () => count2++;
+      const listener1 = () => {
+        count1++;
+      };
+      const listener2 = () => {
+        count2++;
+      };
 
       EventDispatcher.on("test:off", listener1);
       EventDispatcher.on("test:off", listener2);
@@ -215,9 +227,15 @@ describe("EventDispatcher", () => {
       let count1 = 0;
       let count2 = 0;
 
-      EventDispatcher.on("test:remove1", () => count1++);
-      EventDispatcher.on("test:remove1", () => count1++);
-      EventDispatcher.on("test:remove2", () => count2++);
+      EventDispatcher.on("test:remove1", () => {
+        count1++;
+      });
+      EventDispatcher.on("test:remove1", () => {
+        count1++;
+      });
+      EventDispatcher.on("test:remove2", () => {
+        count2++;
+      });
 
       EventDispatcher.removeAllListeners("test:remove1");
 
@@ -232,8 +250,12 @@ describe("EventDispatcher", () => {
       let count1 = 0;
       let count2 = 0;
 
-      EventDispatcher.on("test:removeall1", () => count1++);
-      EventDispatcher.on("test:removeall2", () => count2++);
+      EventDispatcher.on("test:removeall1", () => {
+        count1++;
+      });
+      EventDispatcher.on("test:removeall2", () => {
+        count2++;
+      });
 
       EventDispatcher.removeAllListeners();
 

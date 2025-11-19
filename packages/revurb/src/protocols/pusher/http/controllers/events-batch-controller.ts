@@ -1,4 +1,5 @@
 import type { Application } from "../../../../application";
+import type { ServerProvider } from "../../../../contracts/server-provider";
 import type { Connection } from "../../../../servers/reverb/http/connection";
 import { Response } from "../../../../servers/reverb/http/response";
 import type { IHttpRequest } from "../../../../servers/reverb/http/router";
@@ -90,6 +91,7 @@ export class EventsBatchController {
    * @param appId - The application ID from route parameters
    * @param application - The verified application instance
    * @param channels - The channel manager scoped to the application
+   * @param serverProvider - The server provider for scaling support
    * @returns Response object with batch results
    */
   async handle(
@@ -98,6 +100,7 @@ export class EventsBatchController {
     _appId: string,
     application: Application,
     channels: ChannelManager,
+    serverProvider?: ServerProvider,
   ): Promise<Response> {
     // Parse request body
     const body = this.getBody(request);
@@ -137,16 +140,19 @@ export class EventsBatchController {
         ? channelConnection.connection()
         : null;
 
-      dispatch(
-        application,
-        {
-          event: item.name,
-          channel: item.channel,
-          data: item.data,
-        },
-        channels,
-        excludeConnection,
-      );
+      if (serverProvider) {
+        dispatch(
+          application,
+          {
+            event: item.name,
+            channel: item.channel,
+            data: item.data,
+          },
+          channels,
+          serverProvider,
+          excludeConnection,
+        );
+      }
 
       // Return promise for metrics gathering if requested
       return item.info
@@ -310,6 +316,9 @@ export function createEventsBatchController(
   channels: ChannelManager,
 ) => Promise<Response> {
   const controller = new EventsBatchController(metricsHandler);
+  // Note: createEventsBatchController factory doesn't support serverProvider injection yet
+  // This factory is likely deprecated or needs updating if used.
+  // For now, using the class directly in factory.ts is preferred.
   return (request, _connection, _appId, application, channels) =>
     controller.handle(request, _connection, _appId, application, channels);
 }

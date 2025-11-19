@@ -140,6 +140,7 @@ export class RedisClientFactory {
         ...(username && { username }),
         ...(password && { password }),
         ...(timeout && { connectTimeout: timeout }),
+        lazyConnect: true, // Don't connect immediately constructor
       };
 
       // Enable TLS for rediss:// protocol
@@ -162,22 +163,26 @@ export class RedisClientFactory {
    * Create a Redis client with the given configuration
    *
    * This method creates the actual Redis client connection using ioredis.
-   * It can be overridden in a subclass to customize the client creation
-   * or use a different Redis client library.
+   * It initiates the connection but does not wait for it to complete,
+   * allowing the caller to attach event listeners immediately.
    *
    * @param options - ioredis connection options
-   * @returns Promise that resolves to a connected Redis client
+   * @returns Promise that resolves to a Redis client instance
    *
    * @protected
    */
   protected async createClient(options: RedisOptions): Promise<RedisClient> {
+    // Create client with lazyConnect: true (set in make) or default
     const client = new IORedis(options);
 
-    // Wait for the client to be ready
-    await new Promise<void>((resolve, reject) => {
-      client.once("ready", () => resolve());
-      client.once("error", (err) => reject(err));
-    });
+    // Trigger connection if lazyConnect was true
+    // We don't await this so we can return the client immediately
+    // and let the caller handle events/errors via the returned client
+    if (options.lazyConnect) {
+      client.connect().catch(() => {
+        // Suppress unhandled rejection here, errors will be emitted on the client
+      });
+    }
 
     return client as unknown as RedisClient;
   }

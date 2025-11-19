@@ -10,6 +10,7 @@
       "!!**/dist",
       "!!**/.claude",
       "!!**/_tmp",
+      "!!**/_source",
       "!!apps/demo/public"
     ]
   },

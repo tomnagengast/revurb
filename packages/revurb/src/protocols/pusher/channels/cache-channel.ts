@@ -48,8 +48,6 @@ import { Channel } from "./channel";
  *   data: JSON.stringify({ user: 'alice' })
  * }, connection);
  * ```
- *
- * @see Laravel\Reverb\Protocols\Pusher\Channels\CacheChannel (PHP)
  */
 export class CacheChannel extends Channel {
   /**

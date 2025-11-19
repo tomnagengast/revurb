@@ -1,5 +1,6 @@
 import type { Application } from "../../application";
 import type { Connection } from "../../contracts/connection";
+import type { ServerProvider } from "../../contracts/server-provider";
 
 /**
  * Channel interface representing a Pusher channel
@@ -233,13 +234,14 @@ export function dispatchSynchronously(
  * single-channel and multi-channel broadcasts, with optional connection
  * exclusion for echo prevention.
  *
- * The function delegates to dispatchSynchronously for immediate delivery
- * to all channel subscribers. In a distributed setup, this could be
- * extended to publish to a pub/sub system instead.
+ * The function checks the server provider to determine whether to
+ * dispatch synchronously (local) or publish to the PubSub provider
+ * (distributed).
  *
  * @param app - The application context
  * @param payload - The event payload containing channel(s) and message data
  * @param channelManager - The channel manager for finding channels
+ * @param serverProvider - The server provider to check for scaling configuration
  * @param connection - Optional connection to exclude from broadcast (for echo prevention)
  *
  * @example
@@ -248,7 +250,8 @@ export function dispatchSynchronously(
  * dispatch(
  *   app,
  *   { channel: 'my-channel', event: 'update', data: { value: 42 } },
- *   channelManager
+ *   channelManager,
+ *   serverProvider
  * );
  *
  * // With echo prevention
@@ -256,6 +259,7 @@ export function dispatchSynchronously(
  *   app,
  *   { channel: 'chat', event: 'message', data: { text: 'hello' } },
  *   channelManager,
+ *   serverProvider,
  *   senderConnection // This connection will not receive the message
  * );
  * ```
@@ -264,10 +268,23 @@ export function dispatch(
   app: Application,
   payload: EventPayload,
   channelManager: ChannelManager,
+  serverProvider: ServerProvider,
   connection?: Connection | null,
 ): void {
-  // For now, we always dispatch synchronously
-  // In a distributed setup, this could check if pub/sub is enabled
-  // and publish to a message broker instead
+  if (serverProvider.subscribesToEvents()) {
+    const payloadForPublish: Record<string, unknown> = {
+      type: "message",
+      application: JSON.stringify(app.toArray()),
+      payload,
+    };
+
+    if (connection) {
+      payloadForPublish.socket_id = connection.id();
+    }
+
+    serverProvider.publish(payloadForPublish);
+    return;
+  }
+
   dispatchSynchronously(app, payload, channelManager, connection);
 }

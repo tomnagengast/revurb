@@ -8,9 +8,7 @@ import type { WebSocket } from "bun";
  * and provides a consistent API for connection management, message sending,
  * and lifecycle control.
  *
- * In the PHP implementation, this is implemented by `Servers/Reverb/Connection`
- * which wraps the Ratchet WebSocket server. In the TypeScript implementation,
- * this will wrap Bun's native WebSocket server.
+ * This implementation wraps Bun's native WebSocket server.
  *
  * @see {@link https://bun.sh/docs/api/websockets Bun WebSocket API}
  */
@@ -82,9 +80,7 @@ export interface IWebSocketConnection {
    * Get the raw socket connection identifier.
    *
    * This identifier is used internally to track and manage connections.
-   * In the PHP implementation (Ratchet), this returns an integer based on the
-   * socket stream resource. In Bun, this could be based on the WebSocket object's
-   * unique identifier or a generated ID.
+   * This could be based on the WebSocket object's unique identifier or a generated ID.
    *
    * @returns The unique connection identifier (number for efficiency, string for flexibility)
    *

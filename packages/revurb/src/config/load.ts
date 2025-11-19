@@ -244,8 +244,7 @@ function loadAppsConfig(): AppsConfig {
  * Load the complete Reverb configuration from environment variables or config file
  *
  * This function reads all necessary environment variables and constructs
- * a complete ReverbConfig object with sensible defaults matching the PHP
- * Laravel configuration.
+ * a complete ReverbConfig object with sensible defaults matching the Reverb defaults.
  *
  * If a configPath is provided, it will attempt to load and merge that configuration
  * with environment variables (env vars take precedence).

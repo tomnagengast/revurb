@@ -12,7 +12,7 @@ function createMockConnection(id = "123.456"): Connection {
   return {
     id: () => id,
     send: mock(() => {}),
-    app: mock(() => ({ id: "test-app" }) as Application),
+    app: mock(() => ({ id: () => "test-app" }) as unknown as Application),
     hasApp: mock(() => true),
     touch: mock(() => {}),
     disconnect: mock(() => {}),
