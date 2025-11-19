@@ -42,7 +42,7 @@ describe("echo helper", () => {
 
     // Note: echoIsConfigured may return true if configured in previous test
     // This is a limitation of the current test setup
-    const wasConfigured = echoIsConfigured();
+    const _wasConfigured = echoIsConfigured();
 
     configureEcho({
       broadcaster: "null",

@@ -12,8 +12,8 @@ global.window = window;
 // @ts-expect-error - setting up global DOM for tests
 global.document = document;
 
-// Mock Echo for testing
-const createMockEcho = () => {
+// Mock Echo for testing (for future use)
+const _createMockEcho = () => {
   const mockPrivateChannel = {
     leaveChannel: () => {},
     listen: () => {},
