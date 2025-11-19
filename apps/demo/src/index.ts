@@ -4,10 +4,85 @@ import { build, serve } from "bun";
 import tailwind from "bun-plugin-tailwind";
 import { createServer } from "revurb";
 import config from "../reverb.config";
+import { getAvailablePort } from "./utils";
+
+// ============================================================================
+// Logging Setup
+// ============================================================================
+const LOGS_DIR = path.resolve(import.meta.dir, "../logs");
+await fs.mkdir(LOGS_DIR, { recursive: true });
+
+const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+const logFilePath = path.join(LOGS_DIR, `server-${timestamp}.log`);
+const logFile = Bun.file(logFilePath);
+const writer = logFile.writer();
+
+// Helper to write to both console and file
+function log(...args: unknown[]) {
+  const msg = args
+    .map((arg) =>
+      typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg),
+    )
+    .join(" ");
+  const line = `[${new Date().toISOString()}] INFO: ${msg}\n`;
+  writer.write(line);
+  writer.flush();
+  console.log(...args);
+}
+
+function error(...args: unknown[]) {
+  const msg = args
+    .map((arg) =>
+      typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg),
+    )
+    .join(" ");
+  const line = `[${new Date().toISOString()}] ERROR: ${msg}\n`;
+  writer.write(line);
+  writer.flush();
+  console.error(...args);
+}
+
+// Override global console methods for convenience (optional, but ensures library logs are captured)
+const originalConsoleLog = console.log;
+const originalConsoleError = console.error;
+
+console.log = (...args) => {
+  const msg = args
+    .map((arg) =>
+      typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg),
+    )
+    .join(" ");
+  // Don't double timestamp if the library already does it, but here we just wrap everything
+  // Since Reverb logs are raw strings mostly, this is fine.
+  writer.write(`${msg}\n`);
+  writer.flush();
+  originalConsoleLog(...args);
+};
+
+console.error = (...args) => {
+  const msg = args
+    .map((arg) =>
+      typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg),
+    )
+    .join(" ");
+  writer.write(`[ERROR] ${msg}\n`);
+  writer.flush();
+  originalConsoleError(...args);
+};
+
+log(`Logging to ${logFilePath}`);
 
 // ============================================================================
 // Start Revurb WebSocket Server
 // ============================================================================
+// Detect available port for Reverb (default 8080)
+const configuredReverbPort = Number(config.servers?.reverb?.port ?? 8080);
+const availableReverbPort = await getAvailablePort(configuredReverbPort);
+
+if (config.servers?.reverb) {
+  config.servers.reverb.port = availableReverbPort;
+}
+
 // This demonstrates the createServer API - the main way to embed Revurb
 const { server: wsServer, shutdown } = await createServer({
   config,
@@ -16,7 +91,7 @@ const { server: wsServer, shutdown } = await createServer({
   enableSignals: false,
 });
 
-console.log(
+log(
   `🔌 Revurb WebSocket server running on ws://${wsServer.hostname}:${wsServer.port}`,
 );
 
@@ -29,7 +104,7 @@ const PUBLIC_DIR = path.resolve(PROJECT_ROOT, "../public");
 // Ensure public directory exists
 await fs.mkdir(PUBLIC_DIR, { recursive: true });
 
-console.log("📦 Building frontend assets...");
+log("📦 Building frontend assets...");
 const buildResult = await build({
   entrypoints: [path.join(PROJECT_ROOT, "frontend.tsx")],
   outdir: PUBLIC_DIR,
@@ -39,12 +114,12 @@ const buildResult = await build({
 });
 
 if (!buildResult.success) {
-  console.error("❌ Build failed:");
+  error("❌ Build failed:");
   for (const msg of buildResult.logs) {
-    console.error(msg);
+    error(msg);
   }
 } else {
-  console.log("✅ Frontend built successfully.");
+  log("✅ Frontend built successfully.");
 }
 
 // Copy static assets
@@ -60,18 +135,32 @@ for (const asset of assets) {
 // ============================================================================
 // Start Frontend Server
 // ============================================================================
+// Detect available port for Frontend (default 3000)
+const availableFrontendPort = await getAvailablePort(3000);
+
 const frontendServer = serve({
+  port: availableFrontendPort,
   routes: {
     // Required for private/presence channels - authenticates subscriptions
     "/broadcasting/auth": {
       async POST(req) {
-        const body = (await req.json()) as {
-          socket_id?: string;
-          channel_name?: string;
-        };
+        let socketId: string | undefined;
+        let channelName: string | undefined;
 
-        const socketId = body.socket_id;
-        const channelName = body.channel_name;
+        const contentType = req.headers.get("content-type") || "";
+
+        if (contentType.includes("application/json")) {
+          const body = (await req.json()) as {
+            socket_id?: string;
+            channel_name?: string;
+          };
+          socketId = body.socket_id;
+          channelName = body.channel_name;
+        } else {
+          const formData = await req.formData();
+          socketId = formData.get("socket_id")?.toString();
+          channelName = formData.get("channel_name")?.toString();
+        }
 
         if (!socketId || !channelName) {
           return Response.json(
@@ -126,10 +215,17 @@ const frontendServer = serve({
         // Point to built JS
         html = html.replace('src="./frontend.tsx"', 'src="/frontend.js"');
 
+        // Inject CSS link
+        html = html.replace(
+          "</head>",
+          '<link rel="stylesheet" href="/frontend.css">\n    </head>',
+        );
+
         // Inject Config
         const reverbHost = Bun.env.BUN_PUBLIC_REVERB_HOST ?? "localhost";
-        const reverbPort =
-          Bun.env.BUN_PUBLIC_REVERB_PORT ?? String(wsServer.port);
+        // Use the actual running port (wsServer.port) rather than the env var,
+        // because the env var might be stale (e.g. 8080) while we dynamically picked a new one (e.g. 8081).
+        const reverbPort = String(wsServer.port);
         const reverbScheme = Bun.env.BUN_PUBLIC_REVERB_SCHEME ?? "http";
         const reverbAppKey = config.apps?.apps?.[0]?.key ?? "my-app-key";
 
@@ -172,13 +268,14 @@ const frontendServer = serve({
   },
 });
 
-console.log(`🚀 Frontend server running at ${frontendServer.url}`);
+log(`🚀 Frontend server running at ${frontendServer.url}`);
 
 // Handle shutdown signals
 const handleShutdown = async (signal: string) => {
-  console.log(`\n${signal} received, shutting down gracefully...`);
+  log(`\n${signal} received, shutting down gracefully...`);
   frontendServer.stop(true);
   await shutdown();
+  writer.end();
   process.exit(0);
 };
 

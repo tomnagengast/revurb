@@ -33,12 +33,7 @@
     },
     "./src/*": "./src/*"
   },
-  "files": [
-    "dist",
-    "src",
-    "README.md",
-    "LICENSE.md"
-  ],
+  "files": ["dist", "src", "README.md", "LICENSE.md"],
   "scripts": {
     "build": "bun build src/index.ts --outdir=dist --target=browser --format=esm && bun build src/react/index.ts --outdir=dist/react --target=browser --format=esm --external react --external react-dom && tsc --project tsconfig.build.json",
     "test": "bun test",
@@ -59,9 +54,9 @@
   },
   "devDependencies": {
     "@types/bun": "^1.3.2",
-    "@types/react": "^19.0.0",
+    "@types/react": "^18.3.3",
     "bun-types": "^1.3.2",
-    "react": "^19.0.0",
+    "react": "^18.3.1",
     "typescript": "^5.9.3"
   },
   "engines": {

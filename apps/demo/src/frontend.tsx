@@ -5,6 +5,7 @@
  * It is included in `src/index.html`.
  */
 
+import "./index.css";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
 

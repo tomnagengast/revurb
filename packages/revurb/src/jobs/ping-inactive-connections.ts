@@ -70,10 +70,17 @@ export class PingInactiveConnections {
         }
 
         // Send ping to inactive connection
-        pusher.ping(connection);
-
-        // Log the ping
-        this.logger.info("Connection Pinged", connection.id());
+        try {
+          pusher.ping(connection);
+          // Log the ping
+          this.logger.info("Connection Pinged", connection.id());
+        } catch (_error) {
+          // If the connection is closed or errored, we should probably just log it and ignore
+          // The stale connection cleaner will likely pick it up later
+          this.logger.error(
+            `Failed to ping connection ${connection.identifier()}`,
+          );
+        }
       }
     }
   }

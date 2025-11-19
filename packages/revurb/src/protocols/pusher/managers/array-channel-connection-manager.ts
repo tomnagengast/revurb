@@ -94,8 +94,9 @@ export class ArrayChannelConnectionManager implements ChannelConnectionManager {
    * ```
    */
   for(name: string): ChannelConnectionManager {
-    this.name = name;
-    return this;
+    const manager = new ArrayChannelConnectionManager();
+    manager.name = name;
+    return manager;
   }
 
   /**

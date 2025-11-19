@@ -296,12 +296,21 @@ export class Channel {
     payload: Record<string, unknown>,
     except: Connection | null = null,
   ): void {
+    // Pusher protocol requires 'data' to be a JSON-encoded string
+    const messagePayload = { ...payload };
+    if (
+      messagePayload.data !== undefined &&
+      typeof messagePayload.data !== "string"
+    ) {
+      messagePayload.data = JSON.stringify(messagePayload.data);
+    }
+
     if (except === null) {
-      this.broadcastToAll(payload);
+      this.broadcastToAll(messagePayload);
       return;
     }
 
-    const message = JSON.stringify(payload);
+    const message = JSON.stringify(messagePayload);
 
     this.logger.info("Broadcasting To", this.name());
     this.logger.message(message);
@@ -336,7 +345,18 @@ export class Channel {
    * ```
    */
   broadcastToAll(payload: Record<string, unknown>): void {
-    const message = JSON.stringify(payload);
+    // Pusher protocol requires 'data' to be a JSON-encoded string
+    // Note: If called from broadcast(), payload is already formatted
+    // But if called directly, we need to ensure safety
+    const messagePayload = { ...payload };
+    if (
+      messagePayload.data !== undefined &&
+      typeof messagePayload.data !== "string"
+    ) {
+      messagePayload.data = JSON.stringify(messagePayload.data);
+    }
+
+    const message = JSON.stringify(messagePayload);
 
     this.logger.info("Broadcasting To", this.name());
     this.logger.message(message);

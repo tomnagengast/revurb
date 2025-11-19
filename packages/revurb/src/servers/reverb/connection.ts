@@ -102,11 +102,18 @@ export class Connection implements IWebSocketConnection {
       } else {
         throw new Error("Invalid message type");
       }
-    } catch (error) {
-      console.error(
-        `Error sending message on connection ${this.connectionId}:`,
-        error,
-      );
+    } catch (error: unknown) {
+      // Only log if it's NOT the "Cannot send on closed connection" error we just threw
+      // This prevents log noise for expected race conditions
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      if (!errorMessage.includes("Cannot send on closed connection")) {
+        console.error(
+          `Error sending message on connection ${this.connectionId}:`,
+          error,
+        );
+      }
       throw error;
     }
   }

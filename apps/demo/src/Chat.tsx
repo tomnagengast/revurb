@@ -22,7 +22,7 @@ type Message = {
 
 type ConnectionStatus = "idle" | "connecting" | "connected" | "disconnected";
 
-const CLIENT_EVENT = "client-message";
+const CLIENT_EVENT = ".client-message";
 const CHANNELS = [
   "chat",
   "general",
@@ -166,7 +166,17 @@ export function Chat() {
       setMessages((prev) => [...prev, payload]);
       const instance = echo<"reverb">();
       const pusher = instance.connector.pusher as Pusher;
-      pusher.send_event(CLIENT_EVENT, payload, `private-${currentChannel}`);
+      // Remove leading dot for triggering event, as Pusher expects raw event name
+      // Echo .listen() adds namespace, so we add . to listen, but trigger raw name
+      // Actually, trigger needs to match what Echo listens for?
+      // If Echo listens for "App.Events.client-message" (default namespace + client-message)
+      // Then we must send "client-message".
+      // BUT if we used ".client-message" in useEcho, Echo listens for "client-message" (no namespace).
+      // So we must send "client-message".
+      const eventName = CLIENT_EVENT.startsWith(".")
+        ? CLIENT_EVENT.substring(1)
+        : CLIENT_EVENT;
+      pusher.send_event(eventName, payload, `private-${currentChannel}`);
     },
     [currentChannel],
   );
