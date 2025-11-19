@@ -30,9 +30,6 @@ jobs:
       - name: Build revurb
         run: bun run build
 
-      - name: Install example dependencies
-        run: cd apps/demo && bun install
-
       - name: Start example app in background
         run: |
           cd apps/demo

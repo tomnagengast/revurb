@@ -28,24 +28,24 @@ jobs:
 
       - name: Start spec test server
         run: |
-          bun tests/spec/spec-server.ts &
+          bun packages/revurb/tests/spec/spec-server.ts &
           sleep 2
 
       - name: Run Autobahn spec tests
         run: |
           docker run --rm \
             --network host \
-            -v "${PWD}/tests/spec:/config" \
-            -v "${PWD}/tests/spec/reports:/mnt/autobahn/reports" \
+            -v "${PWD}/packages/revurb/tests/spec:/config" \
+            -v "${PWD}/packages/revurb/tests/spec/reports:/mnt/autobahn/reports" \
             crossbario/autobahn-testsuite \
             wstest -m fuzzingclient -s /config/client-spec.json
 
       - name: Analyze test results
-        run: bun tests/spec/spec-analyze.ts
+        run: bun packages/revurb/tests/spec/spec-analyze.ts
 
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: autobahn-reports
-          path: tests/spec/reports/
+          path: packages/revurb/tests/spec/reports/

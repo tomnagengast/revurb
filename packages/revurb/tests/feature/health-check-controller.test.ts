@@ -4,7 +4,7 @@ import { Factory } from "revurb/src/servers/reverb/factory";
 
 describe("Health Check Controller", () => {
   let server: Server;
-  const port = 8082; // Use different port to avoid conflicts
+  let port: number;
 
   beforeAll(() => {
     // Set up test environment
@@ -25,8 +25,9 @@ describe("Health Check Controller", () => {
       ],
     });
 
-    // Create server
-    server = Factory.make("0.0.0.0", port, "");
+    // Create server with port 0 (let Bun pick a random available port)
+    server = Factory.make("0.0.0.0", "0", "");
+    port = server.port;
   });
 
   afterAll(() => {
