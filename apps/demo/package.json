@@ -9,11 +9,12 @@
     "typecheck": "bunx tsc --noEmit"
   },
   "dependencies": {
-    "revurb": "workspace:*",
     "@revurb/echo": "workspace:*",
     "bun-plugin-tailwind": "^0.1.2",
+    "pusher-js": "^8.4.0",
     "react": "^19",
     "react-dom": "^19",
+    "revurb": "workspace:*",
     "tailwindcss": "^4.1.11"
   },
   "devDependencies": {
