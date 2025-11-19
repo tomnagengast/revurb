@@ -28,7 +28,6 @@ type CustomOmit<T, K extends PropertyKey> = {
   [P in keyof T as Exclude<P, K>]: T[P];
 };
 
-// biome-ignore lint/complexity/noBannedTypes: Laravel Echo compatibility - matches upstream
 // biome-ignore lint/suspicious/noExplicitAny: Laravel Echo compatibility - matches upstream
 type Constructor<T = Record<string, never>> = new (...args: any[]) => T;
 
