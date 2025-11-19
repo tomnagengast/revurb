@@ -4,73 +4,8 @@ import { build, serve } from "bun";
 import tailwind from "bun-plugin-tailwind";
 import { createServer } from "revurb";
 import config from "../reverb.config";
+import { closeLogger, error, log } from "./logger";
 import { getAvailablePort } from "./utils";
-
-// ============================================================================
-// Logging Setup
-// ============================================================================
-const LOGS_DIR = path.resolve(import.meta.dir, "../logs");
-await fs.mkdir(LOGS_DIR, { recursive: true });
-
-const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-const logFilePath = path.join(LOGS_DIR, `server-${timestamp}.log`);
-const logFile = Bun.file(logFilePath);
-const writer = logFile.writer();
-
-// Helper to write to both console and file
-function log(...args: unknown[]) {
-  const msg = args
-    .map((arg) =>
-      typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg),
-    )
-    .join(" ");
-  const line = `[${new Date().toISOString()}] INFO: ${msg}\n`;
-  writer.write(line);
-  writer.flush();
-  console.log(...args);
-}
-
-function error(...args: unknown[]) {
-  const msg = args
-    .map((arg) =>
-      typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg),
-    )
-    .join(" ");
-  const line = `[${new Date().toISOString()}] ERROR: ${msg}\n`;
-  writer.write(line);
-  writer.flush();
-  console.error(...args);
-}
-
-// Override global console methods for convenience (optional, but ensures library logs are captured)
-const originalConsoleLog = console.log;
-const originalConsoleError = console.error;
-
-console.log = (...args) => {
-  const msg = args
-    .map((arg) =>
-      typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg),
-    )
-    .join(" ");
-  // Don't double timestamp if the library already does it, but here we just wrap everything
-  // Since Reverb logs are raw strings mostly, this is fine.
-  writer.write(`${msg}\n`);
-  writer.flush();
-  originalConsoleLog(...args);
-};
-
-console.error = (...args) => {
-  const msg = args
-    .map((arg) =>
-      typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg),
-    )
-    .join(" ");
-  writer.write(`[ERROR] ${msg}\n`);
-  writer.flush();
-  originalConsoleError(...args);
-};
-
-log(`Logging to ${logFilePath}`);
 
 // ============================================================================
 // Start Revurb WebSocket Server
@@ -223,8 +158,6 @@ const frontendServer = serve({
 
         // Inject Config
         const reverbHost = Bun.env.BUN_PUBLIC_REVERB_HOST ?? "localhost";
-        // Use the actual running port (wsServer.port) rather than the env var,
-        // because the env var might be stale (e.g. 8080) while we dynamically picked a new one (e.g. 8081).
         const reverbPort = String(wsServer.port);
         const reverbScheme = Bun.env.BUN_PUBLIC_REVERB_SCHEME ?? "http";
         const reverbAppKey = config.apps?.apps?.[0]?.key ?? "my-app-key";
@@ -275,7 +208,7 @@ const handleShutdown = async (signal: string) => {
   log(`\n${signal} received, shutting down gracefully...`);
   frontendServer.stop(true);
   await shutdown();
-  writer.end();
+  closeLogger();
   process.exit(0);
 };
 
