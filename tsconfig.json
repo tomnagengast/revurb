@@ -1,4 +1,8 @@
 {
   "files": [],
-  "references": [{ "path": "./packages/revurb" }, { "path": "./apps/demo" }]
+  "references": [
+    { "path": "./packages/revurb" },
+    { "path": "./packages/echo" },
+    { "path": "./apps/demo" }
+  ]
 }
