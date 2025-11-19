@@ -21,12 +21,18 @@ export class PusherConnector extends Connector {
     if (typeof this.options.client !== "undefined") {
       this.pusher = this.options.client as Pusher;
     } else if (this.options.Pusher) {
+      if (!this.options.key) {
+        throw new Error("Pusher key is required");
+      }
       this.pusher = new this.options.Pusher(this.options.key, this.options);
     } else if (
       typeof window !== "undefined" &&
       typeof (window as unknown as Record<string, unknown>).Pusher !==
         "undefined"
     ) {
+      if (!this.options.key) {
+        throw new Error("Pusher key is required");
+      }
       const globalWindow = window as unknown as Record<string, unknown>;
       const PusherConstructor = globalWindow.Pusher as new (
         key: string,

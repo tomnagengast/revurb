@@ -1,7 +1,7 @@
-import type { EchoOptionsWithDefaults } from "../types";
+import type { BroadcastDriver, EchoOptionsWithDefaults } from "../types";
 
 export abstract class Channel {
-  options!: EchoOptionsWithDefaults;
+  options!: EchoOptionsWithDefaults<BroadcastDriver>;
 
   notificationCreatedEvent =
     ".Illuminate\\Notifications\\Events\\BroadcastNotificationCreated";

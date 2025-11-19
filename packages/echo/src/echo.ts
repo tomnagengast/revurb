@@ -25,7 +25,7 @@ export class Echo<TBroadcaster extends BroadcastDriver = "reverb"> {
       } as EchoOptions<"reverb">);
     } else if (this.options.broadcaster === "pusher") {
       this.connector = new PusherConnector(
-        this.options as EchoOptions<"reverb">,
+        this.options as unknown as EchoOptions<"reverb">,
       );
     } else if (this.options.broadcaster === "null") {
       this.connector = new NullConnector(this.options as EchoOptions<"null">);

@@ -24,7 +24,7 @@ export abstract class Connector<
     namespace: "App.Events",
   } as const;
 
-  options!: EchoOptionsWithDefaults;
+  options!: EchoOptionsWithDefaults<TBroadcaster>;
 
   constructor(options: EchoOptions<TBroadcaster>) {
     this.setOptions(options);
@@ -35,8 +35,9 @@ export abstract class Connector<
     this.options = {
       ...Connector._defaultOptions,
       ...options,
+      broadcaster: options.broadcaster as TBroadcaster,
       key: options.key ?? "",
-    };
+    } as EchoOptionsWithDefaults<TBroadcaster>;
 
     let token = this.csrfToken();
 

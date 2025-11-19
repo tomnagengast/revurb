@@ -1,6 +1,6 @@
 import type Pusher from "pusher-js";
 import type { Channel as BasePusherChannel } from "pusher-js";
-import type { EchoOptionsWithDefaults } from "../types";
+import type { BroadcastDriver, EchoOptionsWithDefaults } from "../types";
 import { EventFormatter } from "../util/event-formatter";
 import { Channel } from "./channel";
 
@@ -10,7 +10,11 @@ export class PusherChannel extends Channel {
   eventFormatter: EventFormatter;
   subscription!: BasePusherChannel;
 
-  constructor(pusher: Pusher, name: string, options: EchoOptionsWithDefaults) {
+  constructor(
+    pusher: Pusher,
+    name: string,
+    options: EchoOptionsWithDefaults<BroadcastDriver>,
+  ) {
     super();
     this.name = name;
     this.pusher = pusher;
