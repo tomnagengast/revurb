@@ -32,7 +32,8 @@
         "noImplicitAnyLet": "error"
       },
       "style": {
-        "useConst": "error"
+        "useConst": "error",
+        "noNonNullAssertion": "off"
       }
     }
   },

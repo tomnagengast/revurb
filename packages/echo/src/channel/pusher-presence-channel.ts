@@ -1,11 +1,5 @@
+import type { PresenceChannel } from "./presence-channel";
 import { PusherPrivateChannel } from "./pusher-private-channel";
-
-export interface PresenceChannel {
-  here(callback: (...args: unknown[]) => unknown): this;
-  joining(callback: (...args: unknown[]) => unknown): this;
-  whisper(eventName: string, data: Record<string, unknown>): this;
-  leaving(callback: (...args: unknown[]) => unknown): this;
-}
 
 export class PusherPresenceChannel
   extends PusherPrivateChannel
@@ -13,15 +7,19 @@ export class PusherPresenceChannel
 {
   here(callback: (...args: unknown[]) => unknown): this {
     this.on("pusher:subscription_succeeded", (...args: unknown[]) => {
-      const data = args[0] as { members: Record<string, unknown> };
-      callback(Object.keys(data.members).map((k) => data.members[k]));
+      const data = args[0] as Record<string, unknown>;
+      callback(
+        Object.keys(data.members as Record<string, unknown>).map(
+          (k) => (data.members as Record<string, unknown>)[k],
+        ),
+      );
     });
     return this;
   }
 
   joining(callback: (...args: unknown[]) => unknown): this {
     this.on("pusher:member_added", (...args: unknown[]) => {
-      const member = args[0] as { info: unknown };
+      const member = args[0] as Record<string, unknown>;
       callback(member.info);
     });
     return this;
@@ -37,7 +35,7 @@ export class PusherPresenceChannel
 
   leaving(callback: (...args: unknown[]) => unknown): this {
     this.on("pusher:member_removed", (...args: unknown[]) => {
-      const member = args[0] as { info: unknown };
+      const member = args[0] as Record<string, unknown>;
       callback(member.info);
     });
     return this;

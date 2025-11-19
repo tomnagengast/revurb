@@ -15,7 +15,7 @@ export abstract class Channel {
     event: string,
     callback: (...args: unknown[]) => unknown,
   ): this {
-    return this.listen(`.client-${event}`, callback);
+    return this.listen(".client-" + event, callback);
   }
 
   notification(callback: (...args: unknown[]) => unknown): this {
@@ -37,7 +37,7 @@ export abstract class Channel {
     event: string,
     callback?: (...args: unknown[]) => unknown,
   ): this {
-    return this.stopListening(`.client-${event}`, callback);
+    return this.stopListening(".client-" + event, callback);
   }
 
   abstract subscribed(callback: (...args: unknown[]) => unknown): this;

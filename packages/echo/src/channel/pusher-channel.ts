@@ -47,7 +47,7 @@ export class PusherChannel extends Channel {
       );
       const formattedEvent = event.startsWith(namespace)
         ? event.substring(namespace.length + 1)
-        : `.${event}`;
+        : "." + event;
       callback(formattedEvent, data);
     });
     return this;
@@ -83,7 +83,8 @@ export class PusherChannel extends Channel {
 
   error(callback: (...args: unknown[]) => unknown): this {
     this.on("pusher:subscription_error", (...args: unknown[]) => {
-      callback(...args);
+      const status = args[0] as Record<string, unknown>;
+      callback(status);
     });
     return this;
   }

@@ -1,6 +1,9 @@
-import { NullChannel } from "../channel/null-channel";
-import { NullPresenceChannel } from "../channel/null-presence-channel";
-import { NullPrivateChannel } from "../channel/null-private-channel";
+import {
+  NullChannel,
+  NullEncryptedPrivateChannel,
+  NullPresenceChannel,
+  NullPrivateChannel,
+} from "../channel";
 import { Connector } from "./connector";
 
 export class NullConnector extends Connector<"null"> {
@@ -50,11 +53,14 @@ export class NullConnector extends Connector<"null"> {
     //
   }
 
-  override encryptedPrivateChannel(name: string): NullPrivateChannel {
+  override encryptedPrivateChannel(name: string): NullEncryptedPrivateChannel {
     if (!this.channels[`private-encrypted-${name}`]) {
-      this.channels[`private-encrypted-${name}`] = new NullPrivateChannel();
+      this.channels[`private-encrypted-${name}`] =
+        new NullEncryptedPrivateChannel();
     }
-    return this.channels[`private-encrypted-${name}`] as NullPrivateChannel;
+    return this.channels[
+      `private-encrypted-${name}`
+    ] as NullEncryptedPrivateChannel;
   }
 
   socketId(): string {

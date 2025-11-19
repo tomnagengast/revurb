@@ -2,6 +2,7 @@ import type Pusher from "pusher-js";
 import type { Options as PusherJsOptions } from "pusher-js";
 import type {
   NullChannel,
+  NullEncryptedPrivateChannel,
   NullPresenceChannel,
   NullPrivateChannel,
   PusherChannel,
@@ -20,9 +21,6 @@ type SocketIoChannel = any;
 type SocketIoPrivateChannel = any;
 // biome-ignore lint/suspicious/noExplicitAny: Placeholder for Phase 2 implementation
 type SocketIoPresenceChannel = any;
-// Placeholder for NullEncryptedPrivateChannel (to be implemented in Phase 2)
-// biome-ignore lint/suspicious/noExplicitAny: Placeholder for Phase 2 implementation
-type NullEncryptedPrivateChannel = any;
 
 type CustomOmit<T, K extends PropertyKey> = {
   [P in keyof T as Exclude<P, K>]: T[P];
