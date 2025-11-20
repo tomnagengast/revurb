@@ -15,11 +15,33 @@ describe("Echo", () => {
     ).toThrow("Broadcaster string foo is not supported.");
   });
 
-  test("it will throw error for socket.io broadcaster (not yet implemented)", () => {
+  test("it will throw error for socket.io broadcaster when client is missing", () => {
     expect(
-      // @ts-expect-error - socket.io not yet implemented
+      // @ts-expect-error - socket.io implemented but client missing
       () => new Echo({ broadcaster: "socket.io", withoutInterceptors: true }),
-    ).toThrow("socket.io broadcaster is not yet implemented");
+    ).toThrow(
+      "Socket.io client not found. Should be globally available or passed via options.client",
+    );
+  });
+
+  test("it will initialize socket.io broadcaster when client is provided", () => {
+    const client = () => ({
+      connect: () => {},
+      on: () => {},
+      emit: () => {},
+      io: {
+        on: () => {},
+      },
+    });
+    expect(
+      () =>
+        new Echo({
+          broadcaster: "socket.io",
+          withoutInterceptors: true,
+          // @ts-expect-error - mock client
+          client,
+        }),
+    ).not.toThrow();
   });
 
   test("it will handle ably broadcaster by mapping to PusherConnector", () => {

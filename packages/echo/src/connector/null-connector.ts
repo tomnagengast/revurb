@@ -6,67 +6,86 @@ import {
 } from "../channel";
 import { Connector } from "./connector";
 
+/**
+ * This class creates a null connector.
+ */
 export class NullConnector extends Connector<"null"> {
-  channels: Record<string, NullChannel> = {};
+  /**
+   * All of the subscribed channel names.
+   */
+  // biome-ignore lint/suspicious/noExplicitAny: Internal storage matching upstream
+  channels: any = {};
 
+  /**
+   * Create a fresh connection.
+   */
   connect(): void {
     //
   }
 
+  /**
+   * Listen for an event on a channel instance.
+   */
   override listen(
-    name: string,
-    event: string,
-    callback: (...args: unknown[]) => unknown,
+    _name: string,
+    _event: string,
+    _callback: (...args: unknown[]) => unknown,
   ): NullChannel {
-    return this.channel(name).listen(event, callback);
+    return new NullChannel();
   }
 
-  channel(name: string): NullChannel {
-    if (!this.channels[name]) {
-      this.channels[name] = new NullChannel();
-    }
-
-    return this.channels[name];
+  /**
+   * Get a channel instance by name.
+   */
+  channel(_name: string): NullChannel {
+    return new NullChannel();
   }
 
-  privateChannel(name: string): NullPrivateChannel {
-    if (!this.channels[`private-${name}`]) {
-      this.channels[`private-${name}`] = new NullPrivateChannel();
-    }
-
-    return this.channels[`private-${name}`] as NullPrivateChannel;
+  /**
+   * Get a private channel instance by name.
+   */
+  privateChannel(_name: string): NullPrivateChannel {
+    return new NullPrivateChannel();
   }
 
-  presenceChannel(name: string): NullPresenceChannel {
-    if (!this.channels[`presence-${name}`]) {
-      this.channels[`presence-${name}`] = new NullPresenceChannel();
-    }
-
-    return this.channels[`presence-${name}`] as NullPresenceChannel;
+  /**
+   * Get a private encrypted channel instance by name.
+   */
+  override encryptedPrivateChannel(_name: string): NullEncryptedPrivateChannel {
+    return new NullEncryptedPrivateChannel();
   }
 
+  /**
+   * Get a presence channel instance by name.
+   */
+  presenceChannel(_name: string): NullPresenceChannel {
+    return new NullPresenceChannel();
+  }
+
+  /**
+   * Leave the given channel, as well as its private and presence variants.
+   */
   leave(_name: string): void {
     //
   }
 
+  /**
+   * Leave the given channel.
+   */
   leaveChannel(_name: string): void {
     //
   }
 
-  override encryptedPrivateChannel(name: string): NullEncryptedPrivateChannel {
-    if (!this.channels[`private-encrypted-${name}`]) {
-      this.channels[`private-encrypted-${name}`] =
-        new NullEncryptedPrivateChannel();
-    }
-    return this.channels[
-      `private-encrypted-${name}`
-    ] as NullEncryptedPrivateChannel;
-  }
-
+  /**
+   * Get the socket ID for the connection.
+   */
   socketId(): string {
     return "fake-socket-id";
   }
 
+  /**
+   * Disconnect the connection.
+   */
   disconnect(): void {
     //
   }

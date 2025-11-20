@@ -1,5 +1,5 @@
 import type { Channel, PresenceChannel } from "./channel";
-import { NullConnector, PusherConnector } from "./connector";
+import { NullConnector, PusherConnector, SocketIoConnector } from "./connector";
 import type { Connector } from "./connector/connector";
 import type { BroadcastDriver, EchoOptions } from "./types";
 import { isConstructor } from "./util";
@@ -41,8 +41,8 @@ export class Echo<TBroadcaster extends BroadcastDriver = "reverb"> {
         broadcaster: "pusher",
       } as unknown as EchoOptions<"reverb">);
     } else if (broadcaster === "socket.io") {
-      throw new Error(
-        "socket.io broadcaster is not yet implemented. It will be available in Phase 2.",
+      this.connector = new SocketIoConnector(
+        this.options as EchoOptions<"socket.io">,
       );
     } else if (broadcaster === "null") {
       this.connector = new NullConnector(this.options as EchoOptions<"null">);

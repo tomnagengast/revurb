@@ -9,18 +9,15 @@ import type {
   PusherEncryptedPrivateChannel,
   PusherPresenceChannel,
   PusherPrivateChannel,
+  SocketIoChannel,
+  SocketIoPresenceChannel,
+  SocketIoPrivateChannel,
 } from "./channel";
-import type { NullConnector, PusherConnector } from "./connector";
-
-// Placeholder types for socket.io (to be implemented in Phase 2)
-// biome-ignore lint/suspicious/noExplicitAny: Placeholder for Phase 2 implementation
-type SocketIoConnector = any;
-// biome-ignore lint/suspicious/noExplicitAny: Placeholder for Phase 2 implementation
-type SocketIoChannel = any;
-// biome-ignore lint/suspicious/noExplicitAny: Placeholder for Phase 2 implementation
-type SocketIoPrivateChannel = any;
-// biome-ignore lint/suspicious/noExplicitAny: Placeholder for Phase 2 implementation
-type SocketIoPresenceChannel = any;
+import type {
+  NullConnector,
+  PusherConnector,
+  SocketIoConnector,
+} from "./connector";
 
 type CustomOmit<T, K extends PropertyKey> = {
   [P in keyof T as Exclude<P, K>]: T[P];

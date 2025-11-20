@@ -47,7 +47,7 @@ export class PusherChannel extends Channel {
       );
       const formattedEvent = event.startsWith(namespace)
         ? event.substring(namespace.length + 1)
-        : "." + event;
+        : `.${event}`;
       callback(formattedEvent, data);
     });
     return this;
