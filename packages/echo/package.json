@@ -1,6 +1,6 @@
 {
   "name": "@revurb/echo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Bun-powered Echo client for Revurb - real-time WebSocket communication",
   "keywords": [
     "websocket",

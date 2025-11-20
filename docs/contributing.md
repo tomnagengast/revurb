@@ -1,3 +1,4 @@
+<!-- Imported from: docs/contributing.md -->
 # Contributing to Revurb
 
 This document outlines the development philosophy, architecture decisions, and coding standards for the Revurb project.
@@ -16,6 +17,12 @@ Revurb is a TypeScript port of [Laravel Reverb](https://laravel.com/docs/reverb)
 ### Why Idiom?
 *   **Performance:** We leverage Bun's native features (like its HTTP server and WebSocket implementation) rather than blindly copying PHP logic that doesn't fit the runtime.
 *   **Ecosystem:** We use standard TypeScript/JavaScript patterns where strictly adhering to PHP syntax would be awkward or inefficient.
+
+## Echo Client
+
+For information on the Echo client port, usage, and migration status, please see:
+*   [Echo Client Documentation](./echo.md)
+*   [Echo Migration Plan](../specs/2025-11-19-echo-migration-plan.md)
 
 ## Coding Standards
 
