@@ -1,11 +1,10 @@
 import type { Channel, PresenceChannel } from "./channel";
 import { NullConnector, PusherConnector, SocketIoConnector } from "./connector";
-import type { Connector } from "./connector/connector";
-import type { BroadcastDriver, EchoOptions } from "./types";
+import type { BroadcastDriver, Broadcaster, EchoOptions } from "./types";
 import { isConstructor } from "./util";
 
 export class Echo<TBroadcaster extends BroadcastDriver = "reverb"> {
-  connector!: Connector<BroadcastDriver>;
+  connector!: Broadcaster[TBroadcaster]["connector"];
   options: EchoOptions<TBroadcaster>;
 
   constructor(options: EchoOptions<TBroadcaster>) {
@@ -25,27 +24,33 @@ export class Echo<TBroadcaster extends BroadcastDriver = "reverb"> {
     const broadcaster = this.options.broadcaster;
 
     if (broadcaster === "reverb") {
-      this.connector = new PusherConnector({
+      const options = {
         ...this.options,
         broadcaster: "reverb",
         cluster: "",
-      } as EchoOptions<"reverb">);
+      } as EchoOptions<"reverb">;
+      // biome-ignore lint/suspicious/noExplicitAny: Connector type matching
+      this.connector = new PusherConnector(options) as any;
     } else if (broadcaster === "pusher") {
-      this.connector = new PusherConnector(
-        this.options as unknown as EchoOptions<"reverb">,
-      );
+      const options = this.options as unknown as EchoOptions<"reverb">;
+      // biome-ignore lint/suspicious/noExplicitAny: Connector type matching
+      this.connector = new PusherConnector(options) as any;
     } else if (broadcaster === "ably") {
-      this.connector = new PusherConnector({
+      const options = {
         ...this.options,
         cluster: "",
         broadcaster: "pusher",
-      } as unknown as EchoOptions<"reverb">);
+      } as unknown as EchoOptions<"reverb">;
+      // biome-ignore lint/suspicious/noExplicitAny: Connector type matching
+      this.connector = new PusherConnector(options) as any;
     } else if (broadcaster === "socket.io") {
-      this.connector = new SocketIoConnector(
-        this.options as EchoOptions<"socket.io">,
-      );
+      const options = this.options as EchoOptions<"socket.io">;
+      // biome-ignore lint/suspicious/noExplicitAny: Connector type matching
+      this.connector = new SocketIoConnector(options) as any;
     } else if (broadcaster === "null") {
-      this.connector = new NullConnector(this.options as EchoOptions<"null">);
+      const options = this.options as EchoOptions<"null">;
+      // biome-ignore lint/suspicious/noExplicitAny: Connector type matching
+      this.connector = new NullConnector(options) as any;
     } else if (
       typeof broadcaster === "function" &&
       isConstructor(broadcaster)

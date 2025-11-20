@@ -1,5 +1,6 @@
-import Echo, { type BroadcastDriver, type EchoOptions } from "laravel-echo";
 import Pusher from "pusher-js";
+import Echo from "../../echo";
+import type { BroadcastDriver, EchoOptions } from "../../types";
 
 let echoInstance: Echo<BroadcastDriver> | null = null;
 let echoConfig: EchoOptions<BroadcastDriver> | null = null;
@@ -15,7 +16,14 @@ const getEchoInstance = <T extends BroadcastDriver>(): Echo<T> => {
     );
   }
 
-  echoConfig.Pusher ??= Pusher;
+  if (
+    echoConfig.broadcaster === "reverb" ||
+    echoConfig.broadcaster === "pusher" ||
+    echoConfig.broadcaster === "ably"
+  ) {
+    // biome-ignore lint/suspicious/noExplicitAny: Dynamic assignment of Pusher library
+    (echoConfig as any).Pusher ??= Pusher;
+  }
 
   echoInstance = new Echo(echoConfig);
 
@@ -51,7 +59,7 @@ export const configureEcho = <T extends BroadcastDriver>(
   };
 
   echoConfig = {
-    ...defaults[config.broadcaster],
+    ...defaults[config.broadcaster as string],
     ...config,
   } as EchoOptions<BroadcastDriver>;
 

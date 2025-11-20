@@ -1,5 +1,5 @@
-import type { BroadcastDriver } from "laravel-echo";
 import { useCallback, useEffect, useRef } from "react";
+import type { BroadcastDriver } from "../../types";
 import { echo } from "../config";
 import type {
   BroadcastNotification,
@@ -106,7 +106,8 @@ export const useEcho = <
     }
 
     events.forEach((e) => {
-      subscription.current.stopListening(e, callbackFunc);
+      // biome-ignore lint/suspicious/noExplicitAny: Laravel Echo compatibility
+      subscription.current.stopListening(e, callbackFunc as any);
     });
 
     listening.current = false;
@@ -119,7 +120,8 @@ export const useEcho = <
     }
 
     events.forEach((e) => {
-      subscription.current.listen(e, callbackFunc);
+      // biome-ignore lint/suspicious/noExplicitAny: Laravel Echo compatibility
+      subscription.current.listen(e, callbackFunc as any);
     });
 
     listening.current = true;
@@ -215,7 +217,8 @@ export const useEchoNotification = <
     }
 
     if (!initialized.current) {
-      result.channel().notification(cb);
+      // biome-ignore lint/suspicious/noExplicitAny: Laravel Echo compatibility
+      result.channel().notification(cb as any);
     }
 
     listening.current = true;
@@ -227,7 +230,8 @@ export const useEchoNotification = <
       return;
     }
 
-    result.channel().stopListeningForNotification(cb);
+    // biome-ignore lint/suspicious/noExplicitAny: Laravel Echo compatibility
+    result.channel().stopListeningForNotification(cb as any);
 
     listening.current = false;
   }, [cb, result.channel]);

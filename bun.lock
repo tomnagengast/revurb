@@ -34,7 +34,6 @@
       "name": "@revurb/echo",
       "version": "0.1.0",
       "dependencies": {
-        "laravel-echo": "^2.2.6",
         "pusher-js": "^8.4.0",
       },
       "devDependencies": {
@@ -48,9 +47,11 @@
       },
       "peerDependencies": {
         "react": ">=18.0.0",
+        "socket.io-client": ">=4.0.0",
       },
       "optionalPeers": [
         "react",
+        "socket.io-client",
       ],
     },
     "packages/revurb": {
@@ -729,8 +730,6 @@
     "kleur": ["kleur@3.0.3", "", {}, "sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w=="],
 
     "ky": ["ky@1.14.0", "", {}, "sha512-Rczb6FMM6JT0lvrOlP5WUOCB7s9XKxzwgErzhKlKde1bEV90FXplV1o87fpt4PU/asJFiqjYJxAJyzJhcrxOsQ=="],
-
-    "laravel-echo": ["laravel-echo@2.2.6", "", { "peerDependencies": { "pusher-js": "*", "socket.io-client": "*" } }, "sha512-KuCldOrE8qbm0CVDBgc6FiX3VuReDu1C1xaS891KqwEUg9NT/Op03iiZqTWeVd0/WJ4H95q2pe9QEDJlwb/FPw=="],
 
     "latest-version": ["latest-version@9.0.0", "", { "dependencies": { "package-json": "^10.0.0" } }, "sha512-7W0vV3rqv5tokqkBAFV1LbR7HPOWzXQDpDgEuib/aJ1jsZZx6x3c2mBI+TJhJzOhkGeaLbCKEHXEXLfirtG2JA=="],
 
