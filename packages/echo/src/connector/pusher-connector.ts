@@ -14,7 +14,7 @@ type AnyPusherChannel =
   | PusherPresenceChannel;
 
 export class PusherConnector extends Connector {
-  pusher!: Pusher;
+  declare pusher: Pusher;
   channels: Record<string, AnyPusherChannel> = {};
 
   connect(): void {
