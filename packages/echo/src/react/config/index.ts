@@ -22,7 +22,7 @@ const getEchoInstance = <T extends BroadcastDriver>(): Echo<T> => {
     echoConfig.broadcaster === "ably"
   ) {
     // biome-ignore lint/suspicious/noExplicitAny: Dynamic assignment of Pusher library
-    (echoConfig as any).Pusher ??= Pusher;
+    (echoConfig as any).Pusher ??= (Pusher as any)?.default ?? Pusher;
   }
 
   echoInstance = new Echo(echoConfig);
